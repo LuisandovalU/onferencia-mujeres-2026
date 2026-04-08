@@ -1,0 +1,29 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+// Islas de React (Componentes con interactividad compleja)
+import { ConferenceMujeresSection } from '../components/ConferenceMujeresSection';
+import { InscriptionModal } from '../components/InscriptionModal';
+---
+
+<Layout title="Conferencia de Mujeres 2026">
+    <Header />
+    
+    <main>
+        {/* Usamos client:load para la sección principal ya que contiene animaciones de Framer Motion críticas para el Hero */}
+        <ConferenceMujeresSection client:load />
+    </main>
+
+    <Footer />
+    
+    {/* El modal se carga bajo demanda o en load si es crítico para la UX inmediata */}
+    {/* <InscriptionModal client:load /> -- Nota: El modal suele ser disparado por estado dentro de ConferenceMujeresSection en este proyecto */}
+</Layout>
+
+<style>
+    main {
+        min-height: 100vh;
+    }
+</style>

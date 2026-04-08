@@ -1,0 +1,37 @@
+{
+  "name": "section-conferencia-mujeres",
+  "description": "Section Conferencia Mujeres — Astro v5",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "clean": "rm -rf .astro dist"
+  },
+  "dependencies": {
+    "@astrojs/react": "^4.2.0",
+    "@astrojs/tailwind": "^6.0.0",
+    "astro": "^5.4.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.38.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss": "^3.4.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.4.27",
+    "postcss": "^8",
+    "typescript": "^5"
+  }
+}
