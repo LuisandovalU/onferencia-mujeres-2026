@@ -13,6 +13,7 @@ const {
 
 import '../styles/globals.css';
 import BotanicalBackground from '../components/BotanicalBackground.astro';
+import heroBotanicalBg from '../assets/hero-botanical-bg.webp';
 ---
 
 <!doctype html>
@@ -20,20 +21,47 @@ import BotanicalBackground from '../components/BotanicalBackground.astro';
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		
-		<title>{title}</title>
-
-		<!-- Preload and Fonts -->
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&family=Nunito:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-
-		<!-- CSS / Tailwind is handled by Astro -->
-
-		<!-- Metadata SEO / Social -->
-		<meta name="description" content={description} />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
+
+		<title>{title}</title>
+		<meta name="description" content={description} />
+
+		<!-- 1. Preconnects & High-Priority Assets -->
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link rel="preload" href={heroBotanicalBg.src} as="image" fetchpriority="high" />
+
+		<!-- 2. Critical Path Inline CSS (Antigravity Architecture) -->
+		<style is:inline>
+			:root {
+				--hero-bg-skeleton: radial-gradient(circle at center, #2d4a24 0%, #0a0a0a 100%);
+			}
+			html {
+				background: #0a0a0a;
+				overflow-x: hidden;
+				scroll-behavior: smooth;
+				-webkit-text-size-adjust: 100%;
+				-webkit-font-smoothing: antialiased;
+			}
+			body {
+				margin: 0;
+				min-height: 100vh;
+				overflow-x: hidden;
+				scroll-behavior: smooth;
+			}
+			/* Silk transition initial state */
+			.hero-image-silk {
+				opacity: 0;
+				transition: opacity 1.2s cubic-bezier(0.23, 1, 0.32, 1);
+			}
+			.hero-image-silk.loaded {
+				opacity: 1;
+			}
+		</style>
+
+		<!-- 3. Fonts & Styles (Pre-Tailwind) -->
+		<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&family=Nunito:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
 		<!-- Open Graph / Facebook -->
 		<meta property="og:type" content="website" />

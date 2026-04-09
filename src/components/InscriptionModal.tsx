@@ -135,6 +135,7 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
         onClick={handleClose}
       />
       <div
+        onClick={(e) => e.stopPropagation()}
         className={cn(
           "relative z-10 max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl sm:p-8"
         )}

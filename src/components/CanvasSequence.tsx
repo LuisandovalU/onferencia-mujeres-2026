@@ -30,6 +30,7 @@ export function CanvasSequence({
   const containerRef = useRef<HTMLDivElement>(null);
   const imagesRef = useRef<(HTMLImageElement | undefined)[]>([]);
   const [loadedCount, setLoadedCount] = useState(0);
+  const [isFirstFrameDrawn, setIsFirstFrameDrawn] = useState(false);
   const rafRef = useRef<number>(0);
   const lastFrameRef = useRef(-1);
 
@@ -41,13 +42,18 @@ export function CanvasSequence({
 
   const frameIndex = useTransform(smoothProgress, [0, 1], [0, frameUrls.length - 1]);
 
+  const lastIndexDrawnRef = useRef(-1);
   const drawFrame = useCallback(
     (idx: number) => {
       const canvas = canvasRef.current;
       const container = containerRef.current;
       if (!canvas || !container) return;
 
-      const img = imagesRef.current[Math.round(idx)];
+      const imgIdx = Math.round(idx);
+      const img = imagesRef.current[imgIdx];
+      
+      // Misión 2: Si el frame no está listo, NO limpies nada. 
+      // Simplemente retornamos y el canvas mantiene el frame anterior.
       if (!img || !img.complete || img.naturalWidth === 0) return;
 
       const dpr = Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 2);
@@ -63,9 +69,10 @@ export function CanvasSequence({
       const ctx = canvas.getContext("2d", { alpha: false });
       if (!ctx) return;
 
-      ctx.fillStyle = "#0a0a0a";
-      ctx.fillRect(0, 0, w, h);
-
+      // Solo llegamos aquí si tenemos una imagen lista para dibujar.
+      // Ya no necesitamos rellenar con un color sólido primero porque la imagen cubrirá todo (object-cover logic).
+      // Al no limpiar el canvas si la imagen falla, logramos el "Last Frame Cache".
+      
       const iw = img.naturalWidth;
       const ih = img.naturalHeight;
       const scale = Math.max(w / iw, h / ih);
@@ -75,8 +82,13 @@ export function CanvasSequence({
       const dy = (h - dh) / 2;
 
       ctx.drawImage(img, dx, dy, dw, dh);
+      lastIndexDrawnRef.current = imgIdx;
+      
+      if (!isFirstFrameDrawn) {
+        setIsFirstFrameDrawn(true);
+      }
     },
-    []
+    [isFirstFrameDrawn]
   );
 
   useMotionValueEvent(frameIndex, "change", (latest) => {
@@ -140,22 +152,30 @@ export function CanvasSequence({
   return (
     <div
       ref={containerRef}
-      className={cn("relative w-full overflow-hidden rounded-sm bg-neutral-950", className)}
-      style={{ aspectRatio }}
+      className={cn("relative w-full overflow-hidden rounded-sm bg-neutral-900", className)}
+      style={{ 
+        aspectRatio,
+        backgroundImage: frameUrls[0] ? `url(${frameUrls[0]})` : undefined,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
     >
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 h-full w-full"
+        className={cn(
+            "absolute inset-0 h-full w-full transition-opacity duration-700 ease-out",
+            isFirstFrameDrawn ? "opacity-100" : "opacity-0"
+        )}
         aria-hidden
       />
       {progressPct < 100 && (
         <motion.div
-          className="pointer-events-none absolute inset-0 flex items-center justify-center bg-neutral-950/40"
+          className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-[2px]"
           initial={{ opacity: 1 }}
           animate={{ opacity: progressPct < 100 ? 1 : 0 }}
           transition={{ duration: 0.35, ease: [0.42, 0, 0.58, 1] }}
         >
-          <span className="text-xs font-medium tracking-wide text-neutral-400">
+          <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-white/50">
             {progressPct}%
           </span>
         </motion.div>

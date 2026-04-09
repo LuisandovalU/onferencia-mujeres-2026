@@ -21,11 +21,19 @@ export default function ConferenceChoiceCard() {
 
   return (
     /* El cuadrado interactivo — sin wrapper externo de sección */
-    <div className="relative w-full max-w-[460px] mx-auto aspect-[3/4] rounded-[3rem] overflow-hidden bg-neutral-950 shadow-[0_0_100px_-20px_rgba(0,0,0,0.6)] ring-1 ring-black/10">
-
+    <div 
+      onClick={() => { if(selected) setSelected(null); }}
+      className={cn(
+        "relative w-full max-w-[460px] mx-auto aspect-[3/4] rounded-[3rem] overflow-hidden bg-neutral-950 shadow-[0_0_100px_-20px_rgba(0,0,0,0.6)] ring-1 ring-black/10 transition-all duration-500",
+        selected ? "cursor-pointer scale-[1.01]" : ""
+      )}
+    >
       {/* ── SECCIÓN VALIENTE (base) ── */}
       <motion.div
-        onClick={() => setSelected('valiente')}
+        onClick={(e) => { 
+          if(selected === 'brave') { setSelected(null); e.stopPropagation(); }
+          else if (!selected) setSelected('valiente');
+        }}
         animate={{
           filter: selected === 'brave'
             ? 'grayscale(1) brightness(0.15)'
@@ -50,10 +58,13 @@ export default function ConferenceChoiceCard() {
           <span className="text-[0.65rem] font-semibold tracking-[0.12em] uppercase text-[#2F4A2C] text-center px-4">Madres • Casadas • Mujeres Maduras</span>
         </div>
       </motion.div>
-
+      
       {/* ── SECCIÓN BRAVE (capa superior con corte diagonal) ── */}
       <motion.div
-        onClick={() => setSelected('brave')}
+        onClick={(e) => { 
+          if(selected === 'valiente') { setSelected(null); e.stopPropagation(); }
+          else if (!selected) setSelected('brave');
+        }}
         initial={false}
         animate={{
           clipPath: selected === 'brave'
@@ -109,7 +120,7 @@ export default function ConferenceChoiceCard() {
             )}
           >
             <button
-              onClick={() => openModal(selected)}
+              onClick={(e) => { e.stopPropagation(); openModal(selected); }}
               className={cn(
                 "w-full rounded-2xl py-5 text-[0.7rem] font-black uppercase tracking-[0.35em] shadow-2xl active:scale-95 transition-all",
                 selected === 'brave'

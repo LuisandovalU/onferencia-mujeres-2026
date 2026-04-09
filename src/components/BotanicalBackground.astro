@@ -63,6 +63,7 @@ for (let r = 0; r <= rows; r++) {
       data-parallax-group={plant.group}
       data-parallax-scale={plant.scale}
       class="absolute planta-parallax"
+      decoding="async"
       style={`
         top: ${plant.top}vh; 
         left: ${plant.left}vw; 
@@ -93,7 +94,7 @@ for (let r = 0; r <= rows; r++) {
         new simpleParallax(elms, {
           orientation: direction,
           scale: 1.4, 
-          delay: 0.6, 
+          delay: 0.4, 
           transition: 'cubic-bezier(0,0,0,1)',
           overflow: true 
         });
@@ -101,6 +102,6 @@ for (let r = 0; r <= rows; r++) {
     });
   }
 
-  document.addEventListener('DOMContentLoaded', initParallax);
-  document.addEventListener('astro:page-load', initParallax);
+  document.addEventListener('DOMContentLoaded', () => requestAnimationFrame(initParallax));
+  document.addEventListener('astro:page-load', () => requestAnimationFrame(initParallax));
 </script>
