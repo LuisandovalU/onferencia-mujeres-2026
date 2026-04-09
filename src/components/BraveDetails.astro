@@ -1,0 +1,99 @@
+---
+import { AutoImageCarousel } from "./AutoImageCarousel";
+import braveText from "@/assets/brave.webp";
+import braveCarousel1 from "@/assets/brave-carousel-1.webp";
+import braveCarousel2 from "@/assets/brave-carousel-2.webp";
+import braveCarousel3 from "@/assets/brave-carousel-3.webp";
+import braveCarousel4 from "@/assets/brave-carousel-4.webp";
+import braveCarousel5 from "@/assets/brave-carousel-5.webp";
+
+const BRAVE_SLIDES = [
+  { src: braveCarousel1, alt: "Conferencia Brave — comunidad" },
+  { src: braveCarousel2, alt: "Conferencia Brave — encuentro" },
+  { src: braveCarousel3, alt: "Conferencia Brave — momento en el escenario" },
+  { src: braveCarousel4, alt: "Conferencia Brave — conversación" },
+  { src: braveCarousel5, alt: "Conferencia Brave — adoración y comunidad" },
+];
+
+const BRAVE_TEXT_SRC = braveText.src;
+
+const copy = {
+  date: "24 de mayo",
+  body: "¿Qué es Brave?",
+};
+---
+
+<div class="overflow-hidden rounded-[2rem] bg-brave-dark-deep">
+  <div class="grid gap-0 md:grid-cols-2">
+    <div class="relative aspect-[4/3] min-h-[240px] md:aspect-auto md:min-h-[420px]">
+      <AutoImageCarousel
+        slides={BRAVE_SLIDES}
+        intervalMs={5500}
+        className="absolute inset-0"
+        sizes="(max-width: 768px) 100vw, 50vw"
+        priorityFirst={true}
+        client:visible
+      />
+    </div>
+    <div class="flex flex-col justify-center p-8 text-white md:p-12 lg:p-14">
+      <p class="font-body text-label font-semibold uppercase tracking-[0.28em] text-white/60 text-center md:text-left mb-4">
+        {copy.date}
+      </p>
+      
+      <button 
+        onclick="document.getElementById('brave-details-modal').showModal()"
+        class="group relative inline-flex items-center justify-center md:justify-start outline-none transition-all"
+        aria-label="Descubre qué es Brave"
+      >
+        <p class="font-display text-[clamp(2.5rem,4vw,3.5rem)] font-extrabold tracking-tight text-white text-center md:text-left leading-tight flex items-center transition-transform duration-300 group-hover:scale-[1.02] group-active:scale-[0.98] cursor-pointer">
+          ¿Qué es <img src={BRAVE_TEXT_SRC} alt="Brave" class="inline-block h-[0.9em] w-auto mx-2 -translate-y-1 object-contain brightness-0 invert" />?
+        </p>
+        <!-- Subrayado estilizado -->
+        <span class="absolute -bottom-1 left-0 h-[3px] rounded-full w-0 bg-white/40 transition-all duration-300 group-hover:w-[90%] md:group-hover:w-[80%]"></span>
+      </button>
+
+      <!-- Pequeña ventana emergente muy detallada y femenina -->
+      <dialog id="brave-details-modal" class="backdrop:backdrop-blur-md backdrop:bg-black/50 rounded-[2rem] bg-brave-dark-deep border border-white/10 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] max-w-sm w-[90vw] overflow-hidden text-white m-auto fixed inset-0 z-50">
+        <div class="relative p-10 pt-12 text-center flex flex-col items-center">
+          <button onclick="document.getElementById('brave-details-modal').close()" class="absolute top-5 right-5 text-white/40 hover:text-white hover:bg-white/10 p-2 rounded-full transition-all outline-none" aria-label="Cerrar detalles">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+          
+          <!-- Elemento decorativo simple pero estético -->
+          <div class="w-10 h-1 bg-white/20 rounded-full mb-6"></div>
+          
+          <img src={BRAVE_TEXT_SRC} alt="Brave" class="h-10 mb-6 brightness-0 invert opacity-[0.85]" />
+          
+          <p class="font-body text-[1.05rem] leading-[1.7] text-white/90">
+            Diseñado de forma especial para <strong>estudiantes universitarias y jóvenes profesionales</strong>, <strong>Brave</strong> es una conferencia inspiradora creada para que hagas una pausa y escuches la palabra de Dios. Es un encuentro profundo que te apoyará a crecer en tu relación con Él, afirmando tus convicciones para que puedas dar tu siguiente paso con valentía y una fe inquebrantable.
+          </p>
+
+          <button
+            type="button"
+            onclick="document.getElementById('brave-details-modal').close(); window.dispatchEvent(new CustomEvent('open-inscription-modal', { detail: { conferencia: 'brave' } }));"
+            class="mt-8 mb-2 rounded-full bg-white px-8 py-3.5 font-body text-[0.8rem] font-bold uppercase tracking-[0.2em] text-brave-dark-deep transition-transform duration-300 hover:scale-105 active:scale-95 shadow-[0_10px_25px_rgba(0,0,0,0.3)]"
+          >
+            Aparta tu lugar
+          </button>
+        </div>
+      </dialog>
+    </div>
+  </div>
+</div>
+
+<style>
+  dialog[open] {
+    animation: scale-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  dialog::backdrop {
+    animation: fade-in 0.5s ease-out forwards;
+  }
+  @keyframes scale-up {
+    0% { opacity: 0; transform: scale(0.9) translateY(15px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  @keyframes fade-in {
+    0% { opacity: 0; backdrop-filter: blur(0px); background: rgba(0, 0, 0, 0); }
+    100% { opacity: 1; backdrop-filter: blur(8px); background: rgba(0, 0, 0, 0.5); }
+  }
+</style>

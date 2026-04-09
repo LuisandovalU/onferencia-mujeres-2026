@@ -1,9 +1,9 @@
 export type ConferenciaKey = "brave" | "valiente";
 
-/** Brave: 17–30 · Valiente: 31+ */
-export const RANGO_EDAD_LABEL: Record<ConferenciaKey, string> = {
-  brave: "17 a 30 años",
-  valiente: "31 años en adelante",
+/** Brave: Univ/Trabajo · Valiente: Madres/Maduras */
+export const ETAPA_LABEL: Record<ConferenciaKey, string> = {
+  brave: "Universitarias y Jóvenes Profesionales",
+  valiente: "Madres y Mujeres Maduras",
 };
 
 export const TRANSFERENCIA_COPY: Record<
@@ -36,7 +36,7 @@ export const TRANSFERENCIA_COPY: Record<
 export const WHATSAPP_ENVIO_ITEMS = [
   "Captura de pantalla o foto del comprobante de transferencia.",
   "Tu nombre completo.",
-  "Tu edad.",
+  "Tu etapa o conferencia (Brave/Valiente).",
 ];
 
 const DEFAULT_WA = "5210000000000";

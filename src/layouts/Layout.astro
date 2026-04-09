@@ -12,6 +12,7 @@ const {
 } = Astro.props;
 
 import '../styles/globals.css';
+import BotanicalBackground from '../components/BotanicalBackground.astro';
 ---
 
 <!doctype html>
@@ -48,8 +49,11 @@ import '../styles/globals.css';
 		<meta property="twitter:description" content={description} />
 		<meta property="twitter:image" content={new URL(image, Astro.url)} />
 	</head>
-	<body class="min-h-screen bg-[#f5f5f5] antialiased">
-		<slot />
+	<body class="min-h-screen bg-[#f5f5f5] antialiased relative z-0">
+		<BotanicalBackground />
+		<div class="relative z-10 flex flex-col min-h-screen">
+			<slot />
+		</div>
 	</body>
 </html>
 

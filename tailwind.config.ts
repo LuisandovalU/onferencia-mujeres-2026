@@ -3,9 +3,7 @@ import plugin from "tailwindcss/plugin";
 
 const config: Config = {
   content: [
-    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}",
   ],
   theme: {
     extend: {
@@ -52,6 +50,24 @@ const config: Config = {
           muted: "var(--accent-muted)",
         },
         surface: "#ffffff",
+        brave: {
+          "dark-deep": "#2F4A2C",
+          forest: "#3F5E2E",
+          "olive-medium": "#6F7B4E",
+          moss: "#7F925D",
+          "light-soft": "#C4CF9A",
+          leaf: "#A8BFA0",
+          grayish: "#8FA184",
+          beige: "#E3DBCF",
+          sand: "#D6CBB8",
+        },
+        valiente: {
+          dark: "#2F4A2C",
+          "lime-soft": "#B9CF63",
+          olive: "#6F7B4E",
+          medium: "#7F925D",
+          beige: "#E3DBCF",
+        },
       },
       transitionTimingFunction: {
         "in-out-soft": "cubic-bezier(0.42, 0, 0.58, 1)",

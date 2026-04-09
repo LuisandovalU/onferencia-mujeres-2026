@@ -2,7 +2,7 @@
 
 import { PAGO_PRODUCTO_LABEL } from "@/config/pago";
 import {
-  RANGO_EDAD_LABEL,
+  ETAPA_LABEL,
   TRANSFERENCIA_COPY,
   WHATSAPP_ENVIO_ITEMS,
   WHATSAPP_NUMERO,
@@ -13,69 +13,87 @@ import { useCallback, useEffect, useId, useMemo, useState } from "react";
 
 type Step = "form" | "resultado";
 
-const EDAD_A_CONFERENCIA: Record<string, ConferenciaKey> = {
-  "17-30": "brave",
-  "31+": "valiente",
+const ETAPA_A_CONFERENCIA: Record<string, ConferenciaKey> = {
+  "brave": "brave",
+  "valiente": "valiente",
 };
 
-type InscriptionModalProps = {
-  open: boolean;
-  onClose: () => void;
+interface InscriptionModalProps {
+  open?: boolean;
+  onClose?: () => void;
   presetConferencia?: ConferenciaKey | null;
-};
+}
 
 function buildWhatsAppMessage(nombre: string, conferencia: ConferenciaKey) {
   const producto = PAGO_PRODUCTO_LABEL[conferencia];
-  const edad = RANGO_EDAD_LABEL[conferencia];
+  const etapa = ETAPA_LABEL[conferencia];
   return [
     `Hola, quiero confirmar mi registro para ${producto}.`,
     `Nombre: ${nombre}`,
-    `Edad: ${edad}`,
+    `Etapa: ${etapa}`,
     "",
     "Adjunto foto o captura del comprobante de transferencia.",
   ].join("\n");
 }
 
-export function InscriptionModal({ open, onClose, presetConferencia = null }: InscriptionModalProps) {
+export function InscriptionModal({ open: propOpen, onClose, presetConferencia: propPreset = null }: InscriptionModalProps) {
   const titleId = useId();
+  const [internalOpen, setInternalOpen] = useState(false);
   const [step, setStep] = useState<Step>("form");
-  const [edad, setEdad] = useState("");
+  const [etapa, setEtapa] = useState("");
   const [nombre, setNombre] = useState("");
   const [conferencia, setConferencia] = useState<ConferenciaKey | null>(null);
 
+  const open = propOpen !== undefined ? propOpen : internalOpen;
+
   const resetToForm = useCallback(() => {
     setStep("form");
-    setEdad("");
+    setEtapa("");
     setNombre("");
     setConferencia(null);
   }, []);
+
+  const handleClose = useCallback(() => {
+    setInternalOpen(false);
+    resetToForm();
+    onClose?.();
+  }, [onClose, resetToForm]);
+
+  useEffect(() => {
+    const handleOpenEvent = (e: any) => {
+      const { conferencia: preset } = e.detail || {};
+      if (preset) {
+        setConferencia(preset);
+        setStep("resultado");
+      } else {
+        resetToForm();
+      }
+      setInternalOpen(true);
+    };
+
+    window.addEventListener('open-inscription-modal', handleOpenEvent);
+    return () => window.removeEventListener('open-inscription-modal', handleOpenEvent);
+  }, [resetToForm]);
 
   useEffect(() => {
     if (!open) {
       resetToForm();
       return;
     }
-    if (presetConferencia) {
+    if (propPreset) {
       setStep("resultado");
-      setConferencia(presetConferencia);
-      setEdad("");
-      setNombre("");
-    } else {
-      setStep("form");
-      setConferencia(null);
-      setEdad("");
-      setNombre("");
+      setConferencia(propPreset);
     }
-  }, [open, presetConferencia, resetToForm]);
+  }, [open, propPreset, resetToForm]);
 
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") handleClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+  }, [open, handleClose]);
 
   useEffect(() => {
     if (!open) return;
@@ -87,7 +105,7 @@ export function InscriptionModal({ open, onClose, presetConferencia = null }: In
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const key = EDAD_A_CONFERENCIA[edad];
+    const key = ETAPA_A_CONFERENCIA[etapa];
     if (!key || nombre.trim().length < 2) return;
     setConferencia(key);
     setStep("resultado");
@@ -114,7 +132,7 @@ export function InscriptionModal({ open, onClose, presetConferencia = null }: In
         type="button"
         className="absolute inset-0 bg-black/55 backdrop-blur-[2px]"
         aria-label="Cerrar"
-        onClick={onClose}
+        onClick={handleClose}
       />
       <div
         className={cn(
@@ -123,7 +141,7 @@ export function InscriptionModal({ open, onClose, presetConferencia = null }: In
       >
         <button
           type="button"
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute right-4 top-4 rounded-full p-2 text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-800"
           aria-label="Cerrar ventana"
         >
@@ -140,25 +158,24 @@ export function InscriptionModal({ open, onClose, presetConferencia = null }: In
             <p className="mt-2 font-body text-sm text-neutral-600">
               Completa los datos para ver la información de transferencia y apartar tu lugar.{" "}
               <span className="text-neutral-500">
-                Brave corresponde a <strong className="font-medium text-neutral-700">17 a 30 años</strong>; Valiente a{" "}
-                <strong className="font-medium text-neutral-700">31 años en adelante</strong>.
+                Asegúrate de seleccionar la etapa que mejor describa tu momento de vida actual.
               </span>
             </p>
             <form onSubmit={handleSubmit} className="mt-6 space-y-5">
               <div>
-                <label htmlFor="edad" className="block font-body text-sm font-medium text-neutral-800">
-                  ¿Cuántos años tienes?
+                <label htmlFor="etapa" className="block font-body text-sm font-medium text-neutral-800">
+                  ¿En qué etapa te encuentras?
                 </label>
                 <select
-                  id="edad"
+                  id="etapa"
                   required
-                  value={edad}
-                  onChange={(e) => setEdad(e.target.value)}
+                  value={etapa}
+                  onChange={(e) => setEtapa(e.target.value)}
                   className="mt-2 w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 font-body text-neutral-900 outline-none focus:border-forest focus:ring-2 focus:ring-forest/25"
                 >
                   <option value="">Selecciona una opción</option>
-                  <option value="17-30">De 17 a 30 años (Brave)</option>
-                  <option value="31+">31 años o más (Valiente)</option>
+                  <option value="brave">Universidad / Joven Profesional (Brave)</option>
+                  <option value="valiente">Madre / Mujer Madura (Valiente)</option>
                 </select>
               </div>
               <div>
@@ -194,7 +211,7 @@ export function InscriptionModal({ open, onClose, presetConferencia = null }: In
             </h2>
             <p className="mt-2 font-body text-sm text-neutral-600">
               <span className="rounded-md bg-neutral-100 px-2 py-0.5 font-medium text-neutral-800">
-                Edad: {RANGO_EDAD_LABEL[conferencia]}
+                Etapa: {ETAPA_LABEL[conferencia]}
               </span>
             </p>
 
@@ -274,12 +291,12 @@ export function InscriptionModal({ open, onClose, presetConferencia = null }: In
 
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="mt-6 w-full rounded-full border-2 border-neutral-300 bg-white py-3 font-body text-sm font-semibold text-neutral-800 transition hover:bg-neutral-50"
             >
               Cerrar
             </button>
-            {!presetConferencia && (
+            {!propPreset && (
               <button
                 type="button"
                 onClick={resetToForm}

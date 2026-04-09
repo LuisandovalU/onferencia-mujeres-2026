@@ -1,0 +1,108 @@
+---
+import heroBotanicalBg from "@/assets/hero-botanical-bg.webp";
+import { InscribeteButton } from "./InscribeteButton";
+
+const HERO_BOTANICAL_BG = heroBotanicalBg.src;
+
+const inscribetePillClass =
+  "rounded-full border-2 border-neutral-900 bg-white px-5 py-2.5 font-body text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-neutral-900 transition hover:bg-neutral-50 sm:px-7 sm:py-3 sm:text-sm sm:tracking-[0.18em]";
+---
+
+<section
+  class="relative isolate min-h-[calc(100svh-1.5rem)] w-full overflow-hidden rounded-[2rem] bg-neutral-950 shadow-[0_-16px_48px_-18px_rgba(0,0,0,0.14),14px_0_40px_-20px_rgba(0,0,0,0.1),-14px_0_40px_-20px_rgba(0,0,0,0.1)] sm:min-h-[calc(100svh-2.5rem)] sm:rounded-[2.25rem] md:min-h-[calc(100svh-3rem)] md:rounded-[2.75rem] lg:rounded-[3rem]"
+  aria-labelledby="hero-heading"
+>
+  <h1 id="hero-heading" class="sr-only">
+    Conferencia de Mujeres 2026
+  </h1>
+
+  <img
+    src={HERO_BOTANICAL_BG}
+    class="absolute inset-0 z-0 h-full w-full object-cover"
+    aria-hidden="true"
+  />
+
+  <div
+    class="relative z-10 flex min-h-[calc(100svh-1.5rem)] flex-col items-center justify-center px-4 pb-28 pt-16 text-center sm:min-h-[calc(100svh-2.5rem)] sm:px-8 sm:pb-32 sm:pt-20 md:min-h-[calc(100svh-3rem)] md:px-12"
+  >
+    <p
+      class="font-hero text-[clamp(0.88rem,3.4vw,1.45rem)] font-bold uppercase leading-tight tracking-[0.28em] text-white [text-shadow:0_2px_18px_rgba(0,0,0,0.55)]"
+    >
+      CONFERENCIA DE
+    </p>
+    <p
+      class="font-hero mt-5 text-[clamp(3.1rem,13.5vw,8.25rem)] font-black uppercase leading-[0.88] tracking-[-0.04em] text-white [font-weight:900] [text-shadow:0_4px_32px_rgba(0,0,0,0.55),0_1px_0_rgba(0,0,0,0.35)] sm:mt-6 md:mt-7"
+    >
+      MUJERES
+    </p>
+    <p
+      class="font-hero mt-6 text-[clamp(2.35rem,10.5vw,6rem)] font-black uppercase leading-none tracking-[-0.045em] text-white [font-weight:900] [text-shadow:0_3px_26px_rgba(0,0,0,0.5)] sm:mt-7"
+    >
+      2026
+    </p>
+  </div>
+
+  <div
+    class="pointer-events-none absolute inset-x-0 bottom-0 z-[25] h-[clamp(5.75rem,20vmin,9.5rem)]"
+    aria-hidden="true"
+  >
+    <svg
+      class="h-full w-full"
+      viewBox="0 0 400 100"
+      preserveAspectRatio="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        fill="#f5f5f5"
+        d="M0 100 L0 74 L216 74 C232 74 238 58 244 46 C250 34 262 28 278 28 L400 28 L400 100 Z"
+      />
+    </svg>
+    <div class="pointer-events-none absolute inset-0 flex items-end justify-end pb-[clamp(0.65rem,2.2vmin,1.1rem)] pr-[clamp(0.85rem,4vw,2.25rem)] pt-6">
+      <div class="pointer-events-auto">
+        <InscribeteButton client:load className={inscribetePillClass} />
+      </div>
+    </div>
+  </div>
+
+  <a
+    href="#contenido"
+    class="absolute bottom-[max(7.25rem,env(safe-area-inset-bottom))] left-1/2 z-30 flex -translate-x-1/2 flex-col items-center gap-1 text-white/90 outline-none ring-offset-2 ring-offset-transparent transition-opacity hover:text-white focus-visible:ring-2 focus-visible:ring-white/70 sm:bottom-[max(6.25rem,env(safe-area-inset-bottom))] md:bottom-[max(6.75rem,env(safe-area-inset-bottom))]"
+    aria-label="Desplazarse hacia el contenido siguiente"
+  >
+    <span class="animate-hero-scroll-arrow drop-shadow-[0_2px_12px_rgba(0,0,0,0.45)]">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="h-9 w-9 sm:h-11 sm:w-11"
+        aria-hidden="true"
+      >
+        <path d="m6 9 6 6 6-6" />
+      </svg>
+    </span>
+  </a>
+
+  <div
+    class="pointer-events-none absolute inset-x-0 top-0 z-20 h-[min(44vh,520px)] bg-cover bg-no-repeat opacity-[0.58] [mask-image:linear-gradient(to_bottom,black_0%,rgba(0,0,0,0.85)_45%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_0%,rgba(0,0,0,0.85)_45%,transparent_100%)]"
+    style={{
+      backgroundImage: `url(${HERO_BOTANICAL_BG})`,
+      backgroundPosition: "center top",
+      backgroundSize: "cover",
+    }}
+    aria-hidden="true"
+  />
+</section>
+
+<style>
+  @keyframes hero-scroll-arrow {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(6px); }
+  }
+  .animate-hero-scroll-arrow {
+    animation: hero-scroll-arrow 2s ease-in-out infinite;
+  }
+</style>

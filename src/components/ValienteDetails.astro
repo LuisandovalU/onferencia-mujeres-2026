@@ -1,0 +1,96 @@
+---
+import { AutoImageCarousel } from "./AutoImageCarousel";
+import valienteText from "@/assets/valiente.webp";
+import valienteCarousel1 from "@/assets/valiente-carousel-1.webp";
+import valienteCarousel2 from "@/assets/valiente-carousel-2.webp";
+import valienteCarousel3 from "@/assets/valiente-carousel-3.webp";
+import valienteCarousel4 from "@/assets/valiente-carousel-4.webp";
+import valienteCarousel5 from "@/assets/valiente-carousel-5.webp";
+
+const VALIENTE_SLIDES = [
+  { src: valienteCarousel1, alt: "Conferencia Valiente — comunidad y adoración" },
+  { src: valienteCarousel2, alt: "Conferencia Valiente — encuentro al aire libre" },
+  { src: valienteCarousel3, alt: "Conferencia Valiente — tres mujeres sonriendo" },
+  { src: valienteCarousel4, alt: "Conferencia Valiente — grupo cantando y celebrando" },
+  { src: valienteCarousel5, alt: "Conferencia Valiente — apuntes y enseñanza" },
+];
+
+const VALIENTE_TEXT_SRC = valienteText.src;
+
+const copy = {
+  date: "31 de mayo",
+  body: "¿Qué es Valiente?",
+};
+---
+
+<div class="overflow-hidden rounded-[2rem] bg-valiente-beige shadow-card">
+  <div class="grid gap-0 md:grid-cols-2">
+    <div class="order-2 flex flex-col justify-center p-8 md:order-1 md:p-12 lg:p-14">
+      <p class="font-body text-label font-semibold uppercase tracking-[0.28em] text-valiente-dark/50 text-center md:text-left mb-4">
+        {copy.date}
+      </p>
+
+      <button 
+        onclick="document.getElementById('valiente-details-modal').showModal()"
+        class="group relative inline-flex items-center justify-center md:justify-start outline-none transition-all"
+        aria-label="Descubre qué es Valiente"
+      >
+        <p class="font-display text-[clamp(2.5rem,4vw,3.5rem)] font-extrabold tracking-tight text-valiente-dark text-center md:text-left leading-tight flex items-center transition-transform duration-300 group-hover:scale-[1.02] group-active:scale-[0.98] cursor-pointer">
+          ¿Qué es <img src={VALIENTE_TEXT_SRC} alt="Valiente" class="inline-block h-[0.75em] w-auto mx-2 -translate-y-1 object-contain" />?
+        </p>
+        <span class="absolute -bottom-1 left-0 h-[3px] rounded-full w-0 bg-valiente-dark/20 transition-all duration-300 group-hover:w-[90%] md:group-hover:w-[80%]"></span>
+      </button>
+
+      <!-- Pequeña ventana emergente muy detallada y femenina -->
+      <dialog id="valiente-details-modal" class="backdrop:backdrop-blur-md backdrop:bg-black/50 rounded-[2rem] bg-valiente-beige border border-valiente-dark/10 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.4)] max-w-sm w-[90vw] overflow-hidden text-valiente-dark m-auto fixed inset-0 z-50">
+        <div class="relative p-10 pt-12 text-center flex flex-col items-center">
+          <button onclick="document.getElementById('valiente-details-modal').close()" class="absolute top-5 right-5 text-valiente-dark/30 hover:text-valiente-dark hover:bg-valiente-dark/5 p-2 rounded-full transition-all outline-none" aria-label="Cerrar detalles">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+          
+          <div class="w-10 h-1 bg-valiente-dark/10 rounded-full mb-6"></div>
+          
+          <img src={VALIENTE_TEXT_SRC} alt="Valiente" class="h-10 mb-6 opacity-[0.95]" />
+          
+          <p class="font-body text-[1.05rem] leading-[1.7] text-valiente-dark/90">
+            Pensado exclusivamente para honrar el corazón de <strong>madres, mujeres casadas y mujeres maduras</strong>, <strong>Valiente</strong> es una conferencia inspiradora donde encontrarás tu tribu para tomar un café y compartir vida. Es un respiro espiritual preparado para que escuches la palabra de Dios, renueves tu mirada y crezcas profunda e íntimamente en tu relación con Él, cultivando tus convicciones y una fe sostenida por Su gracia infinita.
+          </p>
+
+          <button
+            type="button"
+            onclick="document.getElementById('valiente-details-modal').close(); window.dispatchEvent(new CustomEvent('open-inscription-modal', { detail: { conferencia: 'valiente' } }));"
+            class="mt-8 mb-2 rounded-full bg-valiente-dark px-8 py-3.5 font-body text-[0.8rem] font-bold uppercase tracking-[0.2em] text-valiente-beige transition-transform duration-300 hover:scale-105 active:scale-95 shadow-[0_10px_25px_rgba(0,0,0,0.15)]"
+          >
+            Aparta tu lugar
+          </button>
+        </div>
+      </dialog>
+    </div>
+    <div class="relative order-1 aspect-[4/3] min-h-[240px] md:order-2 md:aspect-auto md:min-h-[420px]">
+      <AutoImageCarousel
+        slides={VALIENTE_SLIDES}
+        intervalMs={6000}
+        className="absolute inset-0"
+        sizes="(max-width: 768px) 100vw, 50vw"
+        client:visible
+      />
+    </div>
+  </div>
+</div>
+
+<style>
+  dialog[open] {
+    animation: scale-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  dialog::backdrop {
+    animation: fade-in 0.5s ease-out forwards;
+  }
+  @keyframes scale-up {
+    0% { opacity: 0; transform: scale(0.9) translateY(15px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  @keyframes fade-in {
+    0% { opacity: 0; backdrop-filter: blur(0px); background: rgba(0, 0, 0, 0); }
+    100% { opacity: 1; backdrop-filter: blur(8px); background: rgba(0, 0, 0, 0.5); }
+  }
+</style>
