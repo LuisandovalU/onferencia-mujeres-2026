@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/utils";
 import braveTextSrc from "@/assets/brave.webp";
@@ -8,40 +8,70 @@ import valienteTextSrc from "@/assets/valiente.webp";
 
 const BRAVE_BG   = '#2F4A2C'; // brave-dark-deep
 const VALIENTE_BG = '#E3DBCF'; // valiente-beige
-const BRAVE_DARK  = '#2F4A2C';
+const SILK_EASE = [0.16, 1, 0.3, 1] as any;
 
-export default function ConferenceChoiceCard() {
+const ConferenceChoiceCard = memo(() => {
   const [selected, setSelected] = useState<'brave' | 'valiente' | null>(null);
 
-  const openModal = (conf: 'brave' | 'valiente') => {
+  const openModal = useCallback((conf: 'brave' | 'valiente') => {
     window.dispatchEvent(
       new CustomEvent('open-inscription-modal', { detail: { conferencia: conf } })
     );
-  };
+  }, []);
+
+  const handleBackdropClick = useCallback(() => {
+    if (selected) setSelected(null);
+  }, [selected]);
+
+  const handleValienteClick = useCallback((e: React.MouseEvent) => {
+    if (selected === 'brave') {
+      setSelected(null);
+      e.stopPropagation();
+    } else if (!selected) {
+      setSelected('valiente');
+    }
+  }, [selected]);
+
+  const handleBraveClick = useCallback((e: React.MouseEvent) => {
+    if (selected === 'valiente') {
+      setSelected(null);
+      e.stopPropagation();
+    } else if (!selected) {
+      setSelected('brave');
+    }
+  }, [selected]);
+
+  const handleReset = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelected(null);
+  }, []);
+
+  const handleActionClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (selected) openModal(selected);
+  }, [selected, openModal]);
 
   return (
-    /* El cuadrado interactivo — sin wrapper externo de sección */
     <div 
-      onClick={() => { if(selected) setSelected(null); }}
+      onClick={handleBackdropClick}
       className={cn(
-        "relative w-full max-w-[460px] mx-auto aspect-[3/4] rounded-[3rem] overflow-hidden bg-neutral-950 shadow-[0_0_100px_-20px_rgba(0,0,0,0.6)] ring-1 ring-black/10 transition-all duration-500",
+        "relative w-full max-w-[460px] mx-auto aspect-[3/4] rounded-[3rem] overflow-hidden bg-neutral-950 shadow-[0_0_100px_-20px_rgba(0,0,0,0.6)] ring-1 ring-black/10 transition-all will-change-transform",
         selected ? "cursor-pointer scale-[1.01]" : ""
       )}
+      style={{ transform: 'translate3d(0,0,0)' }}
     >
       {/* ── SECCIÓN VALIENTE (base) ── */}
       <motion.div
-        onClick={(e) => { 
-          if(selected === 'brave') { setSelected(null); e.stopPropagation(); }
-          else if (!selected) setSelected('valiente');
-        }}
+        onClick={handleValienteClick}
         animate={{
           filter: selected === 'brave'
             ? 'grayscale(1) brightness(0.15)'
             : 'grayscale(0) brightness(1)',
+          transform: 'translate3d(0,0,0)'
         }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: 0.6, ease: SILK_EASE }}
         style={{ backgroundColor: VALIENTE_BG }}
-        className="absolute inset-0 z-0 h-full w-full cursor-pointer touch-none flex flex-col items-center justify-end px-8 pb-10"
+        className="absolute inset-0 z-0 h-full w-full cursor-pointer touch-none flex flex-col items-center justify-end px-8 pb-10 will-change-transform"
       >
         <div className={cn(
           "flex flex-col items-center text-center transition-all duration-700",
@@ -50,6 +80,9 @@ export default function ConferenceChoiceCard() {
           <img
             src={(valienteTextSrc as any).src ?? valienteTextSrc}
             alt="Valiente"
+            loading="eager"
+            // @ts-ignore
+            fetchpriority="high"
             className="h-[5.25rem] w-auto object-contain mb-3"
           />
           <p className="font-body text-[0.7rem] font-black tracking-[0.35em] uppercase text-[#2F4A2C] bg-[#2F4A2C]/8 px-4 py-1.5 rounded-full mb-2">
@@ -61,10 +94,7 @@ export default function ConferenceChoiceCard() {
       
       {/* ── SECCIÓN BRAVE (capa superior con corte diagonal) ── */}
       <motion.div
-        onClick={(e) => { 
-          if(selected === 'valiente') { setSelected(null); e.stopPropagation(); }
-          else if (!selected) setSelected('brave');
-        }}
+        onClick={handleBraveClick}
         initial={false}
         animate={{
           clipPath: selected === 'brave'
@@ -75,10 +105,11 @@ export default function ConferenceChoiceCard() {
           filter: selected === 'valiente'
             ? 'grayscale(1) brightness(0.15)'
             : 'grayscale(0) brightness(1)',
+          transform: 'translate3d(0,0,0)'
         }}
-        transition={{ type: 'spring', stiffness: 50, damping: 15 }}
+        transition={{ duration: 0.8, ease: SILK_EASE }}
         style={{ backgroundColor: BRAVE_BG }}
-        className="absolute inset-0 z-10 h-full w-full cursor-pointer shadow-2xl touch-none flex flex-col items-center justify-start px-8 pt-10"
+        className="absolute inset-0 z-10 h-full w-full cursor-pointer shadow-2xl touch-none flex flex-col items-center justify-start px-8 pt-10 will-change-transform"
       >
         <div className={cn(
           "flex flex-col items-center text-center transition-all duration-700",
@@ -87,6 +118,9 @@ export default function ConferenceChoiceCard() {
           <img
             src={(braveTextSrc as any).src ?? braveTextSrc}
             alt="Brave"
+            loading="eager"
+            // @ts-ignore
+            fetchpriority="high"
             className="h-[5.25rem] w-auto object-contain mb-3 brightness-0 invert"
           />
           <p className="font-body text-[0.7rem] font-black tracking-[0.35em] uppercase text-white bg-white/12 px-4 py-1.5 rounded-full mb-2">
@@ -114,15 +148,17 @@ export default function ConferenceChoiceCard() {
             initial={{ opacity: 0, y: selected === 'brave' ? 40 : -40 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.5, ease: SILK_EASE }}
             className={cn(
-              "absolute left-0 z-40 w-full px-10 flex flex-col gap-4",
+              "absolute left-0 z-40 w-full px-10 flex flex-col gap-4 will-change-transform",
               selected === 'brave' ? "bottom-12" : "top-12"
             )}
+            style={{ transform: 'translate3d(0,0,0)' }}
           >
             <button
-              onClick={(e) => { e.stopPropagation(); openModal(selected); }}
+              onClick={handleActionClick}
               className={cn(
-                "w-full rounded-2xl py-5 text-[0.7rem] font-black uppercase tracking-[0.35em] shadow-2xl active:scale-95 transition-all",
+                "w-full rounded-2xl py-5 text-[0.7rem] font-black uppercase tracking-[0.35em] shadow-2xl active:scale-95 transition-all duration-300",
                 selected === 'brave'
                   ? "bg-white text-[#2F4A2C]"
                   : "bg-[#2F4A2C] text-white"
@@ -131,7 +167,7 @@ export default function ConferenceChoiceCard() {
               Aparta tu lugar
             </button>
             <button
-              onClick={(e) => { e.stopPropagation(); setSelected(null); }}
+              onClick={handleReset}
               className={cn(
                 "text-[0.55rem] font-black tracking-[0.3em] uppercase text-center opacity-40 py-2",
                 selected === 'brave' ? "text-white" : "text-[#2F4A2C]"
@@ -144,4 +180,8 @@ export default function ConferenceChoiceCard() {
       </AnimatePresence>
     </div>
   );
-}
+});
+
+ConferenceChoiceCard.displayName = 'ConferenceChoiceCard';
+
+export default ConferenceChoiceCard;

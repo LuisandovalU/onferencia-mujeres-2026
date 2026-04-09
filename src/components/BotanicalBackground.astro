@@ -7,74 +7,43 @@ const parallaxGroups = ["up", "down", "left", "right"];
 // Algoritmo refinado: Cuadrícula con Variación Extrema (Filtros CSS)
 // Con esto, las 3 imágenes parecerán 50 hojas diferentes.
 const backgroundPlants = [];
-const rows = 6; 
-const cols = 8; 
+const totalItems = 24; // 6 filas de 4 columnas para asegurar cobertura total
 
-// Para evitar que se repita la misma hoja pegada a la anterior
-let lastPlantIndex = -1;
+for (let i = 0; i < totalItems; i++) {
+  const plantIndex = i % plants.length;
+  const file = plants[plantIndex];
+  const group = parallaxGroups[i % parallaxGroups.length];
+  const scale = 1.25; 
 
-for (let r = 0; r <= rows; r++) {
-  for (let c = 0; c <= cols; c++) {
-    // Ruido orgánico
-    const noiseX = Math.random() * 10 - 5;
-    const noiseY = Math.random() * 10 - 5;
-
-    const top = (r / rows) * 110 - 5 + noiseY; 
-    const left = (c / cols) * 110 - 5 + noiseX;
-
-    // Seleccionar una hoja diferente a la anterior para romper el patrón
-    let plantIndex;
-    do {
-      plantIndex = Math.floor(Math.random() * plants.length);
-    } while (plantIndex === lastPlantIndex);
-    lastPlantIndex = plantIndex;
-
-    const file = plants[plantIndex];
-
-    // Tamaños variados para profundidad real
-    const width = Math.floor(Math.random() * 12 + 10); // 10vw a 22vw
-    const rotate = Math.floor(Math.random() * 360);
-    const flipX = Math.random() > 0.5 ? -1 : 1;
-    const flipY = Math.random() > 0.5 ? -1 : 1;
-    const opacity = Math.floor(Math.random() * 25 + 30); // 30% - 55%
-
-    // Magia: Alterar el color/tono de cada hoja individualmente para que NO se vean iguales
-    const hue = Math.floor(Math.random() * 30 - 15); // -15deg a 15deg
-    const brightness = (Math.random() * 0.4 + 0.8).toFixed(2); // 0.8 a 1.2
-    const saturate = (Math.random() * 0.4 + 0.8).toFixed(2); // 0.8 a 1.2
-
-    const group = parallaxGroups[Math.floor(Math.random() * parallaxGroups.length)];
-    const scale = (Math.random() * 0.3 + 1.2).toFixed(2); 
-
-    backgroundPlants.push({ 
-      file, top, left, width, rotate, flipX, flipY, opacity, group, scale, hue, brightness, saturate 
-    });
-  }
+  backgroundPlants.push({ file, group, scale });
 }
 ---
 
-<!-- Botanical background that stays fixed and creates a texture across the page -->
-<div class="fixed inset-0 pointer-events-none select-none z-0 overflow-hidden mix-blend-multiply flex flex-wrap" aria-hidden="true" id="botanical-container">
+<!-- Botanical background: Perfectly tiled flexbox grid (Zero Overlap) -->
+<div class="fixed inset-0 pointer-events-none select-none z-0 overflow-hidden flex flex-wrap content-start mix-blend-multiply" aria-hidden="true" id="botanical-container">
   
-  {backgroundPlants.map((plant) => (
-    <img 
-      src={`/plantas/${plant.file}`} 
-      alt="" 
-      data-parallax-group={plant.group}
-      data-parallax-scale={plant.scale}
-      class="absolute planta-parallax"
-      decoding="async"
-      style={`
-        top: ${plant.top}vh; 
-        left: ${plant.left}vw; 
-        width: ${plant.width}vw; 
-        min-width: 250px;
-        transform: rotate(${plant.rotate}deg) scaleX(${plant.flipX}) scaleY(${plant.flipY}); 
-        opacity: ${plant.opacity / 100};
-        filter: hue-rotate(${plant.hue}deg) brightness(${plant.brightness}) saturate(${plant.saturate});
-      `}
-    />
-  ))}
+  {backgroundPlants.map((plant, index) => {
+    // Las primeras 8 imágenes (2 filas) son críticas para la entrada instantánea
+    const isPriority = index < 8;
+    return (
+      <div class="w-1/2 md:w-1/4 aspect-square overflow-hidden">
+        <img 
+          src={`/plantas/${plant.file}`} 
+          alt="" 
+          data-parallax-group={plant.group}
+          data-parallax-scale={plant.scale}
+          class="w-full h-full object-cover planta-parallax will-change-transform"
+          loading={isPriority ? "eager" : "lazy"}
+          fetchpriority={isPriority ? "high" : "auto"}
+          decoding={isPriority ? "sync" : "async"}
+          style={`
+            opacity: 0.15;
+            transform: scale(1.1); /* Estabilización inicial para evitar salto de JS */
+          `}
+        />
+      </div>
+    );
+  })}
 
 </div>
 
@@ -93,10 +62,10 @@ for (let r = 0; r <= rows; r++) {
         // @ts-ignore - Ignorando error de validacion de construct signature de typescript
         new simpleParallax(elms, {
           orientation: direction,
-          scale: 1.4, 
-          delay: 0.4, 
-          transition: 'cubic-bezier(0,0,0,1)',
-          overflow: true 
+          scale: 1.6, 
+          delay: 0.6, 
+          transition: 'cubic-bezier(0.1, 0, 0, 1)',
+          overflow: false // Misión Pro: Mantener movimiento DENTRO de la celda (Zero Overlap)
         });
       }
     });
