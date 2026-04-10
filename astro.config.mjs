@@ -7,4 +7,12 @@ export default defineConfig({
   output: 'server',
   adapter: vercel(),
   integrations: [react(), tailwind()],
+  vite: {
+    optimizeDeps: {
+      exclude: ['@napi-rs/canvas']
+    },
+    ssr: {
+      external: ['@napi-rs/canvas']
+    }
+  }
 });

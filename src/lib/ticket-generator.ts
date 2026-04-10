@@ -12,14 +12,19 @@ interface TicketData {
   fileName: string; 
 }
 
-// Registrar fuentes una sola vez
-try {
-  const montserratPath = path.join(process.cwd(), 'public', 'fonts', 'Montserrat-Bold.ttf');
-  const nunitoPath = path.join(process.cwd(), 'public', 'fonts', 'Nunito-Bold.ttf');
-  GlobalFonts.registerFromPath(montserratPath, 'Montserrat');
-  GlobalFonts.registerFromPath(nunitoPath, 'Nunito');
-} catch (fontErr) {
-  console.warn('TicketGenerator: Error registrando fuentes:', fontErr);
+let fontsRegistered = false;
+
+function ensureFonts() {
+  if (fontsRegistered) return;
+  try {
+    const montserratPath = path.join(process.cwd(), 'public', 'fonts', 'Montserrat-Bold.ttf');
+    const nunitoPath = path.join(process.cwd(), 'public', 'fonts', 'Nunito-Bold.ttf');
+    GlobalFonts.registerFromPath(montserratPath, 'Montserrat');
+    GlobalFonts.registerFromPath(nunitoPath, 'Nunito');
+    fontsRegistered = true;
+  } catch (fontErr) {
+    console.warn('TicketGenerator: Error registrando fuentes:', fontErr);
+  }
 }
 
 export async function generateAndUploadTicket({
@@ -30,6 +35,8 @@ export async function generateAndUploadTicket({
   fileName
 }: TicketData) {
   try {
+    ensureFonts();
+
     const siteURL = import.meta.env.PUBLIC_SITE_URL || 'http://localhost:4321';
     const checkinURL = `${siteURL}/admin/checkin?id=${asistenteId}`;
     

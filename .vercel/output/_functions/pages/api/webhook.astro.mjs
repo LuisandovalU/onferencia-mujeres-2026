@@ -1,5 +1,5 @@
 import Stripe from 'stripe';
-import { s as supabase } from '../../chunks/supabase_jFlVW5lz.mjs';
+import { s as supabase } from '../../chunks/supabase_1KpGbJjf.mjs';
 export { renderers } from '../../renderers.mjs';
 
 const stripe = new Stripe("sk_test_51TJniyRoz2YqsXbCFw7VAf0CozUCgEynkc4CabYMyx7HGSHT76s2Q4C9HKLudq8piEaFTBWsBYb1aj4ovwS0YvOD00CudORNJr");
@@ -58,7 +58,7 @@ const POST = async ({ request }) => {
       return new Response("Registrado como pendiente OXXO. Recibo esperado más tarde.", { status: 200 });
     }
     try {
-      const { generateAndUploadTicket } = await import('../../chunks/ticket-generator_D_nHyrib.mjs');
+      const { generateAndUploadTicket } = await import('../../chunks/ticket-generator_DFRvoKi3.mjs');
       await generateAndUploadTicket({
         asistenteId,
         nombre_completo: objAsistente.nombre_completo,

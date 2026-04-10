@@ -10,7 +10,7 @@ import { twMerge } from 'tailwind-merge';
 import { motion, AnimatePresence } from 'framer-motion';
 import { loadStripe } from '@stripe/stripe-js';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
-import '../chunks/supabase_jFlVW5lz.mjs';
+import '../chunks/supabase_1KpGbJjf.mjs';
 export { renderers } from '../renderers.mjs';
 
 const $$Header = createComponent(($$result, $$props, $$slots) => {

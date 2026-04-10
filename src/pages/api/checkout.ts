@@ -4,7 +4,11 @@ import type { APIRoute } from 'astro';
 import { supabase } from '../../lib/supabase';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY);
+const stripeKey = import.meta.env.STRIPE_SECRET_KEY;
+if (!stripeKey) {
+    console.error('❌ STRIPE_SECRET_KEY is missing!');
+}
+const stripe = new Stripe(stripeKey || 'sk_test_placeholder');
 
 export const POST: APIRoute = async ({ request, url }) => {
     let nombre = '';

@@ -1,9 +1,10 @@
-import '../../chunks/supabase_jFlVW5lz.mjs';
+import '../../chunks/supabase_1KpGbJjf.mjs';
 import Stripe from 'stripe';
 export { renderers } from '../../renderers.mjs';
 
 const prerender = false;
-const stripe = new Stripe("sk_test_51TJniyRoz2YqsXbCFw7VAf0CozUCgEynkc4CabYMyx7HGSHT76s2Q4C9HKLudq8piEaFTBWsBYb1aj4ovwS0YvOD00CudORNJr");
+const stripeKey = "sk_test_51TJniyRoz2YqsXbCFw7VAf0CozUCgEynkc4CabYMyx7HGSHT76s2Q4C9HKLudq8piEaFTBWsBYb1aj4ovwS0YvOD00CudORNJr";
+const stripe = new Stripe(stripeKey);
 const POST = async ({ request, url }) => {
   let nombre = "";
   let whatsapp = "";

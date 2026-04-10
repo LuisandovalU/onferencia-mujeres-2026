@@ -1,16 +1,21 @@
-import { GlobalFonts, createCanvas, loadImage } from '@napi-rs/canvas';
+import { createCanvas, loadImage, GlobalFonts } from '@napi-rs/canvas';
 import QRCode from 'qrcode';
 import path from 'node:path';
 import fs from 'node:fs/promises';
-import { s as supabase } from './supabase_jFlVW5lz.mjs';
+import { s as supabase } from './supabase_1KpGbJjf.mjs';
 
-try {
-  const montserratPath = path.join(process.cwd(), "public", "fonts", "Montserrat-Bold.ttf");
-  const nunitoPath = path.join(process.cwd(), "public", "fonts", "Nunito-Bold.ttf");
-  GlobalFonts.registerFromPath(montserratPath, "Montserrat");
-  GlobalFonts.registerFromPath(nunitoPath, "Nunito");
-} catch (fontErr) {
-  console.warn("TicketGenerator: Error registrando fuentes:", fontErr);
+let fontsRegistered = false;
+function ensureFonts() {
+  if (fontsRegistered) return;
+  try {
+    const montserratPath = path.join(process.cwd(), "public", "fonts", "Montserrat-Bold.ttf");
+    const nunitoPath = path.join(process.cwd(), "public", "fonts", "Nunito-Bold.ttf");
+    GlobalFonts.registerFromPath(montserratPath, "Montserrat");
+    GlobalFonts.registerFromPath(nunitoPath, "Nunito");
+    fontsRegistered = true;
+  } catch (fontErr) {
+    console.warn("TicketGenerator: Error registrando fuentes:", fontErr);
+  }
 }
 async function generateAndUploadTicket({
   asistenteId,
@@ -20,6 +25,7 @@ async function generateAndUploadTicket({
   fileName
 }) {
   try {
+    ensureFonts();
     const siteURL = "https://conferencia.icimexico.org";
     const checkinURL = `${siteURL}/admin/checkin?id=${asistenteId}`;
     const qrDataURL = await QRCode.toDataURL(checkinURL, {
