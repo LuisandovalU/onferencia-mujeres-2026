@@ -1,7 +1,16 @@
-import { registerFont, createCanvas, loadImage } from 'canvas';
+import { GlobalFonts, createCanvas, loadImage } from '@napi-rs/canvas';
 import QRCode from 'qrcode';
 import path from 'node:path';
+import fs from 'node:fs';
 import { supabase } from './supabase';
+
+// Registrar fuentes oficiales una sola vez al inicio del archivo
+try {
+  GlobalFonts.registerFromPath(path.join(process.cwd(), 'public/fonts/Montserrat-Bold.ttf'), 'Montserrat');
+  GlobalFonts.registerFromPath(path.join(process.cwd(), 'public/fonts/Nunito-Bold.ttf'), 'Nunito');
+} catch (fontErr) {
+  console.warn('TicketGenerator: Error registrando fuentes:', fontErr);
+}
 
 interface TicketData {
   asistenteId: string;
@@ -38,35 +47,28 @@ export async function generateAndUploadTicket({
       }
     });
 
-    // 3. Cargar Plantilla
-    const templateName = es_brave ? 'brave.jpg' : 'valiente.jpg';
+    // 3. Cargar Plantilla (WebP es preferido en Vercel)
+    const templateName = es_brave ? 'brave.webp' : 'valiente.webp';
     const templatePath = path.join(process.cwd(), 'src/assets', templateName); 
     
     let canvasWidth = 1080;
     let canvasHeight = 1920;
-    
-    // Registrar fuentes oficiales
-    try {
-      registerFont(path.join(process.cwd(), 'public', 'fonts', 'Montserrat-Bold.ttf'), { family: 'Montserrat' });
-      registerFont(path.join(process.cwd(), 'public', 'fonts', 'Nunito-Bold.ttf'), { family: 'Nunito' });
-    } catch (fontErr) {
-      console.warn('TicketGenerator: Error cargando fuentes:', fontErr);
-    }
 
     const canvas = createCanvas(canvasWidth, canvasHeight);
     const ctx = canvas.getContext('2d');
 
-    // Dibujar fondo (plantilla)
+    // Dibujar fondo (plantilla) usando lectura directa de buffer para velocidad
     try {
-      const templateObj = await loadImage(templatePath);
+      const bgBuffer = fs.readFileSync(templatePath);
+      const templateObj = await loadImage(bgBuffer);
       canvasWidth = templateObj.width;
       canvasHeight = templateObj.height;
       canvas.width = canvasWidth;
       canvas.height = canvasHeight;
       ctx.drawImage(templateObj, 0, 0, canvasWidth, canvasHeight);
     } catch (e) {
-      console.warn(`TicketGenerator: No se encontró plantilla en ${templatePath}. Usando fondo plano.`);
-      ctx.fillStyle = es_brave ? '#1a3a1a' : '#f5e6d3'; // Verdesito o Beige
+      console.warn(`TicketGenerator: No se pudo cargar plantilla ${templatePath}. Usando fondo plano.`);
+      ctx.fillStyle = es_brave ? '#1a3a1a' : '#f5e6d3'; 
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     }
 
@@ -95,8 +97,8 @@ export async function generateAndUploadTicket({
     ctx.fillStyle = es_brave ? '#EAEAEA' : '#333333';
     ctx.fillText(`Folio #${folio}`, canvasWidth / 2, qrY - textMargin);
 
-    // 5. Convertir a Buffer y Subir
-    const buffer = canvas.toBuffer('image/jpeg', { quality: 0.90 });
+    // 5. Convertir a Buffer y Subir (Usando encode de @napi-rs/canvas)
+    const buffer = await canvas.encode('jpeg', 90);
     
     const finalFileName = fileName.endsWith('.jpg') ? fileName : `${fileName}.jpg`;
     

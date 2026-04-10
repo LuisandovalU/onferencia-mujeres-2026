@@ -19,7 +19,7 @@ interface InscriptionModalProps {
 
 const stripePromise = loadStripe(import.meta.env.PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
-export function InscriptionModal({ open: propOpen, onClose, presetConferencia: propPreset = null }: InscriptionModalProps) {
+export function PortalInscripcion({ open: propOpen, onClose, presetConferencia: propPreset = null }: InscriptionModalProps) {
   const titleId = useId();
   const [internalOpen, setInternalOpen] = useState(false);
   

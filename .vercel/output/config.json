@@ -1,0 +1,63 @@
+{
+	"version": 3,
+	"routes": [
+		{
+			"handle": "filesystem"
+		},
+		{
+			"src": "^/_astro/(.*)$",
+			"headers": {
+				"cache-control": "public, max-age=31536000, immutable"
+			},
+			"continue": true
+		},
+		{
+			"src": "^/_server-islands/([^/]+?)/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/_image/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/checkin/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/registro-manual/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/admin/register-manual/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/admin/update-payment/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/admin/verify-password/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/check-status/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/checkout/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/download-ticket/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/webhook/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/$",
+			"dest": "_render"
+		}
+	]
+}

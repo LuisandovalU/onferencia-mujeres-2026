@@ -2,6 +2,7 @@ import React from 'react';
 import { cn } from "@/lib/utils";
 
 interface InscribeteButtonProps {
+  id?: string;
   conferencia?: 'brave' | 'valiente';
   variant?: 'outline' | 'light' | 'dark';
   className?: string;
@@ -9,11 +10,13 @@ interface InscribeteButtonProps {
 }
 
 export const InscribeteButton: React.FC<InscribeteButtonProps> = ({ 
+  id,
   conferencia, 
   variant = 'dark',
   className,
   children = 'Inscribete'
 }) => {
+
   const handleClick = () => {
     // 1. Cerrar cualquier diálogo administrativo o informativo abierto (ej: BraveDetails/ValienteDetails)
     // Esto asegura que el modal de inscripción no quede "detrás" del diálogo actual.
@@ -38,7 +41,9 @@ export const InscribeteButton: React.FC<InscribeteButtonProps> = ({
 
   return (
     <button
+      id={id}
       onClick={handleClick}
+
       className={cn(
         "rounded-full px-8 py-3 font-body text-sm font-semibold uppercase tracking-[0.18em] transition-all duration-200 active:scale-95",
         variants[variant],

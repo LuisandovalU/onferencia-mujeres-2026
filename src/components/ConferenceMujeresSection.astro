@@ -3,7 +3,7 @@ import ConferenceHero from "./ConferenceHero.astro";
 import EncuentrosGrid from "./EncuentrosGrid.astro";
 import BraveDetails from "./BraveDetails.astro";
 import ValienteDetails from "./ValienteDetails.astro";
-import { InscriptionModal } from "./InscriptionModal";
+import { PortalInscripcion } from "./PortalInscripcion";
 import { InscribeteButton } from "./InscribeteButton";
 ---
 
@@ -15,7 +15,7 @@ import { InscribeteButton } from "./InscribeteButton";
 
 
   <div class="relative z-10 flex flex-col">
-    <InscriptionModal client:load />
+    <PortalInscripcion client:load />
 
     <div class="px-4 pb-4 pt-3 sm:px-5 sm:pb-6 sm:pt-5 md:px-6 md:pb-8 md:pt-6 lg:px-8 xl:px-10 2xl:px-12">
       <ConferenceHero />
@@ -146,18 +146,39 @@ import { InscribeteButton } from "./InscribeteButton";
           ¿Lista para apartar tu lugar?
         </h2>
         <p class="mx-auto mt-4 max-w-xl font-body text-base leading-relaxed text-white/90 sm:text-lg">
-          Completa tu inscripción y recibe los datos de transferencia. Te esperamos en Brave y Valiente.
+          Inscríbete hoy mismo y asegura tu lugar a través de nuestro portal de pago seguro.
         </p>
-        <div class="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6 relative z-50">
+        <div class="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6 relative z-[60]">
           <InscribeteButton 
+            id="final-cta-button"
             client:load 
             variant="light"
             className="px-5 py-2.5 sm:px-10 sm:py-4 border-2 border-neutral-900 shadow-[0_0_40px_-12px_rgba(255,255,255,0.4)] ring-4 ring-white/20 font-bold"
-          />
+          >
+            ¡INSCRIBETE AHORA!
+          </InscribeteButton>
         </div>
       </div>
     </section>
 
   </div> <!-- /relative z-10 flex flex-col -->
 
+  <script is:inline>
+    // Script de activación nativa para el botón final (CTA)
+    // Garantiza que el botón funcione incluso si la hidratación de React tarda un momento.
+    function setupFinalCTA() {
+      const btn = document.getElementById('final-cta-button');
+      if (btn) {
+        btn.addEventListener('click', (e) => {
+          // Si el botón ya tiene el handler de React funcionando, no queremos duplicar
+          // Pero si no ha cargado, disparamos el evento global manualmente.
+          window.dispatchEvent(new CustomEvent('open-inscription-modal'));
+        });
+      }
+    }
+
+    // Ejecutar en carga inicial y transiciones de Astro
+    document.addEventListener('DOMContentLoaded', setupFinalCTA);
+    document.addEventListener('astro:page-load', setupFinalCTA);
+  </script>
 </div>
