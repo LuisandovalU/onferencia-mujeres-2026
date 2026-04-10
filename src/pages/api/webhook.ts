@@ -4,8 +4,14 @@ import { supabase } from '../../lib/supabase';
 import path from 'node:path';
 
 // Usamos la variable de entorno para inicializar Stripe
-const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY);
-const endpointSecret = import.meta.env.STRIPE_WEBHOOK_SECRET;
+const getStripe = () => {
+  const key = import.meta.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY;
+  if (!key) {
+    throw new Error("STRIPE_SECRET_KEY is missing in the environment");
+  }
+  return new Stripe(key);
+};
+const getEndpointSecret = () => import.meta.env.STRIPE_WEBHOOK_SECRET || process.env.STRIPE_WEBHOOK_SECRET;
 
 export const POST: APIRoute = async ({ request }) => {
   const payload = await request.text();
@@ -13,6 +19,8 @@ export const POST: APIRoute = async ({ request }) => {
 
   let event;
   try {
+    const stripe = getStripe();
+    const endpointSecret = getEndpointSecret();
     if (!sig || !endpointSecret) throw new Error('Missing stripe signature or secret');
     event = stripe.webhooks.constructEvent(payload, sig, endpointSecret);
   } catch (err: any) {

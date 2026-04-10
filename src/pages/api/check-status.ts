@@ -3,7 +3,13 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY);
+const getStripe = () => {
+  const key = import.meta.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY;
+  if (!key) {
+    throw new Error("STRIPE_SECRET_KEY is missing in the environment");
+  }
+  return new Stripe(key);
+};
 
 export const GET: APIRoute = async ({ request }) => {
     try {
@@ -14,6 +20,7 @@ export const GET: APIRoute = async ({ request }) => {
             return new Response(JSON.stringify({ error: "Session ID no provisto" }), { status: 400 });
         }
 
+        const stripe = getStripe();
         const session = await stripe.checkout.sessions.retrieve(sessionId);
 
         return new Response(JSON.stringify({

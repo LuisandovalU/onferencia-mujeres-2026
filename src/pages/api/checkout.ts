@@ -4,7 +4,13 @@ import type { APIRoute } from 'astro';
 import { supabase } from '../../lib/supabase';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY);
+const getStripe = () => {
+  const key = import.meta.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY;
+  if (!key) {
+    throw new Error("STRIPE_SECRET_KEY is missing in the environment");
+  }
+  return new Stripe(key);
+};
 
 export const POST: APIRoute = async ({ request, url }) => {
     let nombre = '';
@@ -45,6 +51,7 @@ export const POST: APIRoute = async ({ request, url }) => {
     if (!nombre) return new Response(JSON.stringify({ error: "El nombre es requerido" }), { status: 400 });
 
     try {
+        const stripe = getStripe();
         const session = await stripe.checkout.sessions.create({
             ui_mode: 'embedded_page',
             payment_method_types: ['card', 'oxxo'],
