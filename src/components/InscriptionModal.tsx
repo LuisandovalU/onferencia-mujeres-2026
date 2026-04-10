@@ -3,6 +3,9 @@
 import { cn } from "@/lib/utils";
 import { useCallback, useEffect, useId, useState, useRef } from "react";
 import { loadStripe } from '@stripe/stripe-js';
+import confetti from 'canvas-confetti';
+import { ETAPA_LABEL, WHATSAPP_NUMERO } from "@/config/transferencia";
+import { PAGO_PRODUCTO_LABEL } from "@/config/pago";
 import {
   EmbeddedCheckoutProvider,
   EmbeddedCheckout
@@ -10,6 +13,17 @@ import {
 import { supabase } from "@/lib/supabase"; // asumiendo alias
 
 type ConferenciaKey = "brave" | "valiente";
+
+function buildWhatsAppMessage(nombre: string, etapa: string) {
+  const producto = etapa === 'brave' ? 'Conferencia Brave' : 'Conferencia Valiente';
+  return [
+    `Hola, ya realicé mi pago para ${producto}.`,
+    `Nombre: ${nombre}`,
+    `Etapa: ${etapa === 'brave' ? 'Brave' : 'Valiente'}`,
+    "",
+    "Confirmé mi pago vía Stripe y ya tengo mi boleto.",
+  ].join("\n");
+}
 
 interface InscriptionModalProps {
   open?: boolean;
@@ -101,7 +115,18 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
          })
          .catch(err => setPaymentStatus("verificando")); 
     }
-  }, []); // Solo se ejecuta una vez al montar
+  }, []);
+
+  useEffect(() => {
+    if (paymentStatus === "paid") {
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        zIndex: 10000
+      });
+    }
+  }, [paymentStatus]);
 
   // 2. Efecto de sincronización para mantener la Etapa
   useEffect(() => {
@@ -301,6 +326,9 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
                 >
                   Aparta tu lugar por $130
                 </button>
+                <p className="text-[10px] text-neutral-400 text-center mt-4 !leading-relaxed px-4">
+                  Al inscribirte, aceptas recibir información vía WhatsApp y confirmas haber leído nuestro Aviso de Privacidad y Términos de Servicio del Evento.
+                </p>
               </form>
             </div>
           )}
@@ -365,6 +393,15 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
                   
                   <a href={ticketUrl || '#'} target="_blank" rel="noreferrer" className="mt-6 block w-full bg-[#2F4A2C] text-white py-4 rounded-full font-body font-bold text-sm tracking-wide shadow-lg hover:scale-105 active:scale-95 transition-transform">
                     ↓ DESCARGAR BOLETO QR 
+                  </a>
+
+                  <a 
+                    href={`https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(buildWhatsAppMessage(nombreRespuesta || nombre, etapa))}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-3 block w-full bg-white border-2 border-green-500 text-green-600 py-3 rounded-full font-body font-bold text-xs tracking-wide hover:bg-green-50 transition-colors uppercase"
+                  >
+                    Notificar por WhatsApp
                   </a>
 
                   <p className="text-xs text-neutral-400 mt-6 !leading-relaxed">

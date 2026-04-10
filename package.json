@@ -25,6 +25,7 @@
     "@supabase/supabase-js": "^2.103.0",
     "@yudiel/react-qr-scanner": "^2.5.1",
     "astro": "^5.4.1",
+    "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
     "framer-motion": "^12.38.0",
     "html5-qrcode": "^2.3.8",
@@ -37,6 +38,7 @@
     "tailwindcss": "^3.4.1"
   },
   "devDependencies": {
+    "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^20",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^18",
