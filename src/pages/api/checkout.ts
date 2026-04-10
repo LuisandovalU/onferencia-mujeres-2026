@@ -76,7 +76,7 @@ export const POST: APIRoute = async ({ request, url }) => {
                 es_casa: String(esCasa),
                 quien_invito: String(quienInvito)
             },
-            return_url: `${url.origin}/?session_id={CHECKOUT_SESSION_ID}`,
+            return_url: `https://conferencia.icimexico.org/?session_id={CHECKOUT_SESSION_ID}`,
         });
 
         // 3. Devolvemos el secreto a React y el Session ID para ubicar el ticket futuro

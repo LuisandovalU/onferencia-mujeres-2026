@@ -3,9 +3,19 @@ import Stripe from 'stripe';
 import { supabase } from '../../lib/supabase';
 import path from 'node:path';
 
-// Usamos la variable de entorno para inicializar Stripe
-const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY);
-const endpointSecret = import.meta.env.STRIPE_WEBHOOK_SECRET;
+// Recuperar las llaves de forma robusta para Vercel
+const rawStripeKey = import.meta.env.STRIPE_SECRET_KEY || (typeof process !== 'undefined' ? process.env.STRIPE_SECRET_KEY : '');
+const stripeKey = String(rawStripeKey || '').trim();
+const rawEndpointSecret = import.meta.env.STRIPE_WEBHOOK_SECRET || (typeof process !== 'undefined' ? process.env.STRIPE_WEBHOOK_SECRET : '');
+const endpointSecret = String(rawEndpointSecret || '').trim();
+
+if (!stripeKey || stripeKey === 'sk_test_placeholder') {
+    console.error('❌ STRIPE_SECRET_KEY is missing or invalid in webhook!');
+}
+
+const stripe = new Stripe(stripeKey || 'sk_test_placeholder', {
+  apiVersion: '2025-01-27.acacia' as any,
+});
 
 export const POST: APIRoute = async ({ request }) => {
   const payload = await request.text();
