@@ -8,8 +8,25 @@ async function registerFonts() {
   if (fontsRegistered) return;
   try {
     const { GlobalFonts } = await import('@napi-rs/canvas');
-    GlobalFonts.registerFromPath(path.join(process.cwd(), 'public/fonts/Montserrat-Bold.ttf'), 'Montserrat');
-    GlobalFonts.registerFromPath(path.join(process.cwd(), 'public/fonts/Nunito-Bold.ttf'), 'Nunito');
+    const projectRoot = process.cwd();
+    
+    // Intentar varias rutas comunes en entornos Serverless
+    const pathsToTry = [
+      path.join(projectRoot, 'public/fonts'),
+      path.join(projectRoot, 'fonts'),
+      path.join(projectRoot, '.vercel/output/static/fonts')
+    ];
+
+    let fontsPath = pathsToTry[0];
+    for (const p of pathsToTry) {
+        if (fs.existsSync(p)) {
+            fontsPath = p;
+            break;
+        }
+    }
+
+    GlobalFonts.registerFromPath(path.join(fontsPath, 'Montserrat-Bold.ttf'), 'Montserrat');
+    GlobalFonts.registerFromPath(path.join(fontsPath, 'Nunito-Bold.ttf'), 'Nunito');
     fontsRegistered = true;
   } catch (fontErr) {
     console.warn('TicketGenerator: Error registrando fuentes:', fontErr);
