@@ -34,12 +34,17 @@ export async function generateAndUploadTicket({
   es_brave,
   fileName
 }: TicketData) {
+  console.log(`🎟️ Iniciando generación de ticket para: ${nombre_completo} (Folio: ${folio})`);
+  
   try {
     ensureFonts();
+    console.log('✅ Fuentes verificadas.');
 
-    const siteURL = import.meta.env.PUBLIC_SITE_URL || 'http://localhost:4321';
+    const siteURL = 'https://conferencia.icimexico.org';
     const checkinURL = `${siteURL}/admin/checkin?id=${asistenteId}`;
     
+    console.log('🔗 URL de Check-in:', checkinURL);
+
     const qrDataURL = await QRCode.toDataURL(checkinURL, {
       width: 400,
       margin: 1,
@@ -48,10 +53,14 @@ export async function generateAndUploadTicket({
         light: '#00000000' 
       }
     });
+    console.log('✅ QR generado como DataURL.');
 
     const templateName = es_brave ? 'brave.jpg' : 'valiente.jpg';
-    const templatePath = path.join(process.cwd(), 'src/assets', templateName); 
+    // En Vercel, la carpeta public es accesible desde process.cwd()
+    const templatePath = path.join(process.cwd(), 'public', 'tickets', templateName); 
     
+    console.log(`📁 Buscando plantilla en: ${templatePath}`);
+
     let canvasWidth = 1080;
     let canvasHeight = 1920;
     
@@ -61,14 +70,16 @@ export async function generateAndUploadTicket({
     // Dibujar fondo (plantilla) usando Buffer para mayor compatibilidad en Vercel
     try {
       const templateBuffer = await fs.readFile(templatePath);
+      console.log(`📖 Plantilla leída (${templateBuffer.length} bytes).`);
       const templateObj = await loadImage(templateBuffer);
       canvasWidth = templateObj.width;
       canvasHeight = templateObj.height;
       canvas.width = canvasWidth;
       canvas.height = canvasHeight;
       ctx.drawImage(templateObj, 0, 0, canvasWidth, canvasHeight);
-    } catch (e) {
-      console.warn(`TicketGenerator: Error cargando plantilla ${templatePath}. Usando fondo plano.`);
+      console.log('🎨 Fondo dibujado en canvas.');
+    } catch (e: any) {
+      console.warn(`⚠️ Error cargando plantilla ${templatePath}: ${e.message}. Usando fondo plano.`);
       ctx.fillStyle = es_brave ? '#1a3a1a' : '#f5e6d3'; 
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     }
@@ -80,6 +91,7 @@ export async function generateAndUploadTicket({
     const qrY = canvasHeight - qrSize - marginBot; 
     
     ctx.drawImage(qrImageObj, qrX, qrY, qrSize, qrSize);
+    console.log('✅ QR dibujado sobre el boleto.');
 
     ctx.fillStyle = es_brave ? '#FFFFFF' : '#1A1A1A';
     const nameFontSize = Math.floor(canvasWidth * 0.078);
@@ -93,12 +105,15 @@ export async function generateAndUploadTicket({
     ctx.font = `bold ${folioFontSize}px Nunito`;
     ctx.fillStyle = es_brave ? '#EAEAEA' : '#333333';
     ctx.fillText(`Folio #${folio}`, canvasWidth / 2, qrY - textMargin);
+    console.log('✍️ Textos escritos correctamente.');
 
     // Convertir a JPEG para subir
     const buffer = canvas.toBuffer('image/jpeg');
+    console.log(`📦 Buffer JPEG creado (${buffer.length} bytes).`);
     
     const finalFileName = fileName.endsWith('.jpg') ? fileName : `${fileName}.jpg`;
     
+    console.log(`☁️ Subiendo a Supabase Storage: tickets/${finalFileName}...`);
     const { error: uploadError } = await supabase.storage
       .from('tickets')
       .upload(finalFileName, buffer, {
@@ -106,12 +121,16 @@ export async function generateAndUploadTicket({
         upsert: true
       });
 
-    if (uploadError) throw uploadError;
+    if (uploadError) {
+        console.error('❌ Error de subida a Supabase:', uploadError);
+        throw uploadError;
+    }
 
+    console.log('🚀 Ticket subido con éxito!');
     return { success: true, fileName: finalFileName };
 
-  } catch (error) {
-    console.error('TicketGenerator Error:', error);
+  } catch (error: any) {
+    console.error('❌ Error fatal en TicketGenerator:', error.message);
     throw error;
   }
 }
