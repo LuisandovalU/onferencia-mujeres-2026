@@ -1,6 +1,5 @@
 import type { APIRoute } from 'astro';
 import { supabase } from '../../../lib/supabase';
-import { generateAndUploadTicket } from '../../../lib/ticket-generator';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -49,6 +48,7 @@ export const POST: APIRoute = async ({ request }) => {
     let ticketUrl = null;
     if (estaPagadoCompletamente) {
       try {
+        const { generateAndUploadTicket } = await import('../../../lib/ticket-generator');
         await generateAndUploadTicket({
           asistenteId: updatedAsistente.id,
           nombre_completo: updatedAsistente.nombre_completo,

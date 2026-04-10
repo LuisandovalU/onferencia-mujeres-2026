@@ -1,13 +1,13 @@
-import { GlobalFonts, createCanvas, loadImage } from '@napi-rs/canvas';
 import QRCode from 'qrcode';
 import path from 'node:path';
 import fs from 'node:fs';
 import { supabase } from './supabase';
 
 let fontsRegistered = false;
-function registerFonts() {
+async function registerFonts() {
   if (fontsRegistered) return;
   try {
+    const { GlobalFonts } = await import('@napi-rs/canvas');
     GlobalFonts.registerFromPath(path.join(process.cwd(), 'public/fonts/Montserrat-Bold.ttf'), 'Montserrat');
     GlobalFonts.registerFromPath(path.join(process.cwd(), 'public/fonts/Nunito-Bold.ttf'), 'Nunito');
     fontsRegistered = true;
@@ -35,7 +35,8 @@ export async function generateAndUploadTicket({
   es_brave,
   fileName
 }: TicketData) {
-  registerFonts();
+  const { createCanvas, loadImage } = await import('@napi-rs/canvas');
+  await registerFonts();
   try {
     // 1. Configuración de la URL del QR
     // Usamos PUBLIC_SITE_URL si existe, de lo contrario fallback a localhost

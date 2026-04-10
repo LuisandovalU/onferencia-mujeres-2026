@@ -1,6 +1,5 @@
 import type { APIRoute } from 'astro';
 import { supabase } from '../../../lib/supabase';
-import { generateAndUploadTicket } from '../../../lib/ticket-generator';
 import crypto from 'node:crypto';
 
 export const POST: APIRoute = async ({ request }) => {
@@ -49,6 +48,7 @@ export const POST: APIRoute = async ({ request }) => {
     // 3. Generar Ticket SOLO si ya pagó todo
     if (estaPagadoCompletamente) {
       try {
+        const { generateAndUploadTicket } = await import('../../../lib/ticket-generator');
         await generateAndUploadTicket({
           asistenteId: asistente.id,
           nombre_completo: asistente.nombre_completo,
