@@ -1,0 +1,17 @@
+---
+export const prerender = false;
+console.log("TEST-SSR: Initialization log");
+---
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>SSR Test</title>
+</head>
+<body>
+    <h1>SSR Test Page</h1>
+    <p>Time on server: {new Date().toISOString()}</p>
+    <p>If you see the time above, SSR is working correctly on Vercel.</p>
+</body>
+</html>

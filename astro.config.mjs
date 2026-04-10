@@ -6,13 +6,6 @@ import vercel from '@astrojs/vercel';
 export default defineConfig({
   site: 'https://conferencia.icimexico.org',
   output: 'server',
-  adapter: vercel({
-    webAnalytics: { enabled: true }
-  }),
+  adapter: vercel(),
   integrations: [react(), tailwind()],
-  vite: {
-    ssr: {
-      noExternal: ['@napi-rs/canvas', '@stripe/stripe-js', '@stripe/react-stripe-js']
-    }
-  }
 });
