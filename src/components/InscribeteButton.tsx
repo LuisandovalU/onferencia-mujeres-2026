@@ -15,11 +15,20 @@ export const InscribeteButton: React.FC<InscribeteButtonProps> = ({
   children = 'Inscribete'
 }) => {
   const handleClick = () => {
+    // 1. Cerrar cualquier diálogo administrativo o informativo abierto (ej: BraveDetails/ValienteDetails)
+    // Esto asegura que el modal de inscripción no quede "detrás" del diálogo actual.
+    const openDialogs = document.querySelectorAll('dialog[open]');
+    openDialogs.forEach((dialog) => {
+      (dialog as HTMLDialogElement).close();
+    });
+
+    // 2. Disparar evento global para abrir el modal de inscripción
     const event = new CustomEvent('open-inscription-modal', { 
       detail: { conferencia } 
     });
     window.dispatchEvent(event);
   };
+
 
   const variants = {
     dark: 'bg-neutral-900 text-white hover:bg-neutral-800',
