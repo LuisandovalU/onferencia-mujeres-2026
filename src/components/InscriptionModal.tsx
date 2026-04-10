@@ -1,22 +1,15 @@
 "use client";
 
-import { PAGO_PRODUCTO_LABEL } from "@/config/pago";
-import {
-  ETAPA_LABEL,
-  TRANSFERENCIA_COPY,
-  WHATSAPP_ENVIO_ITEMS,
-  WHATSAPP_NUMERO,
-  type ConferenciaKey,
-} from "@/config/transferencia";
 import { cn } from "@/lib/utils";
-import { useCallback, useEffect, useId, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useState, useRef } from "react";
+import { loadStripe } from '@stripe/stripe-js';
+import {
+  EmbeddedCheckoutProvider,
+  EmbeddedCheckout
+} from '@stripe/react-stripe-js';
+import { supabase } from "@/lib/supabase"; // asumiendo alias
 
-type Step = "form" | "resultado";
-
-const ETAPA_A_CONFERENCIA: Record<string, ConferenciaKey> = {
-  "brave": "brave",
-  "valiente": "valiente",
-};
+type ConferenciaKey = "brave" | "valiente";
 
 interface InscriptionModalProps {
   open?: boolean;
@@ -24,33 +17,38 @@ interface InscriptionModalProps {
   presetConferencia?: ConferenciaKey | null;
 }
 
-function buildWhatsAppMessage(nombre: string, conferencia: ConferenciaKey) {
-  const producto = PAGO_PRODUCTO_LABEL[conferencia];
-  const etapa = ETAPA_LABEL[conferencia];
-  return [
-    `Hola, quiero confirmar mi registro para ${producto}.`,
-    `Nombre: ${nombre}`,
-    `Etapa: ${etapa}`,
-    "",
-    "Adjunto foto o captura del comprobante de transferencia.",
-  ].join("\n");
-}
+const stripePromise = loadStripe(import.meta.env.PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
 export function InscriptionModal({ open: propOpen, onClose, presetConferencia: propPreset = null }: InscriptionModalProps) {
   const titleId = useId();
   const [internalOpen, setInternalOpen] = useState(false);
-  const [step, setStep] = useState<Step>("form");
+  
+  // Estados del Formulario
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [etapa, setEtapa] = useState("");
   const [nombre, setNombre] = useState("");
-  const [conferencia, setConferencia] = useState<ConferenciaKey | null>(null);
+  const [whatsapp, setWhatsapp] = useState("");
+  const [esCasa, setEsCasa] = useState("no");
+  const [quienInvito, setQuienInvito] = useState("");
+  
+  // Estados de Stripe y Status
+  const [clientSecret, setClientSecret] = useState('');
+  const [asistenteId, setAsistenteId] = useState('');
+  
+  const [paymentStatus, setPaymentStatus] = useState<"verificando" | "paid" | "unpaid">("verificando");
+  const [ticketUrl, setTicketUrl] = useState('');
+  const [nombreRespuesta, setNombreRespuesta] = useState("");
 
   const open = propOpen !== undefined ? propOpen : internalOpen;
 
   const resetToForm = useCallback(() => {
-    setStep("form");
     setEtapa("");
     setNombre("");
-    setConferencia(null);
+    setWhatsapp("");
+    setStep(1);
+    setClientSecret('');
+    setAsistenteId('');
+    setPaymentStatus("verificando");
   }, []);
 
   const handleClose = useCallback(() => {
@@ -63,8 +61,7 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
     const handleOpenEvent = (e: any) => {
       const { conferencia: preset } = e.detail || {};
       if (preset) {
-        setConferencia(preset);
-        setStep("resultado");
+        setEtapa(preset);
       } else {
         resetToForm();
       }
@@ -75,16 +72,43 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
     return () => window.removeEventListener('open-inscription-modal', handleOpenEvent);
   }, [resetToForm]);
 
+  // 1. Efecto persistente para capturar el regreso de Stripe, independiente del estado open
   useEffect(() => {
-    if (!open) {
-      resetToForm();
-      return;
+    if (typeof window === 'undefined') return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const session_id = urlParams.get('session_id');
+    
+    if (session_id) {
+       // Obligamos a la ventana a abrirse sola mágicamente
+       setInternalOpen(true);
+       setStep(4);
+       
+       // Limpiar la URL para que no vuelva a abrirse si actualizan la página mañana
+       window.history.replaceState({}, document.title, window.location.pathname);
+       
+       fetch(`/api/check-status?session_id=${session_id}`)
+         .then(res => res.json())
+         .then(data => {
+            if (data.nombre) setNombreRespuesta(data.nombre);
+
+            if (data.payment_status === "unpaid") {
+              setPaymentStatus("unpaid");
+            } else if (data.payment_status === "paid") {
+              setPaymentStatus("paid");
+              setTicketUrl(`https://fkifwxauqdjmfjbceypa.supabase.co/storage/v1/object/public/tickets/${session_id}.jpg`);
+            }
+         })
+         .catch(err => setPaymentStatus("verificando")); 
     }
-    if (propPreset) {
-      setStep("resultado");
-      setConferencia(propPreset);
+  }, []); // Solo se ejecuta una vez al montar
+
+  // 2. Efecto de sincronización para mantener la Etapa
+  useEffect(() => {
+    if (open && propPreset) {
+      setEtapa(propPreset);
     }
-  }, [open, propPreset, resetToForm]);
+  }, [open, propPreset]);
 
   useEffect(() => {
     if (!open) return;
@@ -103,23 +127,51 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
     };
   }, [open]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Manejador del ciclo Stripe Embedded
+  const fetchClientSecret = async (e: React.FormEvent) => {
     e.preventDefault();
-    const key = ETAPA_A_CONFERENCIA[etapa];
-    if (!key || nombre.trim().length < 2) return;
-    setConferencia(key);
-    setStep("resultado");
+    if (!nombre || !whatsapp || !etapa) return;
+
+    setStep(2); // Loading
+
+    try {
+      const requestBody = {
+        nombre: nombre,
+        whatsapp: whatsapp,
+        es_brave: etapa === 'brave',
+        es_casa: esCasa === "si",
+        quien_invito: quienInvito
+      };
+
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      const data = await response.json();
+
+      if (data.clientSecret) {
+        setClientSecret(data.clientSecret);
+        
+        // El frontend asume que el backend generará el ticket JPG con el nombre del ID de Stripe.
+        const bucketUrl = `https://fkifwxauqdjmfjbceypa.supabase.co/storage/v1/object/public/tickets/${data.sessionId}.jpg`;
+        setTicketUrl(bucketUrl);
+
+        setStep(3); // Muestra Stripe
+      } else {
+        alert("Ups, no se pudo iniciar la sesión: " + (data.error || 'Error deconocido'));
+        setStep(1);
+      }
+    } catch (err) {
+      alert("Error de red contactando al servidor.");
+      setStep(1);
+    }
   };
 
-  const waHref = useMemo(() => {
-    if (!conferencia || nombre.trim().length < 2) return `https://wa.me/${WHATSAPP_NUMERO}`;
-    const text = buildWhatsAppMessage(nombre.trim(), conferencia);
-    return `https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(text)}`;
-  }, [conferencia, nombre]);
-
   if (!open) return null;
-
-  const transferCopy = conferencia ? TRANSFERENCIA_COPY[conferencia] : null;
 
   return (
     <div
@@ -134,16 +186,18 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
         aria-label="Cerrar"
         onClick={handleClose}
       />
+      
       <div
         onClick={(e) => e.stopPropagation()}
         className={cn(
-          "relative z-10 max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl sm:p-8"
+          "relative z-10 w-full overflow-hidden bg-white shadow-2xl transition-all duration-300",
+          "max-h-[90dvh] max-w-lg rounded-2xl p-6 sm:p-8"
         )}
       >
         <button
           type="button"
           onClick={handleClose}
-          className="absolute right-4 top-4 rounded-full p-2 text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-800"
+          className="absolute right-4 top-4 z-[210] rounded-full p-2 text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-800 bg-white/80 backdrop-blur shadow-sm border border-neutral-200"
           aria-label="Cerrar ventana"
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -151,163 +205,179 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
           </svg>
         </button>
 
-        {step === "form" && (
-          <>
-            <h2 id={titleId} className="font-display pr-10 text-xl font-bold text-neutral-900 sm:text-2xl">
-              Inscripción
-            </h2>
-            <p className="mt-2 font-body text-sm text-neutral-600">
-              Completa los datos para ver la información de transferencia y apartar tu lugar.{" "}
-              <span className="text-neutral-500">
-                Asegúrate de seleccionar la etapa que mejor describa tu momento de vida actual.
-              </span>
-            </p>
-            <form onSubmit={handleSubmit} className="mt-6 space-y-5">
-              <div>
-                <label htmlFor="etapa" className="block font-body text-sm font-medium text-neutral-800">
-                  ¿En qué etapa te encuentras?
-                </label>
-                <select
-                  id="etapa"
-                  required
-                  value={etapa}
-                  onChange={(e) => setEtapa(e.target.value)}
-                  className="mt-2 w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 font-body text-neutral-900 outline-none focus:border-forest focus:ring-2 focus:ring-forest/25"
-                >
-                  <option value="">Selecciona una opción</option>
-                  <option value="brave">Universidad / Joven Profesional (Brave)</option>
-                  <option value="valiente">Madre / Mujer Madura (Valiente)</option>
-                </select>
-              </div>
-              <div>
-                <label htmlFor="nombre" className="block font-body text-sm font-medium text-neutral-800">
-                  Nombre completo
-                </label>
-                <input
-                  id="nombre"
-                  type="text"
-                  required
-                  minLength={2}
-                  autoComplete="name"
-                  value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
-                  placeholder="Tu nombre y apellidos"
-                  className="mt-2 w-full rounded-xl border border-neutral-300 px-4 py-3 font-body text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-forest focus:ring-2 focus:ring-forest/25"
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full rounded-full bg-forest py-3.5 font-body text-sm font-semibold uppercase tracking-[0.15em] text-white transition hover:bg-forest/90"
-              >
-                Ver datos de transferencia
-              </button>
-            </form>
-          </>
-        )}
-
-        {step === "resultado" && conferencia && transferCopy && (
-          <>
-            <h2 id={titleId} className="font-display pr-10 text-xl font-bold text-neutral-900 sm:text-2xl">
-              {PAGO_PRODUCTO_LABEL[conferencia]}
-            </h2>
-            <p className="mt-2 font-body text-sm text-neutral-600">
-              <span className="rounded-md bg-neutral-100 px-2 py-0.5 font-medium text-neutral-800">
-                Etapa: {ETAPA_LABEL[conferencia]}
-              </span>
-            </p>
-
-            {nombre.trim().length < 2 ? (
-              <div className="mt-6">
-                <label htmlFor="nombre-resultado" className="block font-body text-sm font-medium text-neutral-800">
-                  Nombre completo
-                </label>
-                <input
-                  id="nombre-resultado"
-                  type="text"
-                  required
-                  minLength={2}
-                  autoComplete="name"
-                  value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
-                  placeholder="Tu nombre y apellidos"
-                  className="mt-2 w-full rounded-xl border border-neutral-300 px-4 py-3 font-body text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-forest focus:ring-2 focus:ring-forest/25"
-                />
-              </div>
-            ) : (
-              <p className="mt-4 font-body text-sm text-neutral-600">
-                Nombre: <strong className="text-neutral-900">{nombre.trim()}</strong>
+        <div className="h-full overflow-y-auto w-full flex flex-col items-center">
+          
+          {/* PASO 1: Formulario Original */}
+          {step === 1 && (
+            <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 w-full">
+              <h2 id={titleId} className="font-display pr-10 text-xl font-bold text-neutral-900 sm:text-2xl">
+                Inscripción
+              </h2>
+              <p className="mt-2 font-body text-sm text-neutral-600">
+                Completa tus datos para proceder al pago de tu lugar por $130 MXN (vía Stripe).
               </p>
-            )}
 
-            <div className="mt-6 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
-              <p className="font-body text-sm font-semibold text-neutral-900">{transferCopy.titulo}</p>
-              <ul className="mt-3 space-y-2 font-body text-sm text-neutral-700">
-                {transferCopy.lineas.map((linea, i) => (
-                  <li key={`${i}-${linea.slice(0, 24)}`} className="leading-snug">
-                    {linea}
-                  </li>
-                ))}
-              </ul>
+              <form onSubmit={fetchClientSecret} className="mt-6 space-y-5">
+                <div>
+                  <label htmlFor="etapa" className="block font-body text-sm font-medium text-neutral-800">
+                    ¿En qué etapa te encuentras?
+                  </label>
+                  <select
+                    id="etapa"
+                    required
+                    value={etapa}
+                    onChange={(e) => setEtapa(e.target.value)}
+                    className="mt-2 w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 font-body text-neutral-900 outline-none focus:border-forest focus:ring-2 focus:ring-forest/25"
+                  >
+                    <option value="">Selecciona una opción</option>
+                    <option value="brave">Universidad / Joven Profesional (Brave)</option>
+                    <option value="valiente">Madre / Mujer Madura (Valiente)</option>
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="nombre" className="block font-body text-sm font-medium text-neutral-800">
+                    Nombre completo
+                  </label>
+                  <input
+                    id="nombre"
+                    type="text"
+                    required
+                    minLength={2}
+                    value={nombre}
+                    onChange={(e) => setNombre(e.target.value)}
+                    placeholder="Tu nombre y apellidos"
+                    className="mt-2 w-full rounded-xl border border-neutral-300 px-4 py-3 font-body text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-forest focus:ring-2 focus:ring-forest/25"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="whatsapp" className="block font-body text-sm font-medium text-neutral-800">
+                    WhatsApp
+                  </label>
+                  <input
+                    id="whatsapp"
+                    type="tel"
+                    required
+                    minLength={10}
+                    value={whatsapp}
+                    onChange={(e) => setWhatsapp(e.target.value)}
+                    placeholder="Tu número a 10 dígitos"
+                    className="mt-2 w-full rounded-xl border border-neutral-300 px-4 py-3 font-body text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-forest focus:ring-2 focus:ring-forest/25"
+                  />
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <label htmlFor="esCasa" className="block font-body text-sm font-medium text-neutral-800">
+                      ¿Eres de casa (VNP)?
+                    </label>
+                    <select
+                      id="esCasa"
+                      required
+                      value={esCasa}
+                      onChange={(e) => setEsCasa(e.target.value)}
+                      className="mt-2 w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 font-body text-neutral-900 outline-none focus:border-forest focus:ring-2 focus:ring-forest/25"
+                    >
+                      <option value="no">No</option>
+                      <option value="si">Sí</option>
+                    </select>
+                  </div>
+                  <div className="flex-1">
+                    <label htmlFor="quienInvito" className="block font-body text-sm font-medium text-neutral-800">
+                      ¿Quién te invitó?
+                    </label>
+                    <input
+                      id="quienInvito"
+                      type="text"
+                      value={quienInvito}
+                      onChange={(e) => setQuienInvito(e.target.value)}
+                      placeholder="Nombre de la persona"
+                      className="mt-2 w-full rounded-xl border border-neutral-300 px-4 py-3 font-body text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-forest focus:ring-2 focus:ring-forest/25"
+                    />
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  className="mt-2 w-full rounded-full bg-[#2F4A2C] py-3.5 font-body text-sm font-semibold uppercase tracking-[0.15em] text-white transition hover:bg-[#2F4A2C]/90 shadow-[0_4px_14px_rgba(47,74,44,0.3)]"
+                >
+                  Aparta tu lugar por $130
+                </button>
+              </form>
             </div>
+          )}
 
-            <div className="mt-6">
-              <p className="font-body text-sm font-medium text-neutral-800">Después de transferir, envía por WhatsApp:</p>
-              <ul className="mt-2 list-inside list-disc space-y-1 font-body text-sm text-neutral-600">
-                {WHATSAPP_ENVIO_ITEMS.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
+          {/* PASO 2: Cargando */}
+          {step === 2 && (
+            <div className="flex flex-col items-center justify-center py-20 mt-10 space-y-4 animate-in fade-in max-w-sm">
+              <div className="w-10 h-10 border-4 border-t-[#2F4A2C] border-neutral-200 rounded-full animate-spin"></div>
+              <p className="text-neutral-600 font-medium font-body text-sm">Conectando con Stripe...</p>
             </div>
+          )}
 
-            {nombre.trim().length < 2 ? (
-              <button
-                type="button"
-                disabled
-                className="mt-8 w-full cursor-not-allowed rounded-full bg-neutral-200 py-3.5 font-body text-sm font-semibold uppercase tracking-[0.12em] text-neutral-500"
-              >
-                Enviar por WhatsApp
-              </button>
-            ) : (
-              <a
-                href={waHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-8 flex w-full items-center justify-center rounded-full bg-[#25D366] py-3.5 font-body text-sm font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-[#20bd5a]"
-              >
-                Enviar por WhatsApp
-              </a>
-            )}
+          {/* PASO 3: Pasarela de Stripe Full Width */}
+          {step === 3 && clientSecret && (
+            <div className="w-full h-full flex-1 bg-white pt-10 pb-6 px-2 sm:px-6 animate-in zoom-in-95 duration-500">
+                 <EmbeddedCheckoutProvider
+                   stripe={stripePromise}
+                   options={{ clientSecret }}
+                 >
+                   <EmbeddedCheckout />
+                 </EmbeddedCheckoutProvider>
+            </div>
+          )}
 
-            <p className="mt-4 text-center font-body text-xs text-neutral-500">
-              También puedes escribirnos sin mensaje preparado:{" "}
-              <a
-                href={`https://wa.me/${WHATSAPP_NUMERO}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-medium text-forest underline"
-              >
-                abrir WhatsApp
-              </a>
-            </p>
+          {/* PASO 4: Éxito o Pendiente de OXXO */}
+          {step === 4 && (
+            <div className="w-full flex-1 flex flex-col items-center justify-center p-8 text-center animate-in zoom-in-95">
+              
+              {paymentStatus === "verificando" && (
+                 <div className="flex flex-col items-center space-y-4">
+                   <div className="w-10 h-10 border-4 border-t-neutral-800 border-neutral-200 rounded-full animate-spin"></div>
+                   <p className="text-neutral-600 font-body">Verificando sesión con Stripe...</p>
+                 </div>
+              )}
 
-            <button
-              type="button"
-              onClick={handleClose}
-              className="mt-6 w-full rounded-full border-2 border-neutral-300 bg-white py-3 font-body text-sm font-semibold text-neutral-800 transition hover:bg-neutral-50"
-            >
-              Cerrar
-            </button>
-            {!propPreset && (
-              <button
-                type="button"
-                onClick={resetToForm}
-                className="mt-3 w-full rounded-full py-3 font-body text-sm font-medium text-neutral-600 underline-offset-2 transition hover:text-neutral-900 hover:underline"
-              >
-                Nueva consulta
-              </button>
-            )}
-          </>
-        )}
+              {paymentStatus === "unpaid" && (
+                <div className="space-y-4 items-center flex flex-col max-w-sm">
+                  <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center text-orange-500 shadow-sm border border-orange-200 mb-4">
+                    <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                  </div>
+                  <h3 className="font-display text-2xl font-bold text-neutral-900">¡Tu ficha está lista!</h3>
+                  <p className="font-body text-neutral-600 text-sm">
+                    Has elegido pagar con OXXO. Te llegará el boleto oficial QR una vez que tu pago físico se procese en la sucursal (suele tardar unas horas).
+                  </p>
+                  <button onClick={handleClose} className="mt-8 px-6 py-3 bg-neutral-900 text-white font-semibold rounded-full font-body text-sm uppercase tracking-widest hover:bg-neutral-800 transition shadow">
+                    Entendido, cerrar
+                  </button>
+                </div>
+              )}
+
+              {paymentStatus === "paid" && (
+                <div className="space-y-4 items-center flex flex-col max-w-sm">
+                  <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-green-500 shadow-sm border border-green-200 mb-4">
+                    <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                  </div>
+                  <h3 className="font-display text-2xl font-bold text-neutral-900">
+                    ¡Ya estás adentro, {nombreRespuesta.split(' ')[0]}!
+                  </h3>
+                  <p className="font-body text-neutral-600 text-sm mt-2">
+                    Recibimos exitosamente tu pago.
+                  </p>
+                  
+                  <a href={ticketUrl || '#'} target="_blank" rel="noreferrer" className="mt-6 block w-full bg-[#2F4A2C] text-white py-4 rounded-full font-body font-bold text-sm tracking-wide shadow-lg hover:scale-105 active:scale-95 transition-transform">
+                    ↓ DESCARGAR BOLETO QR 
+                  </a>
+
+                  <p className="text-xs text-neutral-400 mt-6 !leading-relaxed">
+                    Si el boleto da error o no carga enseguida, dale unos 15 segundos extra y vuelve a picarle (el servidor puede estar dibujándolo). 
+                    <br/><br/>
+                    *No te preocupes si lo pierdes, también te enviaremos tu entrada más tarde por correo electrónico.*
+                  </p>
+                </div>
+              )}
+
+            </div>
+          )}
+
+        </div>
       </div>
     </div>
   );

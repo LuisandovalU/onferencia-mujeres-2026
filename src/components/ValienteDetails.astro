@@ -56,13 +56,32 @@ const copy = {
             Pensado exclusivamente para honrar el corazón de <strong>madres, mujeres casadas y mujeres maduras</strong>, <strong>Valiente</strong> es una conferencia inspiradora donde encontrarás tu tribu para tomar un café y compartir vida. Es un respiro espiritual preparado para que escuches la palabra de Dios, renueves tu mirada y crezcas profunda e íntimamente en tu relación con Él, cultivando tus convicciones y una fe sostenida por Su gracia infinita.
           </p>
 
-          <button
-            type="button"
-            onclick="document.getElementById('valiente-details-modal').close(); window.dispatchEvent(new CustomEvent('open-inscription-modal', { detail: { conferencia: 'valiente' } }));"
-            class="mt-8 mb-2 rounded-full bg-valiente-dark px-8 py-3.5 font-body text-[0.8rem] font-bold uppercase tracking-[0.2em] text-valiente-beige transition-transform duration-300 hover:scale-105 active:scale-95 shadow-[0_10px_25px_rgba(0,0,0,0.15)]"
-          >
-            Aparta tu lugar
-          </button>
+          <form action="/api/checkout" method="POST" class="mt-8 mb-2 w-full flex flex-col gap-4">
+            <input type="hidden" name="es_brave" value="false" />
+            
+            <input 
+              type="text" 
+              name="nombre" 
+              placeholder="Nombre completo" 
+              required 
+              class="w-full rounded-full bg-valiente-dark/5 border border-valiente-dark/10 px-6 py-3 font-body text-sm text-valiente-dark placeholder:text-valiente-dark/50 outline-none focus:border-valiente-dark/30 focus:bg-valiente-dark/10 transition-all"
+            />
+            
+            <input 
+              type="tel" 
+              name="whatsapp" 
+              placeholder="Tu WhatsApp" 
+              required 
+              class="w-full rounded-full bg-valiente-dark/5 border border-valiente-dark/10 px-6 py-3 font-body text-sm text-valiente-dark placeholder:text-valiente-dark/50 outline-none focus:border-valiente-dark/30 focus:bg-valiente-dark/10 transition-all"
+            />
+
+            <button
+              type="submit"
+              class="mt-2 w-full rounded-full bg-valiente-dark px-8 py-3.5 font-body text-[0.8rem] font-bold uppercase tracking-[0.2em] text-valiente-beige transition-transform duration-300 hover:scale-105 active:scale-95 shadow-[0_10px_25px_rgba(0,0,0,0.15)]"
+            >
+              Aparta tu lugar por $130
+            </button>
+          </form>
         </div>
       </dialog>
     </div>
