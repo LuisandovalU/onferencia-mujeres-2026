@@ -3,10 +3,35 @@ import { Scanner } from '@yudiel/react-qr-scanner';
 import { supabase } from '../lib/supabase';
 
 export default function CheckinScanner() {
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [statusText, setStatusText] = useState('Apuntando cámara...');
   const [colorState, setColorState] = useState<'gray' | 'green' | 'orange' | 'red'>('gray');
   const [scanning, setScanning] = useState(true);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const resp = await fetch('/api/admin/verify-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+      const data = await resp.json();
+      if (data.isValid) {
+        setIsAuthenticated(true);
+      } else {
+        alert('Clave incorrecta');
+      }
+    } catch (err) {
+      alert('Error de conexión');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const procesarBoleto = async (scannedText: string) => {
     setScanning(false);
@@ -45,6 +70,7 @@ export default function CheckinScanner() {
         setStatusText(`⏳ PAGO PENDIENTE - Debe $${asistente.monto_total - asistente.monto_pagado}`);
         setColorState('orange');
       } else {
+        // Validación de seguridad (el servidor debería checar esto)
         const { error: updateError } = await supabase
           .from('asistentes')
           .update({ asistio: true, fecha_checkin: new Date().toISOString() })
@@ -71,32 +97,57 @@ export default function CheckinScanner() {
     }
   };
 
+  if (!isAuthenticated) {
+    return (
+      <div className="w-full max-w-md bg-emerald-950/80 backdrop-blur-3xl border border-emerald-400/20 p-12 rounded-[3rem] shadow-[0_40px_80px_rgba(0,0,0,0.6)] text-center mt-12">
+        <div className="w-20 h-2 bg-emerald-400 mx-auto mb-10 rounded-full shadow-[0_0_20px_rgba(52,211,153,0.4)]"></div>
+        <h2 className="text-3xl font-black text-white mb-3 uppercase tracking-widest">Escáner <span className="text-emerald-400">Staff</span></h2>
+        <p className="text-emerald-200/40 text-[10px] mb-10 font-medium uppercase tracking-[0.3em]">Acceso Restringido</p>
+        <form onSubmit={handleLogin} className="space-y-6">
+          <input
+            type="password"
+            placeholder="Clave de acceso"
+            className="w-full bg-black/40 border border-emerald-400/10 rounded-2xl p-6 text-white text-center text-2xl focus:outline-none focus:border-emerald-400 transition-all font-bold placeholder:text-emerald-900"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <button 
+            disabled={loading}
+            className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-black py-6 rounded-2xl transition-all uppercase tracking-widest shadow-2xl shadow-emerald-500/20 disabled:opacity-50 text-lg"
+          >
+            {loading ? 'Verificando...' : 'Abrir Cámara'}
+          </button>
+        </form>
+      </div>
+    );
+  }
+
   const colorClasses = {
-    gray: 'bg-gray-800 text-white border-transparent',
-    green: 'bg-emerald-500 text-white shadow-[0_0_20px_rgba(16,185,129,0.6)] border-emerald-400',
-    orange: 'bg-orange-500 text-white shadow-[0_0_20px_rgba(249,115,22,0.6)] border-orange-400',
-    red: 'bg-red-600 text-white shadow-[0_0_20px_rgba(220,38,38,0.6)] border-red-500'
+    gray: 'bg-emerald-950/50 text-emerald-400/50 border-emerald-400/10',
+    green: 'bg-emerald-500 text-black shadow-[0_0_40px_rgba(16,185,129,0.8)] border-white scale-105',
+    orange: 'bg-orange-500 text-black shadow-[0_0_40px_rgba(249,115,22,0.8)] border-white scale-105',
+    red: 'bg-red-600 text-white shadow-[0_0_40px_rgba(220,38,38,0.8)] border-white scale-105'
   };
 
-  // Clases para el fondo de pantalla completa (versiones más oscuras para no cegar)
   const screenBgClasses = {
-    gray: 'bg-gray-900',
-    green: 'bg-emerald-950',
+    gray: 'bg-black',
+    green: 'bg-emerald-900',
     orange: 'bg-orange-950',
     red: 'bg-red-950'
   };
 
   return (
-    <div className={`fixed inset-0 transition-colors duration-500 flex flex-col items-center justify-start overflow-y-auto ${screenBgClasses[colorState]}`}>
-      {/* Overlay de brillo para éxito/error */}
-      <div className={`fixed inset-0 pointer-events-none opacity-20 transition-opacity duration-500 ${colorState !== 'gray' ? 'opacity-40' : 'opacity-0'} ${screenBgClasses[colorState]}`}></div>
+    <div className={`fixed inset-0 transition-all duration-700 flex flex-col items-center justify-start ${screenBgClasses[colorState]}`}>
+      {/* Overlay de color envolvente */}
+      <div className={`fixed inset-0 pointer-events-none transition-opacity duration-700 ${colorState !== 'gray' ? 'opacity-30' : 'opacity-0'} ${screenBgClasses[colorState]}`}></div>
 
-      <div className="w-full max-w-md mx-auto p-4 flex flex-col items-center mt-12 relative z-10">
-        <div className={`w-full p-4 rounded-xl mb-8 text-center font-bold text-xl transition-all duration-300 border-2 ${colorClasses[colorState]}`}>
+      <div className="w-full max-w-lg mx-auto p-6 flex flex-col items-center mt-8 relative z-10">
+        <div className={`w-full p-8 rounded-[2.5rem] mb-10 text-center font-black text-2xl md:text-3xl transition-all duration-500 border-4 uppercase tracking-tight leading-none ${colorClasses[colorState]}`}>
           {statusText}
         </div>
         
-        <div className="w-[300px] sm:w-[400px] bg-black rounded-2xl overflow-hidden border-4 border-gray-800 shadow-2xl relative">
+        <div className="w-[320px] sm:w-[450px] aspect-square bg-black rounded-[3rem] overflow-hidden border-8 border-emerald-900/50 shadow-[0_50px_100px_rgba(0,0,0,0.8)] relative">
           {scanning ? (
             <Scanner 
               onScan={(detectedCodes) => {
@@ -108,41 +159,40 @@ export default function CheckinScanner() {
               allowMultiple={true}
             />
           ) : (
-            <div className="w-full h-[300px] flex flex-col items-center justify-center bg-gray-900">
-              <div className="w-12 h-12 border-4 border-[#BFA077] border-t-transparent rounded-full animate-spin"></div>
-              <p className="mt-4 text-[#BFA077] font-semibold animate-pulse">Sincronizando...</p>
+            <div className="w-full h-full flex flex-col items-center justify-center bg-black">
+              <div className="w-16 h-16 border-8 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+              <p className="mt-8 text-emerald-500 font-black uppercase tracking-widest animate-pulse">Procesando...</p>
             </div>
           )}
           
-          {/* Luz de escaneo */}
-          {scanning && <div className="absolute inset-x-0 top-0 h-1 bg-[#BFA077] shadow-[0_0_15px_#BFA077] animate-[scan_2s_linear_infinite]"></div>}
+          {/* Luz de escaneo esmeralda */}
+          {scanning && <div className="absolute inset-x-0 top-0 h-2 bg-emerald-400 shadow-[0_0_30px_#10b981] animate-[scan_2s_linear_infinite]"></div>}
         </div>
 
-        {scanResult && (
-          <div className="mt-6 break-all text-xs text-gray-400 px-4 text-center bg-black/30 py-2 rounded-full">
-            Log: {scanResult}
-          </div>
-        )}
-
-        {/* Fallback Manual */}
-        <div className="mt-10 w-full bg-black/40 backdrop-blur-md border border-white/10 p-4 rounded-2xl shadow-xl">
-          <p className="text-[10px] text-gray-500 mb-3 font-semibold uppercase tracking-widest text-center">Entrada Manual Staff</p>
-          <div className="flex gap-2 w-full">
-            <input 
-              type="text" 
-              placeholder="Folio ej: 14"
-              className="flex-1 bg-black/60 text-white border border-white/10 rounded-xl p-3 text-center text-lg font-bold focus:outline-none focus:border-[#BFA077] transition-all"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  const target = e.currentTarget;
-                  if (!target.value) return;
-                  procesarBoleto(target.value);
-                  target.value = '';
-                }
-              }}
-            />
-          </div>
+        {/* Entrada Manual de Respaldo */}
+        <div className="mt-12 w-full max-w-sm bg-black/60 backdrop-blur-3xl border border-emerald-400/10 p-6 rounded-[2.5rem] shadow-2xl">
+          <p className="text-[10px] text-emerald-400/40 mb-4 font-black uppercase tracking-[0.4em] text-center">Entrada Manual (Folio)</p>
+          <input 
+            type="number" 
+            placeholder="Ej: 14"
+            className="w-full bg-transparent text-white border-b-4 border-emerald-500/20 rounded-none p-4 text-center text-4xl font-black focus:outline-none focus:border-emerald-500 transition-all placeholder:text-emerald-900"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                const target = e.currentTarget;
+                if (!target.value) return;
+                procesarBoleto(target.value);
+                target.value = '';
+              }
+            }}
+          />
         </div>
+
+        <button 
+          onClick={() => window.location.href = '/admin/registro-manual'}
+          className="mt-8 text-emerald-400/30 hover:text-emerald-400 font-black uppercase text-[10px] tracking-[0.3em] transition-all"
+        >
+          ← Volver al Registro Manual
+        </button>
       </div>
       
       <style dangerouslySetInnerHTML={{ __html: `
@@ -155,3 +205,4 @@ export default function CheckinScanner() {
     </div>
   );
 }
+

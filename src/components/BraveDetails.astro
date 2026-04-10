@@ -1,5 +1,7 @@
 ---
+import { InscribeteButton } from "./InscribeteButton";
 import { AutoImageCarousel } from "./AutoImageCarousel";
+
 import braveText from "@/assets/brave.webp";
 import braveCarousel1 from "@/assets/brave-carousel-1.webp";
 import braveCarousel2 from "@/assets/brave-carousel-2.webp";
@@ -68,32 +70,16 @@ const copy = {
             Diseñado de forma especial para <strong>estudiantes universitarias y jóvenes profesionales</strong>, <strong>Brave</strong> es una conferencia inspiradora creada para que hagas una pausa y escuches la palabra de Dios. Es un encuentro profundo que te apoyará a crecer en tu relación con Él, afirmando tus convicciones para que puedas dar tu siguiente paso con valentía y una fe inquebrantable.
           </p>
 
-          <form action="/api/checkout" method="POST" class="mt-8 mb-2 w-full flex flex-col gap-4">
-            <input type="hidden" name="es_brave" value="true" />
-            
-            <input 
-              type="text" 
-              name="nombre" 
-              placeholder="Nombre completo" 
-              required 
-              class="w-full rounded-full bg-white/10 border border-white/20 px-6 py-3 font-body text-sm text-white placeholder:text-white/60 outline-none focus:border-white focus:bg-white/20 transition-all"
-            />
-            
-            <input 
-              type="tel" 
-              name="whatsapp" 
-              placeholder="Tu WhatsApp" 
-              required 
-              class="w-full rounded-full bg-white/10 border border-white/20 px-6 py-3 font-body text-sm text-white placeholder:text-white/60 outline-none focus:border-white focus:bg-white/20 transition-all"
-            />
-            
-            <button
-              type="submit"
-              class="mt-2 w-full rounded-full bg-white px-8 py-3.5 font-body text-[0.8rem] font-bold uppercase tracking-[0.2em] text-brave-dark-deep transition-transform duration-300 hover:scale-105 active:scale-95 shadow-[0_10px_25px_rgba(0,0,0,0.3)]"
+          <div class="mt-8 mb-2 w-full flex flex-col gap-4">
+            <InscribeteButton 
+              client:load 
+              conferencia="brave" 
+              variant="light"
+              className="w-full py-4 text-base font-bold shadow-xl shadow-black/20"
             >
               Aparta tu lugar por $130
-            </button>
-          </form>
+            </InscribeteButton>
+          </div>
         </div>
       </dialog>
     </div>

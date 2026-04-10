@@ -4,7 +4,9 @@ import EncuentrosGrid from "./EncuentrosGrid.astro";
 import BraveDetails from "./BraveDetails.astro";
 import ValienteDetails from "./ValienteDetails.astro";
 import { InscriptionModal } from "./InscriptionModal";
+import { InscribeteButton } from "./InscribeteButton";
 ---
+
 
 <div
   data-conferencia-mujeres-section
@@ -147,16 +149,14 @@ import { InscriptionModal } from "./InscriptionModal";
           Completa tu inscripción y recibe los datos de transferencia. Te esperamos en Brave y Valiente.
         </p>
         <div class="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6">
-          <button
-            type="button"
-            class="rounded-full border-2 border-neutral-900 bg-white px-5 py-2.5 font-body text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-neutral-900 transition hover:bg-neutral-50 sm:px-10 sm:py-4 sm:text-base shadow-[0_0_40px_-12px_rgba(255,255,255,0.4)] ring-4 ring-white/20"
-          >
-            Inscribete
-          </button>
+          <InscribeteButton 
+            client:load 
+            variant="light"
+            className="px-5 py-2.5 sm:px-10 sm:py-4 border-2 border-neutral-900 shadow-[0_0_40px_-12px_rgba(255,255,255,0.4)] ring-4 ring-white/20 font-bold"
+          />
         </div>
       </div>
     </section>
 
   </div> <!-- /relative z-10 flex flex-col -->
 </div>
-
