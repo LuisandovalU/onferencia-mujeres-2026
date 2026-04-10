@@ -217,13 +217,17 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
         onClick={(e) => e.stopPropagation()}
         className={cn(
           "relative z-10 w-full overflow-hidden bg-white shadow-2xl transition-all duration-300",
-          "max-h-[90dvh] max-w-lg rounded-2xl p-6 sm:p-8"
+          step === 3 ? "max-h-screen sm:max-h-[90dvh] h-full sm:h-auto rounded-none sm:rounded-2xl" : "max-h-[90dvh] rounded-2xl",
+          "max-w-lg p-0 sm:p-8"
         )}
       >
         <button
           type="button"
           onClick={handleClose}
-          className="absolute right-4 top-4 z-[210] rounded-full p-2 text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-800 bg-white/80 backdrop-blur shadow-sm border border-neutral-200"
+          className={cn(
+            "absolute right-4 top-4 z-[210] rounded-full p-2 text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-800 bg-white/80 backdrop-blur shadow-sm border border-neutral-200",
+            step === 3 && "sm:top-4 top-2" // Ajuste para móvil en paso 3
+          )}
           aria-label="Cerrar ventana"
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -231,7 +235,10 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
           </svg>
         </button>
 
-        <div className="h-full overflow-y-auto w-full flex flex-col items-center">
+        <div className={cn(
+          "h-full overflow-y-auto w-full flex flex-col items-center",
+          step === 1 && "p-6 sm:p-0" // Mantener padding original solo en paso 1
+        )}>
           
           {/* PASO 1: Formulario Original */}
           {step === 1 && (
@@ -343,13 +350,15 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
 
           {/* PASO 3: Pasarela de Stripe Full Width */}
           {step === 3 && clientSecret && (
-            <div className="w-full h-full flex-1 bg-white pt-10 pb-6 px-2 sm:px-6 animate-in zoom-in-95 duration-500">
-                 <EmbeddedCheckoutProvider
-                   stripe={stripePromise}
-                   options={{ clientSecret }}
-                 >
-                   <EmbeddedCheckout />
-                 </EmbeddedCheckoutProvider>
+            <div className="w-full h-full flex-1 bg-white pt-12 sm:pt-10 pb-6 px-0 sm:px-6 animate-in zoom-in-95 duration-500 flex flex-col min-h-0">
+                 <div className="flex-1 overflow-y-auto w-full overscroll-contain">
+                   <EmbeddedCheckoutProvider
+                     stripe={stripePromise}
+                     options={{ clientSecret }}
+                   >
+                     <EmbeddedCheckout />
+                   </EmbeddedCheckoutProvider>
+                 </div>
             </div>
           )}
 
