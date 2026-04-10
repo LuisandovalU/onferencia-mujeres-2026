@@ -4,11 +4,17 @@ import type { APIRoute } from 'astro';
 import { supabase } from '../../lib/supabase';
 import Stripe from 'stripe';
 
-const stripeKey = import.meta.env.STRIPE_SECRET_KEY;
-if (!stripeKey) {
-    console.error('❌ STRIPE_SECRET_KEY is missing!');
+// Recuperar la llave desde import.meta.env o process.env (Vercel)
+const rawStripeKey = import.meta.env.STRIPE_SECRET_KEY || (typeof process !== 'undefined' ? process.env.STRIPE_SECRET_KEY : '');
+const stripeKey = String(rawStripeKey || '').trim();
+
+if (!stripeKey || stripeKey === 'sk_test_placeholder') {
+    console.error('❌ STRIPE_SECRET_KEY is missing or invalid! Current value starts with:', stripeKey.substring(0, 5) + '...');
 }
-const stripe = new Stripe(stripeKey || 'sk_test_placeholder');
+
+const stripe = new Stripe(stripeKey || 'sk_test_placeholder', {
+    apiVersion: '2025-01-27.acacia' as any, // Asegurar versión compatible
+});
 
 export const POST: APIRoute = async ({ request, url }) => {
     let nombre = '';

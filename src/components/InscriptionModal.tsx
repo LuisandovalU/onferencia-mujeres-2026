@@ -17,7 +17,7 @@ interface InscriptionModalProps {
   presetConferencia?: ConferenciaKey | null;
 }
 
-const stripePromise = loadStripe(import.meta.env.PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
+const stripePromise = loadStripe((import.meta.env.PUBLIC_STRIPE_PUBLISHABLE_KEY || '').trim());
 
 export function InscriptionModal({ open: propOpen, onClose, presetConferencia: propPreset = null }: InscriptionModalProps) {
   const titleId = useId();
