@@ -4,12 +4,16 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { supabase } from './supabase';
 
-// Registrar fuentes oficiales una sola vez al inicio del archivo
-try {
-  GlobalFonts.registerFromPath(path.join(process.cwd(), 'public/fonts/Montserrat-Bold.ttf'), 'Montserrat');
-  GlobalFonts.registerFromPath(path.join(process.cwd(), 'public/fonts/Nunito-Bold.ttf'), 'Nunito');
-} catch (fontErr) {
-  console.warn('TicketGenerator: Error registrando fuentes:', fontErr);
+let fontsRegistered = false;
+function registerFonts() {
+  if (fontsRegistered) return;
+  try {
+    GlobalFonts.registerFromPath(path.join(process.cwd(), 'public/fonts/Montserrat-Bold.ttf'), 'Montserrat');
+    GlobalFonts.registerFromPath(path.join(process.cwd(), 'public/fonts/Nunito-Bold.ttf'), 'Nunito');
+    fontsRegistered = true;
+  } catch (fontErr) {
+    console.warn('TicketGenerator: Error registrando fuentes:', fontErr);
+  }
 }
 
 interface TicketData {
@@ -31,6 +35,7 @@ export async function generateAndUploadTicket({
   es_brave,
   fileName
 }: TicketData) {
+  registerFonts();
   try {
     // 1. Configuración de la URL del QR
     // Usamos PUBLIC_SITE_URL si existe, de lo contrario fallback a localhost
