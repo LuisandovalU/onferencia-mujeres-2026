@@ -1,3 +1,4 @@
+import { Resvg } from '@resvg/resvg-js';
 import sharp from 'sharp';
 import QRCode from 'qrcode';
 import path from 'node:path';
@@ -29,7 +30,7 @@ export async function generateAndUploadTicket({
   es_brave,
   fileName
 }: TicketData) {
-  console.log(`🎟️ Iniciando generación (sharp+SVG) para: ${nombre_completo} (Folio: ${folio})`);
+  console.log(`🎟️ Iniciando generación (resvg+sharp) para: ${nombre_completo} (Folio: ${folio})`);
   
   try {
     const cwd = process.cwd();
@@ -41,41 +42,9 @@ export async function generateAndUploadTicket({
     
     console.log(`📁 Plantilla: ${templatePath}`);
 
-    // 2. Configurar fontconfig para que Pango/librsvg encuentre nuestra fuente
-    const tmpFontsDir = '/tmp/ticketfonts';
-    const tmpFontcacheDir = '/tmp/ticketfontcache';
-    await fs.mkdir(tmpFontsDir, { recursive: true });
-    await fs.mkdir(tmpFontcacheDir, { recursive: true });
-    
-    // Copiar fuentes al directorio temporal
+    // 2. Leer fuente como buffer (para inyectar directamente en @resvg/resvg-js)
     const fontBuffer = await fs.readFile(fontPath);
-    const tmpMontserratPath = path.join(tmpFontsDir, 'Montserrat-Bold.ttf');
-    await fs.writeFile(tmpMontserratPath, fontBuffer);
-    
-    // Nunito también si existe
-    const nunitoPath = path.join(cwd, 'public', 'fonts', 'Nunito-Bold.ttf');
-    try {
-      const nunitoBuffer = await fs.readFile(nunitoPath);
-      await fs.writeFile(path.join(tmpFontsDir, 'Nunito-Bold.ttf'), nunitoBuffer);
-    } catch { /* opcional */ }
-    
-    // Crear archivo de configuración fontconfig mínimo
-    const fontconfigContent = `<?xml version="1.0"?>
-<!DOCTYPE fontconfig SYSTEM "urn:fontconfig:fonts.dtd">
-<fontconfig>
-  <dir>${tmpFontsDir}</dir>
-  <cachedir>${tmpFontcacheDir}</cachedir>
-  <match target="pattern">
-    <test qual="any" name="family"><string>sans-serif</string></test>
-    <edit name="family" mode="assign" binding="same"><string>Montserrat</string></edit>
-  </match>
-</fontconfig>`;
-    const tmpFontconfigPath = '/tmp/ticket-fontconfig.conf';
-    await fs.writeFile(tmpFontconfigPath, fontconfigContent);
-    
-    // Apuntar Pango/librsvg a nuestra config de fontconfig
-    process.env.FONTCONFIG_FILE = tmpFontconfigPath;
-    console.log(`🔤 fontconfig configurado: ${tmpFontconfigPath}, fuente en ${tmpMontserratPath} (${fontBuffer.length} bytes)`);
+    console.log(`🔤 Fuente leída: ${fontBuffer.length} bytes`);
 
     // 3. Obtener dimensiones de la plantilla
     const templateMeta = await sharp(templatePath).metadata();
@@ -83,7 +52,7 @@ export async function generateAndUploadTicket({
     const H = templateMeta.height || 1920;
     console.log(`📐 Dimensiones plantilla: ${W}x${H}`);
 
-    // 4. Generar QR como buffer PNG (fondo transparente)
+    // 4. Generar QR como buffer PNG
     const siteURL = 'https://conferencia.icimexico.org';
     const checkinURL = `${siteURL}/admin/checkin?id=${asistenteId}`;
     const qrBuffer = await QRCode.toBuffer(checkinURL, {
@@ -106,17 +75,17 @@ export async function generateAndUploadTicket({
     const folioFontSize = Math.floor(W * 0.048);
     
     const textColor = es_brave ? 'white' : '#111111';
-    const bandFill = es_brave ? 'rgba(0,0,0,0.60)' : 'rgba(255,255,255,0.70)';
+    const bandFill = es_brave ? 'rgba(0,0,0,0.65)' : 'rgba(255,255,255,0.75)';
     const nameY = Math.floor(bandY + bandH * 0.38);
     const folioY = Math.floor(bandY + bandH * 0.75);
 
-    // 6. Crear SVG — fontconfig ya apunta a Montserrat, se usa por nombre nativo
+    // 6. Crear SVG del overlay de texto (sin @font-face — la fuente se inyecta via resvg API)
     const svgOverlay = `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
-  <rect x="0" y="${bandY}" width="${W}" height="${bandH}" fill="${bandFill}" rx="0"/>
+  <rect x="0" y="${bandY}" width="${W}" height="${bandH}" fill="${bandFill}"/>
   <text
     x="${W / 2}"
     y="${nameY}"
-    font-family="Montserrat, sans-serif"
+    font-family="Montserrat"
     font-size="${nameFontSize}"
     font-weight="bold"
     fill="${textColor}"
@@ -126,23 +95,39 @@ export async function generateAndUploadTicket({
   <text
     x="${W / 2}"
     y="${folioY}"
-    font-family="Montserrat, sans-serif"
+    font-family="Montserrat"
     font-size="${folioFontSize}"
     font-weight="bold"
     fill="${textColor}"
     text-anchor="middle"
     dominant-baseline="middle"
-    opacity="0.85"
+    opacity="0.9"
   >Folio #${folio}</text>
 </svg>`;
     
     console.log(`🎨 SVG generado (${svgOverlay.length} chars)`);
 
-    // 7. Componer con sharp: plantilla + SVG texto + QR
+    // 7. Renderizar SVG → PNG usando @resvg/resvg-js con fuente inyectada por buffer
+    const resvg = new Resvg(svgOverlay, {
+      fitTo: { mode: 'original' },
+      font: {
+        fontBuffers: [fontBuffer],     // ← Inyección directa de la fuente
+        defaultFontFamily: 'Montserrat',
+        serifFamily: 'Montserrat',
+        sansSerifFamily: 'Montserrat',
+        loadSystemFonts: false,        // ← No depender del sistema
+      }
+    });
+    
+    const rendered = resvg.render();
+    const overlayPngBuffer = rendered.asPng();
+    console.log(`🖼️ Overlay PNG renderizado: ${overlayPngBuffer.length} bytes`);
+
+    // 8. Componer con sharp: plantilla + overlay de texto + QR
     const finalBuffer = await sharp(templatePath)
       .composite([
         {
-          input: Buffer.from(svgOverlay),
+          input: overlayPngBuffer,
           top: 0,
           left: 0,
           blend: 'over'
@@ -159,7 +144,7 @@ export async function generateAndUploadTicket({
 
     console.log(`📦 Buffer final JPEG: ${finalBuffer.length} bytes`);
 
-    // 8. Subir a Supabase Storage
+    // 9. Subir a Supabase Storage
     const finalFileName = fileName.endsWith('.jpg') ? fileName : `${fileName}.jpg`;
     
     const { error: uploadError } = await supabase.storage
@@ -173,7 +158,7 @@ export async function generateAndUploadTicket({
       throw new Error(`Error Supabase Storage: ${uploadError.message}`);
     }
 
-    console.log(`🚀 Ticket subido exitosamente: tickets/${finalFileName}`);
+    console.log(`🚀 Ticket subido: tickets/${finalFileName}`);
     return { success: true, fileName: finalFileName };
 
   } catch (error: any) {
