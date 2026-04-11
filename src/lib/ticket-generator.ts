@@ -41,10 +41,11 @@ export async function generateAndUploadTicket({
     
     console.log(`📁 Plantilla: ${templatePath}`);
 
-    // 2. Leer fuente como base64 para embeber en SVG
+    // 2. Escribir fuente a /tmp para que librsvg/Pango la encuentre por file://
+    const tmpFontPath = '/tmp/TicketFont-Montserrat.ttf';
     const fontBuffer = await fs.readFile(fontPath);
-    const fontBase64 = fontBuffer.toString('base64');
-    console.log(`🔤 Fuente cargada: ${fontBuffer.length} bytes`);
+    await fs.writeFile(tmpFontPath, fontBuffer);
+    console.log(`🔤 Fuente escrita en ${tmpFontPath} (${fontBuffer.length} bytes)`);
 
     // 3. Obtener dimensiones de la plantilla
     const templateMeta = await sharp(templatePath).metadata();
@@ -79,13 +80,13 @@ export async function generateAndUploadTicket({
     const nameY = Math.floor(bandY + bandH * 0.38);
     const folioY = Math.floor(bandY + bandH * 0.75);
 
-    // 6. Crear SVG con fuente embebida en base64
+    // 6. Crear SVG con fuente referenciada por file://
     const svgOverlay = `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <style>
       @font-face {
         font-family: 'TicketFont';
-        src: url('data:font/truetype;base64,${fontBase64}') format('truetype');
+        src: url('file://${tmpFontPath}') format('truetype');
         font-weight: bold;
       }
     </style>
@@ -94,7 +95,7 @@ export async function generateAndUploadTicket({
   <text
     x="${W / 2}"
     y="${nameY}"
-    font-family="TicketFont, Arial, sans-serif"
+    font-family="TicketFont, DejaVu Sans, Liberation Sans, sans-serif"
     font-size="${nameFontSize}"
     font-weight="bold"
     fill="${textColor}"
@@ -104,7 +105,7 @@ export async function generateAndUploadTicket({
   <text
     x="${W / 2}"
     y="${folioY}"
-    font-family="TicketFont, Arial, sans-serif"
+    font-family="TicketFont, DejaVu Sans, Liberation Sans, sans-serif"
     font-size="${folioFontSize}"
     font-weight="bold"
     fill="${textColor}"
