@@ -45,6 +45,37 @@ export const GET: APIRoute = async () => {
     diagnostics.push(`🔑 PUBLIC_SUPABASE_URL: ${!!(import.meta.env.PUBLIC_SUPABASE_URL || process.env.PUBLIC_SUPABASE_URL) ? 'SÍ' : '❌ NO'}`);
     diagnostics.push(`🔑 SUPABASE_SERVICE_ROLE_KEY: ${!!(import.meta.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY) ? 'SÍ' : '❌ NO'}`);
 
+    // ===== DIAGNÓSTICO DE BYTES DEL FONT =====
+    diagnostics.push(`--- DIAGNÓSTICO FONT BYTES ---`);
+    try {
+      const fontPath = path.join(cwd, 'public', 'fonts', 'Montserrat-Bold.ttf');
+      const fontBuf = await fs.readFile(fontPath);
+      
+      // Primeros 8 bytes como hex
+      const first8 = Array.from(fontBuf.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join(' ');
+      diagnostics.push(`📊 Primeros 8 bytes del TTF: ${first8}`);
+      diagnostics.push(`📊 Buffer.byteOffset: ${fontBuf.byteOffset}, byteLength: ${fontBuf.byteLength}`);
+      
+      // Test de conversión a ArrayBuffer
+      const uint8Copy = new Uint8Array(fontBuf.length);
+      uint8Copy.set(fontBuf);
+      const ab = uint8Copy.buffer;
+      const view = new DataView(ab);
+      const first4 = `${view.getUint8(0).toString(16)} ${view.getUint8(1).toString(16)} ${view.getUint8(2).toString(16)} ${view.getUint8(3).toString(16)}`;
+      diagnostics.push(`📊 ArrayBuffer primeros 4 bytes: ${first4} (TTF válido = '00 01 00 00')`);
+      
+      // Intentar parsear con opentype
+      const { parse } = await import('opentype.js');
+      try {
+        const font = parse(ab);
+        diagnostics.push(`✅ opentype.parse OK: ${font.names.fullName?.en || 'ok'}, unitsPerEm=${font.unitsPerEm}`);
+      } catch (parseErr: any) {
+        diagnostics.push(`❌ opentype.parse ERROR: ${parseErr.message}`);
+      }
+    } catch (e: any) {
+      diagnostics.push(`❌ Error en diagnóstico font: ${e.message}`);
+    }
+
     // ===== FONT + TEXT RENDERING TEST =====
     diagnostics.push(`--- INICIO TEST DE FUENTES ---`);
     
