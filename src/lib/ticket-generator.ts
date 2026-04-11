@@ -107,15 +107,22 @@ export async function generateAndUploadTicket({
     
     console.log(`🎨 SVG generado (${svgOverlay.length} chars)`);
 
-    // 7. Renderizar SVG → PNG usando @resvg/resvg-js con fuente inyectada por buffer
+    // 7. Renderizar SVG → PNG usando @resvg/resvg-js
+    // Escribir fuente a /tmp para que resvg la encuentre via fontDirs
+    const tmpFontsDir = '/tmp/resvg-fonts';
+    await fs.mkdir(tmpFontsDir, { recursive: true });
+    const tmpFontFile = path.join(tmpFontsDir, 'Montserrat-Bold.ttf');
+    await fs.writeFile(tmpFontFile, fontBuffer);
+    console.log(`🔤 Fuente escrita para resvg: ${tmpFontFile}`);
+
     const resvg = new Resvg(svgOverlay, {
       fitTo: { mode: 'original' },
       font: {
-        fontBuffers: [fontBuffer],     // ← Inyección directa de la fuente
+        fontDirs: [tmpFontsDir],         // ← directorio con el TTF
         defaultFontFamily: 'Montserrat',
         serifFamily: 'Montserrat',
         sansSerifFamily: 'Montserrat',
-        loadSystemFonts: false,        // ← No depender del sistema
+        loadSystemFonts: false,
       }
     });
     
