@@ -1,4 +1,4 @@
-import { Resvg } from '@resvg/resvg-js';
+import * as opentype from 'opentype.js';
 import sharp from 'sharp';
 import QRCode from 'qrcode';
 import path from 'node:path';
@@ -13,14 +13,37 @@ interface TicketData {
   fileName: string; 
 }
 
-// Escapa caracteres especiales en XML/SVG
-function escapeXml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
+/**
+ * Convierte texto a SVG path usando opentype.js.
+ * Esto NO necesita ningún sistema de fuentes — lee el TTF y genera paths vectoriales.
+ */
+function textToSvgPath(
+  font: opentype.Font,
+  text: string,
+  x: number,
+  y: number,
+  fontSize: number,
+  color: string,
+  centerX?: number
+): string {
+  // Calcular ancho total para centrar
+  let totalWidth = 0;
+  for (const char of text) {
+    const glyph = font.charToGlyph(char);
+    totalWidth += (glyph.advanceWidth || 0) * (fontSize / font.unitsPerEm);
+  }
+  
+  const startX = centerX !== undefined ? centerX - totalWidth / 2 : x;
+  
+  // Generar path del texto
+  const fontPath = font.getPath(text, startX, y, fontSize);
+  const svgPathData = fontPath.toSVG(2);
+  
+  // Extraer el atributo 'd' del path
+  const dMatch = svgPathData.match(/d="([^"]+)"/);
+  if (!dMatch) return '';
+  
+  return `<path d="${dMatch[1]}" fill="${color}"/>`;
 }
 
 export async function generateAndUploadTicket({
@@ -30,7 +53,7 @@ export async function generateAndUploadTicket({
   es_brave,
   fileName
 }: TicketData) {
-  console.log(`🎟️ Iniciando generación (resvg+sharp) para: ${nombre_completo} (Folio: ${folio})`);
+  console.log(`🎟️ Generando ticket (opentype paths) para: ${nombre_completo} (Folio: ${folio})`);
   
   try {
     const cwd = process.cwd();
@@ -40,130 +63,95 @@ export async function generateAndUploadTicket({
     const templatePath = path.join(cwd, 'public', 'tickets', templateName);
     const fontPath = path.join(cwd, 'public', 'fonts', 'Montserrat-Bold.ttf');
     
-    console.log(`📁 Plantilla: ${templatePath}`);
-
-    // 2. Leer fuente como buffer (para inyectar directamente en @resvg/resvg-js)
+    // 2. Cargar fuente con opentype.js (lee el TTF directamente)
     const fontBuffer = await fs.readFile(fontPath);
-    console.log(`🔤 Fuente leída: ${fontBuffer.length} bytes`);
+    // opentype.js requiere un ArrayBuffer
+    const arrayBuffer = fontBuffer.buffer.slice(
+      fontBuffer.byteOffset,
+      fontBuffer.byteOffset + fontBuffer.byteLength
+    ) as ArrayBuffer;
+    const font = opentype.parse(arrayBuffer);
+    console.log(`🔤 Fuente cargada: ${font.names.fullName?.en || 'Montserrat'}, unitsPerEm=${font.unitsPerEm}`);
 
     // 3. Obtener dimensiones de la plantilla
     const templateMeta = await sharp(templatePath).metadata();
-    const W = templateMeta.width || 1080;
-    const H = templateMeta.height || 1920;
+    const W = templateMeta.width || 600;
+    const H = templateMeta.height || 900;
     console.log(`📐 Dimensiones plantilla: ${W}x${H}`);
 
     // 4. Generar QR como buffer PNG
     const siteURL = 'https://conferencia.icimexico.org';
     const checkinURL = `${siteURL}/admin/checkin?id=${asistenteId}`;
+    const qrSize = Math.floor(W * 0.45);
     const qrBuffer = await QRCode.toBuffer(checkinURL, {
       type: 'png',
-      width: Math.floor(W * 0.45),
+      width: qrSize,
       margin: 1,
       color: { dark: es_brave ? '#FFFFFF' : '#000000', light: '#00000000' }
     });
-    console.log(`✅ QR generado: ${qrBuffer.length} bytes`);
 
     // 5. Calcular posiciones
-    const qrSize = Math.floor(W * 0.45);
     const marginBot = Math.floor(H * 0.08);
     const qrX = Math.floor((W - qrSize) / 2);
     const qrY = H - qrSize - marginBot;
     
     const bandH = Math.floor(H * 0.14);
     const bandY = qrY - bandH - 20;
+    const centerX = W / 2;
+    
+    // Font sizes
     const nameFontSize = Math.floor(W * 0.068);
     const folioFontSize = Math.floor(W * 0.048);
     
-    const textColor = es_brave ? 'white' : '#111111';
+    // Colores
+    const textColor = es_brave ? '#FFFFFF' : '#111111';
     const bandFill = es_brave ? 'rgba(0,0,0,0.65)' : 'rgba(255,255,255,0.75)';
-    const nameY = Math.floor(bandY + bandH * 0.38);
-    const folioY = Math.floor(bandY + bandH * 0.75);
 
-    // 6. Crear SVG del overlay de texto (sin @font-face — la fuente se inyecta via resvg API)
+    // 6. Convertir texto a SVG paths vectoriales (no necesita fonts del sistema)
+    // La baseline de opentype está en la parte inferior del texto
+    // Así que y = bandY + bandH*0.38 + nameFontSize*0.7 (ascender típico)
+    const nameY = Math.floor(bandY + bandH * 0.42 + nameFontSize * 0.35);
+    const folioY = Math.floor(bandY + bandH * 0.78 + folioFontSize * 0.35);
+    
+    const namePath = textToSvgPath(font, nombre_completo, 0, nameY, nameFontSize, textColor, centerX);
+    const folioPath = textToSvgPath(font, `Folio #${folio}`, 0, folioY, folioFontSize, es_brave ? '#E0E0E0' : '#333333', centerX);
+    
+    console.log(`✍️ Paths generados: nombre=${namePath.length}chars, folio=${folioPath.length}chars`);
+
+    // 7. Crear SVG overlay con banda + paths vectoriales
     const svgOverlay = `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
   <rect x="0" y="${bandY}" width="${W}" height="${bandH}" fill="${bandFill}"/>
-  <text
-    x="${W / 2}"
-    y="${nameY}"
-    font-family="Montserrat"
-    font-size="${nameFontSize}"
-    font-weight="bold"
-    fill="${textColor}"
-    text-anchor="middle"
-    dominant-baseline="middle"
-  >${escapeXml(nombre_completo)}</text>
-  <text
-    x="${W / 2}"
-    y="${folioY}"
-    font-family="Montserrat"
-    font-size="${folioFontSize}"
-    font-weight="bold"
-    fill="${textColor}"
-    text-anchor="middle"
-    dominant-baseline="middle"
-    opacity="0.9"
-  >Folio #${folio}</text>
+  ${namePath}
+  ${folioPath}
 </svg>`;
     
-    console.log(`🎨 SVG generado (${svgOverlay.length} chars)`);
+    console.log(`🎨 SVG overlay: ${svgOverlay.length} chars`);
 
-    // 7. Renderizar SVG → PNG usando @resvg/resvg-js
-    // Escribir fuente a /tmp para que resvg la encuentre via fontDirs
-    const tmpFontsDir = '/tmp/resvg-fonts';
-    await fs.mkdir(tmpFontsDir, { recursive: true });
-    const tmpFontFile = path.join(tmpFontsDir, 'Montserrat-Bold.ttf');
-    await fs.writeFile(tmpFontFile, fontBuffer);
-    console.log(`🔤 Fuente escrita para resvg: ${tmpFontFile}`);
-
-    const resvg = new Resvg(svgOverlay, {
-      fitTo: { mode: 'original' },
-      font: {
-        fontDirs: [tmpFontsDir],         // ← directorio con el TTF
-        defaultFontFamily: 'Montserrat',
-        serifFamily: 'Montserrat',
-        sansSerifFamily: 'Montserrat',
-        loadSystemFonts: false,
-      }
-    });
-    
+    // 8. Renderizar con @resvg/resvg-js (solo paths/rects, sin texto = sin fonts)
+    const { Resvg } = await import('@resvg/resvg-js');
+    const resvg = new Resvg(svgOverlay, { fitTo: { mode: 'original' } });
     const rendered = resvg.render();
     const overlayPngBuffer = rendered.asPng();
-    console.log(`🖼️ Overlay PNG renderizado: ${overlayPngBuffer.length} bytes`);
+    console.log(`🖼️ Overlay PNG: ${overlayPngBuffer.length} bytes`);
 
-    // 8. Componer con sharp: plantilla + overlay de texto + QR
+    // 9. Componer: plantilla + overlay texto + QR
     const finalBuffer = await sharp(templatePath)
       .composite([
-        {
-          input: overlayPngBuffer,
-          top: 0,
-          left: 0,
-          blend: 'over'
-        },
-        {
-          input: qrBuffer,
-          top: qrY,
-          left: qrX,
-          blend: 'over'
-        }
+        { input: overlayPngBuffer, top: 0, left: 0, blend: 'over' },
+        { input: qrBuffer, top: qrY, left: qrX, blend: 'over' }
       ])
       .jpeg({ quality: 90 })
       .toBuffer();
 
-    console.log(`📦 Buffer final JPEG: ${finalBuffer.length} bytes`);
+    console.log(`📦 Buffer JPEG final: ${finalBuffer.length} bytes`);
 
-    // 9. Subir a Supabase Storage
+    // 10. Subir a Supabase
     const finalFileName = fileName.endsWith('.jpg') ? fileName : `${fileName}.jpg`;
-    
     const { error: uploadError } = await supabase.storage
       .from('tickets')
-      .upload(finalFileName, finalBuffer, {
-        contentType: 'image/jpeg',
-        upsert: true
-      });
+      .upload(finalFileName, finalBuffer, { contentType: 'image/jpeg', upsert: true });
 
-    if (uploadError) {
-      throw new Error(`Error Supabase Storage: ${uploadError.message}`);
-    }
+    if (uploadError) throw new Error(`Error Supabase: ${uploadError.message}`);
 
     console.log(`🚀 Ticket subido: tickets/${finalFileName}`);
     return { success: true, fileName: finalFileName };
