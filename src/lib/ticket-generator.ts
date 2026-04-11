@@ -65,12 +65,9 @@ export async function generateAndUploadTicket({
     
     // 2. Cargar fuente con opentype.js (lee el TTF directamente)
     const fontBuffer = await fs.readFile(fontPath);
-    // opentype.js requiere un ArrayBuffer
-    const arrayBuffer = fontBuffer.buffer.slice(
-      fontBuffer.byteOffset,
-      fontBuffer.byteOffset + fontBuffer.byteLength
-    ) as ArrayBuffer;
-    const font = opentype.parse(arrayBuffer);
+    // Convertir Buffer a ArrayBuffer limpio (new Uint8Array copia los bytes correctamente)
+    const fontArrayBuffer = new Uint8Array(fontBuffer).buffer;
+    const font = opentype.parse(fontArrayBuffer);
     console.log(`🔤 Fuente cargada: ${font.names.fullName?.en || 'Montserrat'}, unitsPerEm=${font.unitsPerEm}`);
 
     // 3. Obtener dimensiones de la plantilla
