@@ -18,33 +18,51 @@ async function ensureFonts(): Promise<{ main: string; sub: string }> {
   const nunitoPath = path.join(fontsDir, 'Nunito-Bold.ttf');
   
   try {
-    // Leer como buffer y registrar — más confiable en entornos serverless
     const montserratBuffer = await fs.readFile(montserratPath);
     const nunitoBuffer = await fs.readFile(nunitoPath);
     
-    console.log(`📂 Fuente leída: Montserrat (${montserratBuffer.length} bytes), Nunito (${nunitoBuffer.length} bytes)`);
+    console.log(`📂 Fuentes leídas: Montserrat=${montserratBuffer.length}b, Nunito=${nunitoBuffer.length}b`);
     
-    GlobalFonts.register(montserratBuffer, 'TicketMain');
-    GlobalFonts.register(nunitoBuffer, 'TicketSub');
+    // Registrar con su nombre nativo del TTF (no alias)
+    GlobalFonts.register(montserratBuffer, 'Montserrat');
+    GlobalFonts.register(nunitoBuffer, 'Nunito');
     
     const families = GlobalFonts.families.map((f: any) => f.family).join(', ');
-    console.log(`🔤 Fuentes en @napi-rs/canvas: [${families}]`);
+    console.log(`🔤 Fuentes registradas: [${families}]`);
     
-    const hasMain = families.includes('TicketMain');
-    const hasSub = families.includes('TicketSub');
-    
-    if (hasMain && hasSub) {
-      console.log('✅ Custom fonts TicketMain + TicketSub registradas OK.');
-      return { main: 'TicketMain', sub: 'TicketSub' };
-    } else {
-      console.warn(`⚠️ Registro no confirmado. families=[${families}]`);
-      return { main: 'serif', sub: 'serif' };
-    }
+    return { 
+      main: families.includes('Montserrat') ? 'Montserrat' : 'serif', 
+      sub: families.includes('Nunito') ? 'Nunito' : 'serif' 
+    };
   } catch (err: any) {
-    console.warn(`⚠️ Error registrando fuentes: ${err.message}. Usando fallback.`);
+    console.warn(`⚠️ Error registrando fuentes: ${err.message}`);
     return { main: 'serif', sub: 'serif' };
   }
 }
+
+// Helper para probar si el canvas puede dibujar texto visible
+async function testTextRendering(fontName: string, fontSize: number): Promise<boolean> {
+  try {
+    const testCanvas = createCanvas(200, 60);
+    const testCtx = testCanvas.getContext('2d');
+    testCtx.fillStyle = '#000000';
+    testCtx.fillRect(0, 0, 200, 60);
+    testCtx.font = `bold ${fontSize}px "${fontName}"`;
+    testCtx.fillStyle = '#FFFFFF';
+    testCtx.textAlign = 'center';
+    testCtx.textBaseline = 'middle';
+    testCtx.fillText('TEST', 100, 30);
+    const buf = testCanvas.toBuffer('image/png');
+    // Si el buffer tiene más de 300 bytes de PNG, hay pixels blancos = texto visible
+    const hasWhitePixels = buf.length > 300;
+    console.log(`🧪 Test font="${fontName}" ${fontSize}px: buffer=${buf.length}b, hasText=${hasWhitePixels}`);
+    return hasWhitePixels;
+  } catch (e: any) {
+    console.warn(`🧪 Test font falló: ${e.message}`);
+    return false;
+  }
+}
+
 
 export async function generateAndUploadTicket({
   asistenteId,
@@ -57,6 +75,10 @@ export async function generateAndUploadTicket({
   
   try {
     const { main: mainFont, sub: subFont } = await ensureFonts();
+    
+    // Test real si el canvas puede renderizar texto con esa fuente
+    await testTextRendering(mainFont, 60);
+    await testTextRendering('serif', 60);
 
     const siteURL = 'https://conferencia.icimexico.org';
     const checkinURL = `${siteURL}/admin/checkin?id=${asistenteId}`;
