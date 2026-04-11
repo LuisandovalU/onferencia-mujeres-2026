@@ -90,22 +90,37 @@ export async function generateAndUploadTicket({
     const qrX = (canvasWidth - qrSize) / 2;
     const qrY = canvasHeight - qrSize - marginBot; 
     
+    // Dibujar una banda semi-transparente detrás del texto para legibilidad
+    const bandHeight = canvasHeight * 0.12;
+    const bandY = qrY - bandHeight - 10;
+    ctx.fillStyle = es_brave ? 'rgba(0, 0, 0, 0.45)' : 'rgba(255, 255, 255, 0.55)';
+    ctx.fillRect(0, bandY, canvasWidth, bandHeight);
+    
+    // Nombre
+    ctx.fillStyle = es_brave ? '#FFFFFF' : '#1A1A1A';
+    const nameFontSize = Math.floor(canvasWidth * 0.065);
+    const textCenterY = bandY + (bandHeight * 0.42);
+    
+    // Listar fuentes disponibles para debug
+    const registeredFonts = GlobalFonts.families.map((f: any) => f.family).join(', ');
+    console.log(`🔤 Fuentes registradas: ${registeredFonts}`);
+    
+    ctx.font = `bold ${nameFontSize}px Montserrat, Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText(nombre_completo, canvasWidth / 2, textCenterY);
+    console.log(`✍️ Nombre "${nombre_completo}" dibujado en Y=${textCenterY}`);
+
+    // Folio
+    const folioFontSize = Math.floor(canvasWidth * 0.045);
+    const folioY = bandY + (bandHeight * 0.78);
+    ctx.font = `bold ${folioFontSize}px Nunito, Arial, sans-serif`;
+    ctx.fillStyle = es_brave ? '#E0E0E0' : '#333333';
+    ctx.fillText(`Folio #${folio}`, canvasWidth / 2, folioY);
+    console.log(`✍️ Folio "#${folio}" dibujado en Y=${folioY}`);
+
+    // Dibujar QR DESPUÉS del texto para que quede encima si se sobrepone
     ctx.drawImage(qrImageObj, qrX, qrY, qrSize, qrSize);
     console.log('✅ QR dibujado sobre el boleto.');
-
-    ctx.fillStyle = es_brave ? '#FFFFFF' : '#1A1A1A';
-    const nameFontSize = Math.floor(canvasWidth * 0.078);
-    const textMargin = Math.floor(canvasHeight * 0.03);
-    
-    ctx.font = `bold ${nameFontSize}px Montserrat`;
-    ctx.textAlign = 'center';
-    ctx.fillText(nombre_completo, canvasWidth / 2, qrY - (textMargin * 2));
-
-    const folioFontSize = Math.floor(canvasWidth * 0.055);
-    ctx.font = `bold ${folioFontSize}px Nunito`;
-    ctx.fillStyle = es_brave ? '#EAEAEA' : '#333333';
-    ctx.fillText(`Folio #${folio}`, canvasWidth / 2, qrY - textMargin);
-    console.log('✍️ Textos escritos correctamente.');
 
     // Convertir a JPEG para subir
     console.log(`📦 Intentando crear buffer JPEG...`);
