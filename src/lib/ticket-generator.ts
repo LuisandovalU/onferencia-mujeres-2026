@@ -41,30 +41,34 @@ export async function generateAndUploadTicket({
     const H = templateMeta.height || 1920;
     console.log(`📐 Dimensiones plantilla: ${W}x${H}`);
 
-    // 4. Generar QR como buffer PNG
+    // 4. Configurar Colores y QR
+    const textColor = '#FFFFFF';
+    const bandFill = es_brave 
+      ? 'rgba(0, 0, 0, 0.7)'         // Brave: Franja negra/oscura
+      : 'rgba(14, 45, 25, 0.85)';    // Valiente: Franja verde oscuro (como las hojas)
+    
+    const qrDarkColor = '#FFFFFF';   // QR blanco para ambos
+    
+    const qrSize = Math.floor(W * 0.45);
     const siteURL = 'https://conferencia.icimexico.org';
     const checkinURL = `${siteURL}/admin/checkin?id=${asistenteId}`;
-    const qrSize = Math.floor(W * 0.45);
+    
     const qrBuffer = await QRCode.toBuffer(checkinURL, {
       type: 'png',
       width: qrSize,
       margin: 1,
-      color: { dark: es_brave ? '#FFFFFF' : '#000000', light: '#00000000' }
+      color: { dark: qrDarkColor, light: '#00000000' }
     });
 
-    // 5. Configurar diseño
+    // 5. Calcular posiciones
     const marginBot = Math.floor(H * 0.08);
     const qrX = Math.floor((W - qrSize) / 2);
     const qrY = H - qrSize - marginBot;
     
     const bandH = Math.floor(H * 0.14);
     const bandY = qrY - bandH - 20;
-    
-    const textColor = es_brave ? '#FFFFFF' : '#111111';
-    const bandFill = es_brave ? 'rgba(0,0,0,0.65)' : 'rgba(255,255,255,0.75)';
 
     // 6. Usar Satori para generar el SVG del texto
-    // Satori usa flexbox por defecto.
     const svg = await satori(
       {
         type: 'div',
@@ -140,9 +144,7 @@ export async function generateAndUploadTicket({
       }
     );
 
-    console.log(`🎨 SVG generado por Satori: ${svg.length} chars`);
-
-    // 7. Renderizar SVG → PNG con resvg-js
+    // 7. Renderizar SVG → PNG
     const resvg = new Resvg(svg, { fitTo: { mode: 'original' } });
     const overlayPngBuffer = resvg.render().asPng();
 
@@ -163,11 +165,11 @@ export async function generateAndUploadTicket({
 
     if (uploadError) throw new Error(`Error Supabase: ${uploadError.message}`);
 
-    console.log(`🚀 Ticket generado y subido con Satori: tickets/${finalFileName}`);
+    console.log(`🚀 Ticket completado: tickets/${finalFileName}`);
     return { success: true, fileName: finalFileName };
 
   } catch (error: any) {
-    console.error(`❌ Error en TicketGenerator (Satori): ${error.message}`);
+    console.error(`❌ Error en TicketGenerator: ${error.message}`);
     throw new Error(`Error en TicketGenerator: ${error.message}`);
   }
 }
