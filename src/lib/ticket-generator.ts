@@ -41,11 +41,41 @@ export async function generateAndUploadTicket({
     
     console.log(`📁 Plantilla: ${templatePath}`);
 
-    // 2. Escribir fuente a /tmp para que librsvg/Pango la encuentre por file://
-    const tmpFontPath = '/tmp/TicketFont-Montserrat.ttf';
+    // 2. Configurar fontconfig para que Pango/librsvg encuentre nuestra fuente
+    const tmpFontsDir = '/tmp/ticketfonts';
+    const tmpFontcacheDir = '/tmp/ticketfontcache';
+    await fs.mkdir(tmpFontsDir, { recursive: true });
+    await fs.mkdir(tmpFontcacheDir, { recursive: true });
+    
+    // Copiar fuentes al directorio temporal
     const fontBuffer = await fs.readFile(fontPath);
-    await fs.writeFile(tmpFontPath, fontBuffer);
-    console.log(`🔤 Fuente escrita en ${tmpFontPath} (${fontBuffer.length} bytes)`);
+    const tmpMontserratPath = path.join(tmpFontsDir, 'Montserrat-Bold.ttf');
+    await fs.writeFile(tmpMontserratPath, fontBuffer);
+    
+    // Nunito también si existe
+    const nunitoPath = path.join(cwd, 'public', 'fonts', 'Nunito-Bold.ttf');
+    try {
+      const nunitoBuffer = await fs.readFile(nunitoPath);
+      await fs.writeFile(path.join(tmpFontsDir, 'Nunito-Bold.ttf'), nunitoBuffer);
+    } catch { /* opcional */ }
+    
+    // Crear archivo de configuración fontconfig mínimo
+    const fontconfigContent = `<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "urn:fontconfig:fonts.dtd">
+<fontconfig>
+  <dir>${tmpFontsDir}</dir>
+  <cachedir>${tmpFontcacheDir}</cachedir>
+  <match target="pattern">
+    <test qual="any" name="family"><string>sans-serif</string></test>
+    <edit name="family" mode="assign" binding="same"><string>Montserrat</string></edit>
+  </match>
+</fontconfig>`;
+    const tmpFontconfigPath = '/tmp/ticket-fontconfig.conf';
+    await fs.writeFile(tmpFontconfigPath, fontconfigContent);
+    
+    // Apuntar Pango/librsvg a nuestra config de fontconfig
+    process.env.FONTCONFIG_FILE = tmpFontconfigPath;
+    console.log(`🔤 fontconfig configurado: ${tmpFontconfigPath}, fuente en ${tmpMontserratPath} (${fontBuffer.length} bytes)`);
 
     // 3. Obtener dimensiones de la plantilla
     const templateMeta = await sharp(templatePath).metadata();
@@ -80,22 +110,13 @@ export async function generateAndUploadTicket({
     const nameY = Math.floor(bandY + bandH * 0.38);
     const folioY = Math.floor(bandY + bandH * 0.75);
 
-    // 6. Crear SVG con fuente referenciada por file://
+    // 6. Crear SVG — fontconfig ya apunta a Montserrat, se usa por nombre nativo
     const svgOverlay = `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <style>
-      @font-face {
-        font-family: 'TicketFont';
-        src: url('file://${tmpFontPath}') format('truetype');
-        font-weight: bold;
-      }
-    </style>
-  </defs>
   <rect x="0" y="${bandY}" width="${W}" height="${bandH}" fill="${bandFill}" rx="0"/>
   <text
     x="${W / 2}"
     y="${nameY}"
-    font-family="TicketFont, DejaVu Sans, Liberation Sans, sans-serif"
+    font-family="Montserrat, sans-serif"
     font-size="${nameFontSize}"
     font-weight="bold"
     fill="${textColor}"
@@ -105,7 +126,7 @@ export async function generateAndUploadTicket({
   <text
     x="${W / 2}"
     y="${folioY}"
-    font-family="TicketFont, DejaVu Sans, Liberation Sans, sans-serif"
+    font-family="Montserrat, sans-serif"
     font-size="${folioFontSize}"
     font-weight="bold"
     fill="${textColor}"
