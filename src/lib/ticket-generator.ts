@@ -12,18 +12,33 @@ interface TicketData {
   fileName: string; 
 }
 
-let fontsRegistered = false;
-
-function ensureFonts() {
-  if (fontsRegistered) return;
+async function ensureFonts(): Promise<{ main: string; sub: string }> {
+  const fontsDir = path.join(process.cwd(), 'public', 'fonts');
+  const montserratPath = path.join(fontsDir, 'Montserrat-Bold.ttf');
+  const nunitoPath = path.join(fontsDir, 'Nunito-Bold.ttf');
+  
+  // Registrar siempre — napi-rs ignora duplicados automáticamente
   try {
-    const montserratPath = path.join(process.cwd(), 'public', 'fonts', 'Montserrat-Bold.ttf');
-    const nunitoPath = path.join(process.cwd(), 'public', 'fonts', 'Nunito-Bold.ttf');
-    GlobalFonts.registerFromPath(montserratPath, 'Montserrat');
-    GlobalFonts.registerFromPath(nunitoPath, 'Nunito');
-    fontsRegistered = true;
-  } catch (fontErr) {
-    console.warn('TicketGenerator: Error registrando fuentes:', fontErr);
+    GlobalFonts.registerFromPath(montserratPath, 'TicketMain');
+    GlobalFonts.registerFromPath(nunitoPath, 'TicketSub');
+    
+    const families = GlobalFonts.families.map((f: any) => f.family).join(', ');
+    console.log(`🔤 Fuentes en @napi-rs/canvas: [${families}]`);
+    
+    // Verificar que sí se registraron
+    const hasMain = families.includes('TicketMain');
+    const hasSub = families.includes('TicketSub');
+    
+    if (hasMain && hasSub) {
+      console.log('✅ Custom fonts TicketMain + TicketSub registradas OK.');
+      return { main: 'TicketMain', sub: 'TicketSub' };
+    } else {
+      console.warn(`⚠️ Fuentes personalizadas no confirmadas. Usando fallbacks.`);
+      return { main: 'serif', sub: 'serif' };
+    }
+  } catch (err: any) {
+    console.warn(`⚠️ Error registrando fuentes: ${err.message}. Usando fallbacks.`);
+    return { main: 'serif', sub: 'serif' };
   }
 }
 
@@ -37,8 +52,7 @@ export async function generateAndUploadTicket({
   console.log(`🎟️ Iniciando generación de ticket para: ${nombre_completo} (Folio: ${folio})`);
   
   try {
-    ensureFonts();
-    console.log('✅ Fuentes verificadas.');
+    const { main: mainFont, sub: subFont } = await ensureFonts();
 
     const siteURL = 'https://conferencia.icimexico.org';
     const checkinURL = `${siteURL}/admin/checkin?id=${asistenteId}`;
@@ -56,7 +70,6 @@ export async function generateAndUploadTicket({
     console.log('✅ QR generado como DataURL.');
 
     const templateName = es_brave ? 'brave.jpg' : 'valiente.jpg';
-    // En Vercel, la carpeta public es accesible desde process.cwd()
     const templatePath = path.join(process.cwd(), 'public', 'tickets', templateName); 
     
     console.log(`📁 Buscando plantilla en: ${templatePath}`);
@@ -67,7 +80,7 @@ export async function generateAndUploadTicket({
     const canvas = createCanvas(canvasWidth, canvasHeight);
     const ctx = canvas.getContext('2d');
 
-    // Dibujar fondo (plantilla) usando Buffer para mayor compatibilidad en Vercel
+    // Dibujar plantilla
     try {
       const templateBuffer = await fs.readFile(templatePath);
       console.log(`📖 Plantilla leída (${templateBuffer.length} bytes).`);
@@ -79,71 +92,79 @@ export async function generateAndUploadTicket({
       ctx.drawImage(templateObj, 0, 0, canvasWidth, canvasHeight);
       console.log('🎨 Fondo dibujado en canvas.');
     } catch (e: any) {
-      console.warn(`⚠️ Error cargando plantilla ${templatePath}: ${e.message}. Usando fondo plano.`);
+      console.warn(`⚠️ Error cargando plantilla: ${e.message}. Usando fondo plano.`);
       ctx.fillStyle = es_brave ? '#1a3a1a' : '#f5e6d3'; 
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     }
 
-    const qrImageObj = await loadImage(qrDataURL);
+    // Calcular posiciones
     const qrSize = canvasWidth * 0.45;
     const marginBot = canvasHeight * 0.08;
     const qrX = (canvasWidth - qrSize) / 2;
     const qrY = canvasHeight - qrSize - marginBot; 
-    
-    // Dibujar una banda semi-transparente detrás del texto para legibilidad
-    const bandHeight = canvasHeight * 0.12;
-    const bandY = qrY - bandHeight - 10;
-    ctx.fillStyle = es_brave ? 'rgba(0, 0, 0, 0.45)' : 'rgba(255, 255, 255, 0.55)';
+
+    // Banda semi-transparente para texto
+    const bandHeight = canvasHeight * 0.14;
+    const bandY = qrY - bandHeight - 20;
+    ctx.fillStyle = es_brave ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.7)';
     ctx.fillRect(0, bandY, canvasWidth, bandHeight);
     
-    // Nombre
-    ctx.fillStyle = es_brave ? '#FFFFFF' : '#1A1A1A';
-    const nameFontSize = Math.floor(canvasWidth * 0.065);
-    const textCenterY = bandY + (bandHeight * 0.42);
-    
-    // Listar fuentes disponibles para debug
-    const registeredFonts = GlobalFonts.families.map((f: any) => f.family).join(', ');
-    console.log(`🔤 Fuentes registradas: ${registeredFonts}`);
-    
-    ctx.font = `bold ${nameFontSize}px Montserrat, Arial, sans-serif`;
+    // === NOMBRE ===
+    const nameFontSize = Math.floor(canvasWidth * 0.068);
+    ctx.font = `bold ${nameFontSize}px "${mainFont}"`;
     ctx.textAlign = 'center';
-    ctx.fillText(nombre_completo, canvasWidth / 2, textCenterY);
-    console.log(`✍️ Nombre "${nombre_completo}" dibujado en Y=${textCenterY}`);
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = es_brave ? '#FFFFFF' : '#111111';
+    
+    // Sombra para legibilidad extra
+    ctx.shadowColor = es_brave ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.8)';
+    ctx.shadowBlur = 6;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 2;
+    
+    const nameY = bandY + bandHeight * 0.38;
+    ctx.fillText(nombre_completo, canvasWidth / 2, nameY);
+    console.log(`✍️ Nombre "${nombre_completo}" dibujado en Y=${nameY} con fuente "${mainFont}" ${nameFontSize}px`);
 
-    // Folio
-    const folioFontSize = Math.floor(canvasWidth * 0.045);
-    const folioY = bandY + (bandHeight * 0.78);
-    ctx.font = `bold ${folioFontSize}px Nunito, Arial, sans-serif`;
-    ctx.fillStyle = es_brave ? '#E0E0E0' : '#333333';
+    // === FOLIO ===
+    const folioFontSize = Math.floor(canvasWidth * 0.048);
+    ctx.font = `bold ${folioFontSize}px "${subFont}"`;
+    ctx.fillStyle = es_brave ? '#E8E8E8' : '#222222';
+    ctx.shadowBlur = 4;
+    
+    const folioY = bandY + bandHeight * 0.75;
     ctx.fillText(`Folio #${folio}`, canvasWidth / 2, folioY);
     console.log(`✍️ Folio "#${folio}" dibujado en Y=${folioY}`);
 
-    // Dibujar QR DESPUÉS del texto para que quede encima si se sobrepone
+    // Limpiar sombra antes del QR
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+
+    // Dibujar QR encima
+    const qrImageObj = await loadImage(qrDataURL);
     ctx.drawImage(qrImageObj, qrX, qrY, qrSize, qrSize);
     console.log('✅ QR dibujado sobre el boleto.');
 
-    // Convertir a JPEG para subir
-    console.log(`📦 Intentando crear buffer JPEG...`);
+    // Convertir a JPEG
+    console.log(`📦 Creando buffer JPEG...`);
     const buffer = canvas.toBuffer('image/jpeg');
     console.log(`📦 Buffer JPEG creado (${buffer.length} bytes).`);
     
     const finalFileName = fileName.endsWith('.jpg') ? fileName : `${fileName}.jpg`;
     
-    console.log(`☁️ Intentando subir a Supabase Storage: tickets/${finalFileName}...`);
-    try {
-        const { error: uploadError } = await supabase.storage
-          .from('tickets')
-          .upload(finalFileName, buffer, {
-            contentType: 'image/jpeg',
-            upsert: true
-          });
-    
-        if (uploadError) {
-            console.error('❌ Error de subida de Supabase:', uploadError);
-            throw new Error(`Error de subida a Supabase: ${uploadError.message}`);
-        }
-    } catch (storageErr: any) {
-        throw new Error(`Error crítico en Supabase Storage: ${storageErr.message}`);
+    console.log(`☁️ Subiendo a Supabase Storage: tickets/${finalFileName}...`);
+    const { error: uploadError } = await supabase.storage
+      .from('tickets')
+      .upload(finalFileName, buffer, {
+        contentType: 'image/jpeg',
+        upsert: true
+      });
+  
+    if (uploadError) {
+      console.error('❌ Error de subida a Supabase:', uploadError);
+      throw new Error(`Error crítico en Supabase Storage: ${uploadError.message}`);
     }
 
     console.log('🚀 Ticket subido con éxito!');
