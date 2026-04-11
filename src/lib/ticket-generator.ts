@@ -17,15 +17,19 @@ async function ensureFonts(): Promise<{ main: string; sub: string }> {
   const montserratPath = path.join(fontsDir, 'Montserrat-Bold.ttf');
   const nunitoPath = path.join(fontsDir, 'Nunito-Bold.ttf');
   
-  // Registrar siempre — napi-rs ignora duplicados automáticamente
   try {
-    GlobalFonts.registerFromPath(montserratPath, 'TicketMain');
-    GlobalFonts.registerFromPath(nunitoPath, 'TicketSub');
+    // Leer como buffer y registrar — más confiable en entornos serverless
+    const montserratBuffer = await fs.readFile(montserratPath);
+    const nunitoBuffer = await fs.readFile(nunitoPath);
+    
+    console.log(`📂 Fuente leída: Montserrat (${montserratBuffer.length} bytes), Nunito (${nunitoBuffer.length} bytes)`);
+    
+    GlobalFonts.register(montserratBuffer, 'TicketMain');
+    GlobalFonts.register(nunitoBuffer, 'TicketSub');
     
     const families = GlobalFonts.families.map((f: any) => f.family).join(', ');
     console.log(`🔤 Fuentes en @napi-rs/canvas: [${families}]`);
     
-    // Verificar que sí se registraron
     const hasMain = families.includes('TicketMain');
     const hasSub = families.includes('TicketSub');
     
@@ -33,11 +37,11 @@ async function ensureFonts(): Promise<{ main: string; sub: string }> {
       console.log('✅ Custom fonts TicketMain + TicketSub registradas OK.');
       return { main: 'TicketMain', sub: 'TicketSub' };
     } else {
-      console.warn(`⚠️ Fuentes personalizadas no confirmadas. Usando fallbacks.`);
+      console.warn(`⚠️ Registro no confirmado. families=[${families}]`);
       return { main: 'serif', sub: 'serif' };
     }
   } catch (err: any) {
-    console.warn(`⚠️ Error registrando fuentes: ${err.message}. Usando fallbacks.`);
+    console.warn(`⚠️ Error registrando fuentes: ${err.message}. Usando fallback.`);
     return { main: 'serif', sub: 'serif' };
   }
 }
