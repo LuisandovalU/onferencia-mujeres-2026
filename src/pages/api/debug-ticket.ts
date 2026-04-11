@@ -4,67 +4,25 @@ import type { APIRoute } from 'astro';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import { supabase } from '../../lib/supabase';
+import { GlobalFonts, createCanvas } from '@napi-rs/canvas';
 
 export const GET: APIRoute = async () => {
   const diagnostics: string[] = [];
   
   try {
-    // PASO 1: Verificar el directorio de trabajo
     const cwd = process.cwd();
     diagnostics.push(`📂 CWD: ${cwd}`);
     
-    // PASO 2: Listar archivos del directorio raíz
-    try {
-      const rootFiles = await fs.readdir(cwd);
-      diagnostics.push(`📂 Archivos en raíz: ${rootFiles.join(', ')}`);
-    } catch (e: any) {
-      diagnostics.push(`❌ No se pudo listar raíz: ${e.message}`);
-    }
-
-    // PASO 3: Verificar si existe la carpeta public
-    const publicPath = path.join(cwd, 'public');
-    try {
-      const publicFiles = await fs.readdir(publicPath);
-      diagnostics.push(`📂 Archivos en public/: ${publicFiles.join(', ')}`);
-    } catch (e: any) {
-      diagnostics.push(`❌ No existe 'public/': ${e.message}`);
-    }
-
-    // PASO 4: Buscar tickets folder
-    const ticketsPath = path.join(cwd, 'public', 'tickets');
-    try {
-      const ticketFiles = await fs.readdir(ticketsPath);
-      diagnostics.push(`📂 Archivos en public/tickets/: ${ticketFiles.join(', ')}`);
-    } catch (e: any) {
-      diagnostics.push(`❌ No existe 'public/tickets/': ${e.message}`);
-    }
-
-    // PASO 5: Verificar la plantilla brave.jpg
     const bravePath = path.join(cwd, 'public', 'tickets', 'brave.jpg');
+    const fontPath = path.join(cwd, 'public', 'fonts', 'Montserrat-Bold.ttf');
+    
     try {
       const stat = await fs.stat(bravePath);
       diagnostics.push(`✅ brave.jpg encontrado: ${stat.size} bytes`);
     } catch (e: any) {
-      diagnostics.push(`❌ brave.jpg NO encontrado en ${bravePath}: ${e.message}`);
+      diagnostics.push(`❌ brave.jpg NO encontrado: ${e.message}`);
     }
 
-    // PASO 6: Buscar en rutas alternativas
-    const altPaths = [
-      path.join(cwd, 'src', 'assets', 'brave.jpg'),
-      path.join(cwd, 'dist', 'client', 'tickets', 'brave.jpg'),
-      path.join(cwd, '_render.func', 'public', 'tickets', 'brave.jpg'),
-    ];
-    for (const altPath of altPaths) {
-      try {
-        const stat = await fs.stat(altPath);
-        diagnostics.push(`🔍 ALTERNATIVA encontrada: ${altPath} (${stat.size} bytes)`);
-      } catch {
-        diagnostics.push(`🔍 No encontrado: ${altPath}`);
-      }
-    }
-
-    // PASO 7: Verificar fuentes
-    const fontPath = path.join(cwd, 'public', 'fonts', 'Montserrat-Bold.ttf');
     try {
       const stat = await fs.stat(fontPath);
       diagnostics.push(`✅ Montserrat-Bold.ttf encontrada: ${stat.size} bytes`);
@@ -72,31 +30,72 @@ export const GET: APIRoute = async () => {
       diagnostics.push(`❌ Fuente NO encontrada: ${e.message}`);
     }
 
-    // PASO 8: Verificar Supabase Storage - Listar Buckets
+    // Supabase buckets
     try {
-      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
-      if (bucketsError) {
-        diagnostics.push(`❌ Error listando buckets: ${bucketsError.message}`);
-      } else {
-        const bucketNames = buckets?.map(b => b.name).join(', ') || 'NINGUNO';
-        diagnostics.push(`🪣 Buckets en Supabase: [${bucketNames}]`);
-      }
+      const { data: buckets, error } = await supabase.storage.listBuckets();
+      diagnostics.push(error
+        ? `❌ Error buckets: ${error.message}`
+        : `🪣 Buckets: [${buckets?.map(b => b.name).join(', ')}]`);
     } catch (e: any) {
-      diagnostics.push(`❌ Error conectando a Supabase Storage: ${e.message}`);
+      diagnostics.push(`❌ Error Supabase: ${e.message}`);
     }
 
-    // PASO 9: Verificar variables de entorno
-    const hasStripeKey = !!(import.meta.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY);
-    const hasSupabaseUrl = !!(import.meta.env.PUBLIC_SUPABASE_URL || process.env.PUBLIC_SUPABASE_URL);
-    const hasServiceKey = !!(import.meta.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY);
-    diagnostics.push(`🔑 STRIPE_SECRET_KEY: ${hasStripeKey ? 'SÍ' : '❌ NO'}`);
-    diagnostics.push(`🔑 PUBLIC_SUPABASE_URL: ${hasSupabaseUrl ? 'SÍ' : '❌ NO'}`);
-    diagnostics.push(`🔑 SUPABASE_SERVICE_ROLE_KEY: ${hasServiceKey ? 'SÍ' : '❌ NO'}`);
+    // Env vars
+    diagnostics.push(`🔑 STRIPE_SECRET_KEY: ${!!(import.meta.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY) ? 'SÍ' : '❌ NO'}`);
+    diagnostics.push(`🔑 PUBLIC_SUPABASE_URL: ${!!(import.meta.env.PUBLIC_SUPABASE_URL || process.env.PUBLIC_SUPABASE_URL) ? 'SÍ' : '❌ NO'}`);
+    diagnostics.push(`🔑 SUPABASE_SERVICE_ROLE_KEY: ${!!(import.meta.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY) ? 'SÍ' : '❌ NO'}`);
 
-    // PASO 10: Intentar generar ticket de prueba
+    // ===== FONT + TEXT RENDERING TEST =====
+    diagnostics.push(`--- INICIO TEST DE FUENTES ---`);
+    
+    // Registrar fuente
+    try {
+      const montserratBuffer = await fs.readFile(fontPath);
+      GlobalFonts.register(montserratBuffer, 'Montserrat');
+      const families = GlobalFonts.families.map((f: any) => f.family).join(', ');
+      diagnostics.push(`🔤 Families tras registro: [${families}]`);
+    } catch (e: any) {
+      diagnostics.push(`❌ Error registrando fuente: ${e.message}`);
+    }
+    
+    // Test de texto con cada fuente
+    const fontsToTest = ['Montserrat', 'serif', 'sans-serif'];
+    for (const fontName of fontsToTest) {
+      try {
+        // Canvas de fondo negro puro
+        const blackCanvas = createCanvas(300, 80);
+        const blackBuf = blackCanvas.toBuffer('image/jpeg');
+        
+        const testCanvas = createCanvas(300, 80);
+        const testCtx = testCanvas.getContext('2d');
+        testCtx.fillStyle = '#000000';
+        testCtx.fillRect(0, 0, 300, 80);
+        testCtx.font = `bold 40px "${fontName}"`;
+        testCtx.fillStyle = '#FFFFFF';
+        testCtx.textAlign = 'center';
+        testCtx.textBaseline = 'middle';
+        testCtx.fillText('HOLA', 150, 40);
+        const textBuf = testCanvas.toBuffer('image/jpeg');
+        
+        const diff = Math.abs(textBuf.length - blackBuf.length);
+        const hasText = diff > 50; // Si el buffer cambió >50 bytes, hay texto
+        diagnostics.push(`🖊️ "${fontName}": diff=${diff}bytes, hasText=${hasText} (black=${blackBuf.length}, text=${textBuf.length})`);
+        
+        // Subir la imagen visual para inspeccionarla
+        await supabase.storage.from('tickets').upload(
+          `debug-text-${fontName.replace(/[^a-z]/gi, '_')}.jpg`, 
+          textBuf, 
+          { contentType: 'image/jpeg', upsert: true }
+        );
+        diagnostics.push(`☁️ Subida: https://fkifwxauqdjmfjbceypa.supabase.co/storage/v1/object/public/tickets/debug-text-${fontName.replace(/[^a-z]/gi, '_')}.jpg`);
+      } catch (e: any) {
+        diagnostics.push(`❌ Error test "${fontName}": ${e.message}`);
+      }
+    }
+
+    // Generar ticket de prueba
     try {
       const { generateAndUploadTicket } = await import('../../lib/ticket-generator');
-      
       const result = await generateAndUploadTicket({
         asistenteId: 'TEST-DEBUG-ID',
         nombre_completo: 'PRUEBA DEBUG',
@@ -104,25 +103,19 @@ export const GET: APIRoute = async () => {
         es_brave: true,
         fileName: 'debug-test-ticket'
       });
-      
       diagnostics.push(`🚀 GENERACIÓN EXITOSA: ${JSON.stringify(result)}`);
     } catch (genErr: any) {
       diagnostics.push(`❌ ERROR EN GENERACIÓN: ${genErr.message}`);
     }
 
-    return new Response(JSON.stringify({ 
-      diagnostics 
-    }, null, 2), {
+    return new Response(JSON.stringify({ diagnostics }, null, 2), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
     
   } catch (err: any) {
     diagnostics.push(`💀 ERROR FATAL: ${err.message}`);
-    return new Response(JSON.stringify({ 
-      diagnostics,
-      fatalError: err.message 
-    }, null, 2), {
+    return new Response(JSON.stringify({ diagnostics, fatalError: err.message }, null, 2), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
