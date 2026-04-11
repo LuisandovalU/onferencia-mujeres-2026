@@ -108,29 +108,35 @@ export async function generateAndUploadTicket({
     console.log('✍️ Textos escritos correctamente.');
 
     // Convertir a JPEG para subir
+    console.log(`📦 Intentando crear buffer JPEG...`);
     const buffer = canvas.toBuffer('image/jpeg');
     console.log(`📦 Buffer JPEG creado (${buffer.length} bytes).`);
     
     const finalFileName = fileName.endsWith('.jpg') ? fileName : `${fileName}.jpg`;
     
-    console.log(`☁️ Subiendo a Supabase Storage: tickets/${finalFileName}...`);
-    const { error: uploadError } = await supabase.storage
-      .from('tickets')
-      .upload(finalFileName, buffer, {
-        contentType: 'image/jpeg',
-        upsert: true
-      });
-
-    if (uploadError) {
-        console.error('❌ Error de subida a Supabase:', uploadError);
-        throw uploadError;
+    console.log(`☁️ Intentando subir a Supabase Storage: tickets/${finalFileName}...`);
+    try {
+        const { error: uploadError } = await supabase.storage
+          .from('tickets')
+          .upload(finalFileName, buffer, {
+            contentType: 'image/jpeg',
+            upsert: true
+          });
+    
+        if (uploadError) {
+            console.error('❌ Error de subida de Supabase:', uploadError);
+            throw new Error(`Error de subida a Supabase: ${uploadError.message}`);
+        }
+    } catch (storageErr: any) {
+        throw new Error(`Error crítico en Supabase Storage: ${storageErr.message}`);
     }
 
     console.log('🚀 Ticket subido con éxito!');
     return { success: true, fileName: finalFileName };
 
   } catch (error: any) {
-    console.error('❌ Error fatal en TicketGenerator:', error.message);
-    throw error;
+    const errorMsg = `❌ Error fatal en TicketGenerator: ${error.message}`;
+    console.error(errorMsg);
+    throw new Error(errorMsg);
   }
 }
