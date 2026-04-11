@@ -13,10 +13,10 @@ export default defineConfig({
   integrations: [react(), tailwind()],
   vite: {
     optimizeDeps: {
-      exclude: ['@napi-rs/canvas', 'sharp', '@resvg/resvg-js', 'opentype.js']
+      exclude: ['sharp', '@resvg/resvg-js', 'satori']
     },
     ssr: {
-      external: ['@napi-rs/canvas', 'sharp', '@resvg/resvg-js', 'opentype.js']
+      external: ['sharp', '@resvg/resvg-js', 'satori']
     }
   }
 });

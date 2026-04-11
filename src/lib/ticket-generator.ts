@@ -1,4 +1,5 @@
-import * as opentype from 'opentype.js';
+import satori from 'satori';
+import { Resvg } from '@resvg/resvg-js';
 import sharp from 'sharp';
 import QRCode from 'qrcode';
 import path from 'node:path';
@@ -13,39 +14,6 @@ interface TicketData {
   fileName: string; 
 }
 
-/**
- * Convierte texto a SVG path usando opentype.js.
- * Esto NO necesita ningún sistema de fuentes — lee el TTF y genera paths vectoriales.
- */
-function textToSvgPath(
-  font: opentype.Font,
-  text: string,
-  x: number,
-  y: number,
-  fontSize: number,
-  color: string,
-  centerX?: number
-): string {
-  // Calcular ancho total para centrar
-  let totalWidth = 0;
-  for (const char of text) {
-    const glyph = font.charToGlyph(char);
-    totalWidth += (glyph.advanceWidth || 0) * (fontSize / font.unitsPerEm);
-  }
-  
-  const startX = centerX !== undefined ? centerX - totalWidth / 2 : x;
-  
-  // Generar path del texto
-  const fontPath = font.getPath(text, startX, y, fontSize);
-  const svgPathData = fontPath.toSVG(2);
-  
-  // Extraer el atributo 'd' del path
-  const dMatch = svgPathData.match(/d="([^"]+)"/);
-  if (!dMatch) return '';
-  
-  return `<path d="${dMatch[1]}" fill="${color}"/>`;
-}
-
 export async function generateAndUploadTicket({
   asistenteId,
   nombre_completo,
@@ -53,7 +21,7 @@ export async function generateAndUploadTicket({
   es_brave,
   fileName
 }: TicketData) {
-  console.log(`🎟️ Generando ticket (opentype paths) para: ${nombre_completo} (Folio: ${folio})`);
+  console.log(`🎟️ Generando ticket con Satori para: ${nombre_completo} (Folio: ${folio})`);
   
   try {
     const cwd = process.cwd();
@@ -63,17 +31,14 @@ export async function generateAndUploadTicket({
     const templatePath = path.join(cwd, 'public', 'tickets', templateName);
     const fontPath = path.join(cwd, 'public', 'fonts', 'Montserrat-Bold.ttf');
     
-    // 2. Cargar fuente con opentype.js (lee el TTF directamente)
+    // 2. Cargar fuente como buffer
     const fontBuffer = await fs.readFile(fontPath);
-    // Convertir Buffer a ArrayBuffer limpio (new Uint8Array copia los bytes correctamente)
-    const fontArrayBuffer = new Uint8Array(fontBuffer).buffer;
-    const font = opentype.parse(fontArrayBuffer);
-    console.log(`🔤 Fuente cargada: ${font.names.fullName?.en || 'Montserrat'}, unitsPerEm=${font.unitsPerEm}`);
+    console.log(`🔤 Fuente leída: ${fontBuffer.length} bytes`);
 
     // 3. Obtener dimensiones de la plantilla
     const templateMeta = await sharp(templatePath).metadata();
-    const W = templateMeta.width || 600;
-    const H = templateMeta.height || 900;
+    const W = templateMeta.width || 1080;
+    const H = templateMeta.height || 1920;
     console.log(`📐 Dimensiones plantilla: ${W}x${H}`);
 
     // 4. Generar QR como buffer PNG
@@ -87,51 +52,101 @@ export async function generateAndUploadTicket({
       color: { dark: es_brave ? '#FFFFFF' : '#000000', light: '#00000000' }
     });
 
-    // 5. Calcular posiciones
+    // 5. Configurar diseño
     const marginBot = Math.floor(H * 0.08);
     const qrX = Math.floor((W - qrSize) / 2);
     const qrY = H - qrSize - marginBot;
     
     const bandH = Math.floor(H * 0.14);
     const bandY = qrY - bandH - 20;
-    const centerX = W / 2;
     
-    // Font sizes
-    const nameFontSize = Math.floor(W * 0.068);
-    const folioFontSize = Math.floor(W * 0.048);
-    
-    // Colores
     const textColor = es_brave ? '#FFFFFF' : '#111111';
     const bandFill = es_brave ? 'rgba(0,0,0,0.65)' : 'rgba(255,255,255,0.75)';
 
-    // 6. Convertir texto a SVG paths vectoriales (no necesita fonts del sistema)
-    // La baseline de opentype está en la parte inferior del texto
-    // Así que y = bandY + bandH*0.38 + nameFontSize*0.7 (ascender típico)
-    const nameY = Math.floor(bandY + bandH * 0.42 + nameFontSize * 0.35);
-    const folioY = Math.floor(bandY + bandH * 0.78 + folioFontSize * 0.35);
-    
-    const namePath = textToSvgPath(font, nombre_completo, 0, nameY, nameFontSize, textColor, centerX);
-    const folioPath = textToSvgPath(font, `Folio #${folio}`, 0, folioY, folioFontSize, es_brave ? '#E0E0E0' : '#333333', centerX);
-    
-    console.log(`✍️ Paths generados: nombre=${namePath.length}chars, folio=${folioPath.length}chars`);
+    // 6. Usar Satori para generar el SVG del texto
+    // Satori usa flexbox por defecto.
+    const svg = await satori(
+      {
+        type: 'div',
+        props: {
+          style: {
+            height: '100%',
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'flex-start',
+            backgroundColor: 'transparent',
+            paddingTop: `${bandY}px`,
+          },
+          children: [
+            {
+              type: 'div',
+              props: {
+                style: {
+                  width: '100%',
+                  height: `${bandH}px`,
+                  backgroundColor: bandFill,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                },
+                children: [
+                  {
+                    type: 'div',
+                    props: {
+                      style: {
+                        fontSize: `${Math.floor(W * 0.068)}px`,
+                        fontWeight: 'bold',
+                        color: textColor,
+                        textAlign: 'center',
+                        textTransform: 'uppercase',
+                        marginBottom: '4px',
+                      },
+                      children: nombre_completo,
+                    },
+                  },
+                  {
+                    type: 'div',
+                    props: {
+                      style: {
+                        fontSize: `${Math.floor(W * 0.048)}px`,
+                        fontWeight: 'bold',
+                        color: textColor,
+                        opacity: 0.85,
+                        textAlign: 'center',
+                      },
+                      children: `Folio #${folio}`,
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      },
+      {
+        width: W,
+        height: H,
+        fonts: [
+          {
+            name: 'Montserrat',
+            data: fontBuffer,
+            weight: 700,
+            style: 'normal',
+          },
+        ],
+      }
+    );
 
-    // 7. Crear SVG overlay con banda + paths vectoriales
-    const svgOverlay = `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
-  <rect x="0" y="${bandY}" width="${W}" height="${bandH}" fill="${bandFill}"/>
-  ${namePath}
-  ${folioPath}
-</svg>`;
-    
-    console.log(`🎨 SVG overlay: ${svgOverlay.length} chars`);
+    console.log(`🎨 SVG generado por Satori: ${svg.length} chars`);
 
-    // 8. Renderizar con @resvg/resvg-js (solo paths/rects, sin texto = sin fonts)
-    const { Resvg } = await import('@resvg/resvg-js');
-    const resvg = new Resvg(svgOverlay, { fitTo: { mode: 'original' } });
-    const rendered = resvg.render();
-    const overlayPngBuffer = rendered.asPng();
-    console.log(`🖼️ Overlay PNG: ${overlayPngBuffer.length} bytes`);
+    // 7. Renderizar SVG → PNG con resvg-js
+    const resvg = new Resvg(svg, { fitTo: { mode: 'original' } });
+    const overlayPngBuffer = resvg.render().asPng();
 
-    // 9. Componer: plantilla + overlay texto + QR
+    // 8. Componer con sharp
     const finalBuffer = await sharp(templatePath)
       .composite([
         { input: overlayPngBuffer, top: 0, left: 0, blend: 'over' },
@@ -140,9 +155,7 @@ export async function generateAndUploadTicket({
       .jpeg({ quality: 90 })
       .toBuffer();
 
-    console.log(`📦 Buffer JPEG final: ${finalBuffer.length} bytes`);
-
-    // 10. Subir a Supabase
+    // 9. Subir a Supabase
     const finalFileName = fileName.endsWith('.jpg') ? fileName : `${fileName}.jpg`;
     const { error: uploadError } = await supabase.storage
       .from('tickets')
@@ -150,11 +163,11 @@ export async function generateAndUploadTicket({
 
     if (uploadError) throw new Error(`Error Supabase: ${uploadError.message}`);
 
-    console.log(`🚀 Ticket subido: tickets/${finalFileName}`);
+    console.log(`🚀 Ticket generado y subido con Satori: tickets/${finalFileName}`);
     return { success: true, fileName: finalFileName };
 
   } catch (error: any) {
-    console.error(`❌ Error en TicketGenerator: ${error.message}`);
+    console.error(`❌ Error en TicketGenerator (Satori): ${error.message}`);
     throw new Error(`Error en TicketGenerator: ${error.message}`);
   }
 }
