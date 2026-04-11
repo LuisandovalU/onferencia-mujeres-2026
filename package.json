@@ -32,6 +32,7 @@
     "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "sharp": "^0.34.5",
     "simple-parallax-js": "^6.3.3",
     "stripe": "^22.0.1",
     "tailwind-merge": "^3.5.0",

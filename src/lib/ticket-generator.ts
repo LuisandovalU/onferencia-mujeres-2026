@@ -1,4 +1,4 @@
-import { GlobalFonts, createCanvas, loadImage } from '@napi-rs/canvas';
+import sharp from 'sharp';
 import QRCode from 'qrcode';
 import path from 'node:path';
 import fs from 'node:fs/promises';
@@ -12,57 +12,15 @@ interface TicketData {
   fileName: string; 
 }
 
-async function ensureFonts(): Promise<{ main: string; sub: string }> {
-  const fontsDir = path.join(process.cwd(), 'public', 'fonts');
-  const montserratPath = path.join(fontsDir, 'Montserrat-Bold.ttf');
-  const nunitoPath = path.join(fontsDir, 'Nunito-Bold.ttf');
-  
-  try {
-    const montserratBuffer = await fs.readFile(montserratPath);
-    const nunitoBuffer = await fs.readFile(nunitoPath);
-    
-    console.log(`📂 Fuentes leídas: Montserrat=${montserratBuffer.length}b, Nunito=${nunitoBuffer.length}b`);
-    
-    // Registrar con su nombre nativo del TTF (no alias)
-    GlobalFonts.register(montserratBuffer, 'Montserrat');
-    GlobalFonts.register(nunitoBuffer, 'Nunito');
-    
-    const families = GlobalFonts.families.map((f: any) => f.family).join(', ');
-    console.log(`🔤 Fuentes registradas: [${families}]`);
-    
-    return { 
-      main: families.includes('Montserrat') ? 'Montserrat' : 'serif', 
-      sub: families.includes('Nunito') ? 'Nunito' : 'serif' 
-    };
-  } catch (err: any) {
-    console.warn(`⚠️ Error registrando fuentes: ${err.message}`);
-    return { main: 'serif', sub: 'serif' };
-  }
+// Escapa caracteres especiales en XML/SVG
+function escapeXml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
 }
-
-// Helper para probar si el canvas puede dibujar texto visible
-async function testTextRendering(fontName: string, fontSize: number): Promise<boolean> {
-  try {
-    const testCanvas = createCanvas(200, 60);
-    const testCtx = testCanvas.getContext('2d');
-    testCtx.fillStyle = '#000000';
-    testCtx.fillRect(0, 0, 200, 60);
-    testCtx.font = `bold ${fontSize}px "${fontName}"`;
-    testCtx.fillStyle = '#FFFFFF';
-    testCtx.textAlign = 'center';
-    testCtx.textBaseline = 'middle';
-    testCtx.fillText('TEST', 100, 30);
-    const buf = testCanvas.toBuffer('image/png');
-    // Si el buffer tiene más de 300 bytes de PNG, hay pixels blancos = texto visible
-    const hasWhitePixels = buf.length > 300;
-    console.log(`🧪 Test font="${fontName}" ${fontSize}px: buffer=${buf.length}b, hasText=${hasWhitePixels}`);
-    return hasWhitePixels;
-  } catch (e: any) {
-    console.warn(`🧪 Test font falló: ${e.message}`);
-    return false;
-  }
-}
-
 
 export async function generateAndUploadTicket({
   asistenteId,
@@ -71,134 +29,133 @@ export async function generateAndUploadTicket({
   es_brave,
   fileName
 }: TicketData) {
-  console.log(`🎟️ Iniciando generación de ticket para: ${nombre_completo} (Folio: ${folio})`);
+  console.log(`🎟️ Iniciando generación (sharp+SVG) para: ${nombre_completo} (Folio: ${folio})`);
   
   try {
-    const { main: mainFont, sub: subFont } = await ensureFonts();
+    const cwd = process.cwd();
     
-    // Test real si el canvas puede renderizar texto con esa fuente
-    await testTextRendering(mainFont, 60);
-    await testTextRendering('serif', 60);
+    // 1. Rutas de archivos
+    const templateName = es_brave ? 'brave.jpg' : 'valiente.jpg';
+    const templatePath = path.join(cwd, 'public', 'tickets', templateName);
+    const fontPath = path.join(cwd, 'public', 'fonts', 'Montserrat-Bold.ttf');
+    
+    console.log(`📁 Plantilla: ${templatePath}`);
 
+    // 2. Leer fuente como base64 para embeber en SVG
+    const fontBuffer = await fs.readFile(fontPath);
+    const fontBase64 = fontBuffer.toString('base64');
+    console.log(`🔤 Fuente cargada: ${fontBuffer.length} bytes`);
+
+    // 3. Obtener dimensiones de la plantilla
+    const templateMeta = await sharp(templatePath).metadata();
+    const W = templateMeta.width || 1080;
+    const H = templateMeta.height || 1920;
+    console.log(`📐 Dimensiones plantilla: ${W}x${H}`);
+
+    // 4. Generar QR como buffer PNG (fondo transparente)
     const siteURL = 'https://conferencia.icimexico.org';
     const checkinURL = `${siteURL}/admin/checkin?id=${asistenteId}`;
-    
-    console.log('🔗 URL de Check-in:', checkinURL);
-
-    const qrDataURL = await QRCode.toDataURL(checkinURL, {
-      width: 400,
+    const qrBuffer = await QRCode.toBuffer(checkinURL, {
+      type: 'png',
+      width: Math.floor(W * 0.45),
       margin: 1,
-      color: { 
-        dark: es_brave ? '#FFFFFFFF' : '#000000FF', 
-        light: '#00000000' 
-      }
+      color: { dark: es_brave ? '#FFFFFF' : '#000000', light: '#00000000' }
     });
-    console.log('✅ QR generado como DataURL.');
+    console.log(`✅ QR generado: ${qrBuffer.length} bytes`);
 
-    const templateName = es_brave ? 'brave.jpg' : 'valiente.jpg';
-    const templatePath = path.join(process.cwd(), 'public', 'tickets', templateName); 
+    // 5. Calcular posiciones
+    const qrSize = Math.floor(W * 0.45);
+    const marginBot = Math.floor(H * 0.08);
+    const qrX = Math.floor((W - qrSize) / 2);
+    const qrY = H - qrSize - marginBot;
     
-    console.log(`📁 Buscando plantilla en: ${templatePath}`);
-
-    let canvasWidth = 1080;
-    let canvasHeight = 1920;
+    const bandH = Math.floor(H * 0.14);
+    const bandY = qrY - bandH - 20;
+    const nameFontSize = Math.floor(W * 0.068);
+    const folioFontSize = Math.floor(W * 0.048);
     
-    const canvas = createCanvas(canvasWidth, canvasHeight);
-    const ctx = canvas.getContext('2d');
+    const textColor = es_brave ? 'white' : '#111111';
+    const bandFill = es_brave ? 'rgba(0,0,0,0.60)' : 'rgba(255,255,255,0.70)';
+    const nameY = Math.floor(bandY + bandH * 0.38);
+    const folioY = Math.floor(bandY + bandH * 0.75);
 
-    // Dibujar plantilla
-    try {
-      const templateBuffer = await fs.readFile(templatePath);
-      console.log(`📖 Plantilla leída (${templateBuffer.length} bytes).`);
-      const templateObj = await loadImage(templateBuffer);
-      canvasWidth = templateObj.width;
-      canvasHeight = templateObj.height;
-      canvas.width = canvasWidth;
-      canvas.height = canvasHeight;
-      ctx.drawImage(templateObj, 0, 0, canvasWidth, canvasHeight);
-      console.log('🎨 Fondo dibujado en canvas.');
-    } catch (e: any) {
-      console.warn(`⚠️ Error cargando plantilla: ${e.message}. Usando fondo plano.`);
-      ctx.fillStyle = es_brave ? '#1a3a1a' : '#f5e6d3'; 
-      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-    }
-
-    // Calcular posiciones
-    const qrSize = canvasWidth * 0.45;
-    const marginBot = canvasHeight * 0.08;
-    const qrX = (canvasWidth - qrSize) / 2;
-    const qrY = canvasHeight - qrSize - marginBot; 
-
-    // Banda semi-transparente para texto
-    const bandHeight = canvasHeight * 0.14;
-    const bandY = qrY - bandHeight - 20;
-    ctx.fillStyle = es_brave ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.7)';
-    ctx.fillRect(0, bandY, canvasWidth, bandHeight);
+    // 6. Crear SVG con fuente embebida en base64
+    const svgOverlay = `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @font-face {
+        font-family: 'TicketFont';
+        src: url('data:font/truetype;base64,${fontBase64}') format('truetype');
+        font-weight: bold;
+      }
+    </style>
+  </defs>
+  <rect x="0" y="${bandY}" width="${W}" height="${bandH}" fill="${bandFill}" rx="0"/>
+  <text
+    x="${W / 2}"
+    y="${nameY}"
+    font-family="TicketFont, Arial, sans-serif"
+    font-size="${nameFontSize}"
+    font-weight="bold"
+    fill="${textColor}"
+    text-anchor="middle"
+    dominant-baseline="middle"
+  >${escapeXml(nombre_completo)}</text>
+  <text
+    x="${W / 2}"
+    y="${folioY}"
+    font-family="TicketFont, Arial, sans-serif"
+    font-size="${folioFontSize}"
+    font-weight="bold"
+    fill="${textColor}"
+    text-anchor="middle"
+    dominant-baseline="middle"
+    opacity="0.85"
+  >Folio #${folio}</text>
+</svg>`;
     
-    // === NOMBRE ===
-    const nameFontSize = Math.floor(canvasWidth * 0.068);
-    ctx.font = `bold ${nameFontSize}px "${mainFont}"`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = es_brave ? '#FFFFFF' : '#111111';
-    
-    // Sombra para legibilidad extra
-    ctx.shadowColor = es_brave ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.8)';
-    ctx.shadowBlur = 6;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 2;
-    
-    const nameY = bandY + bandHeight * 0.38;
-    ctx.fillText(nombre_completo, canvasWidth / 2, nameY);
-    console.log(`✍️ Nombre "${nombre_completo}" dibujado en Y=${nameY} con fuente "${mainFont}" ${nameFontSize}px`);
+    console.log(`🎨 SVG generado (${svgOverlay.length} chars)`);
 
-    // === FOLIO ===
-    const folioFontSize = Math.floor(canvasWidth * 0.048);
-    ctx.font = `bold ${folioFontSize}px "${subFont}"`;
-    ctx.fillStyle = es_brave ? '#E8E8E8' : '#222222';
-    ctx.shadowBlur = 4;
-    
-    const folioY = bandY + bandHeight * 0.75;
-    ctx.fillText(`Folio #${folio}`, canvasWidth / 2, folioY);
-    console.log(`✍️ Folio "#${folio}" dibujado en Y=${folioY}`);
+    // 7. Componer con sharp: plantilla + SVG texto + QR
+    const finalBuffer = await sharp(templatePath)
+      .composite([
+        {
+          input: Buffer.from(svgOverlay),
+          top: 0,
+          left: 0,
+          blend: 'over'
+        },
+        {
+          input: qrBuffer,
+          top: qrY,
+          left: qrX,
+          blend: 'over'
+        }
+      ])
+      .jpeg({ quality: 90 })
+      .toBuffer();
 
-    // Limpiar sombra antes del QR
-    ctx.shadowColor = 'transparent';
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
+    console.log(`📦 Buffer final JPEG: ${finalBuffer.length} bytes`);
 
-    // Dibujar QR encima
-    const qrImageObj = await loadImage(qrDataURL);
-    ctx.drawImage(qrImageObj, qrX, qrY, qrSize, qrSize);
-    console.log('✅ QR dibujado sobre el boleto.');
-
-    // Convertir a JPEG
-    console.log(`📦 Creando buffer JPEG...`);
-    const buffer = canvas.toBuffer('image/jpeg');
-    console.log(`📦 Buffer JPEG creado (${buffer.length} bytes).`);
-    
+    // 8. Subir a Supabase Storage
     const finalFileName = fileName.endsWith('.jpg') ? fileName : `${fileName}.jpg`;
     
-    console.log(`☁️ Subiendo a Supabase Storage: tickets/${finalFileName}...`);
     const { error: uploadError } = await supabase.storage
       .from('tickets')
-      .upload(finalFileName, buffer, {
+      .upload(finalFileName, finalBuffer, {
         contentType: 'image/jpeg',
         upsert: true
       });
-  
+
     if (uploadError) {
-      console.error('❌ Error de subida a Supabase:', uploadError);
-      throw new Error(`Error crítico en Supabase Storage: ${uploadError.message}`);
+      throw new Error(`Error Supabase Storage: ${uploadError.message}`);
     }
 
-    console.log('🚀 Ticket subido con éxito!');
+    console.log(`🚀 Ticket subido exitosamente: tickets/${finalFileName}`);
     return { success: true, fileName: finalFileName };
 
   } catch (error: any) {
-    const errorMsg = `❌ Error fatal en TicketGenerator: ${error.message}`;
-    console.error(errorMsg);
-    throw new Error(errorMsg);
+    console.error(`❌ Error en TicketGenerator: ${error.message}`);
+    throw new Error(`Error en TicketGenerator: ${error.message}`);
   }
 }

@@ -13,10 +13,10 @@ export default defineConfig({
   integrations: [react(), tailwind()],
   vite: {
     optimizeDeps: {
-      exclude: ['@napi-rs/canvas']
+      exclude: ['@napi-rs/canvas', 'sharp']
     },
     ssr: {
-      external: ['@napi-rs/canvas']
+      external: ['@napi-rs/canvas', 'sharp']
     }
   }
 });
