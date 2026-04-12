@@ -90,11 +90,12 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // 5. Marcar Asistencia
+    const { getMXTimestamp } = await import('../../../lib/date-utils');
     const { error: updateError } = await supabase
       .from('asistentes')
       .update({ 
         asistio: true, 
-        fecha_checkin: new Date().toISOString() 
+        fecha_checkin: getMXTimestamp() 
       })
       .eq('id', asistente.id);
 

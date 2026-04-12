@@ -56,6 +56,7 @@ export const GET: APIRoute = async ({ request }) => {
                     } else {
                         // El asistente aún no está en la BD — insertarlo
                         console.log(`📝 check-status: Asistente no encontrado en BD, insertando...`);
+                        const { getMXTimestamp } = await import('../../lib/date-utils');
                         const { data: newAsistente, error: insertError } = await supabase
                             .from('asistentes')
                             .insert([{
@@ -67,7 +68,8 @@ export const GET: APIRoute = async ({ request }) => {
                                 monto_total: 130,
                                 status_pago: 'completado',
                                 monto_pagado: (session.amount_total || 0) / 100,
-                                stripe_session_id: sessionId
+                                stripe_session_id: sessionId,
+                                created_at: getMXTimestamp()
                             }])
                             .select()
                             .single();

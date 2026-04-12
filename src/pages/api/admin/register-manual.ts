@@ -22,6 +22,7 @@ export const POST: APIRoute = async ({ request }) => {
     const estaPagadoCompletamente = pagado >= totalACobrar;
 
     // 2. Insertar en Supabase
+    const { getMXTimestamp } = await import('../../../lib/date-utils');
     const { data: asistente, error: insertError } = await supabase
       .from('asistentes')
       .insert([{
@@ -34,7 +35,8 @@ export const POST: APIRoute = async ({ request }) => {
         monto_total: totalACobrar,
         monto_pagado: pagado,
         metodo_pago: metodo_pago || 'efectivo',
-        status_pago: estaPagadoCompletamente ? 'completado' : 'pendiente'
+        status_pago: estaPagadoCompletamente ? 'completado' : 'pendiente',
+        created_at: getMXTimestamp()
       }])
       .select()
       .single();
