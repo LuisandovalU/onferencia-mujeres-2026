@@ -85,8 +85,11 @@ const ConferenceChoiceCard = memo(() => {
             fetchpriority="high"
             className="h-[5.25rem] w-auto object-contain mb-3"
           />
-          <p className="font-body text-[0.7rem] font-black tracking-[0.35em] uppercase text-[#2F4A2C] bg-[#2F4A2C]/8 px-4 py-1.5 rounded-full mb-2">
+          <p className="font-body text-[0.7rem] font-black tracking-[0.35em] uppercase text-[#2F4A2C] bg-[#2F4A2C]/8 px-4 py-1.5 rounded-full mb-1">
             31 DE MAYO • 3:00 PM
+          </p>
+          <p className="font-body text-[0.6rem] font-bold uppercase tracking-[0.2em] text-[#2F4A2C]/60 mb-2">
+            Gran Salón del Valle
           </p>
           <span className="text-[0.65rem] font-semibold tracking-[0.12em] uppercase text-[#2F4A2C] text-center px-4">Madres • Casadas • Mujeres Maduras</span>
         </div>
@@ -123,8 +126,11 @@ const ConferenceChoiceCard = memo(() => {
             fetchpriority="high"
             className="h-[5.25rem] w-auto object-contain mb-3 brightness-0 invert"
           />
-          <p className="font-body text-[0.7rem] font-black tracking-[0.35em] uppercase text-white bg-white/12 px-4 py-1.5 rounded-full mb-2">
+          <p className="font-body text-[0.7rem] font-black tracking-[0.35em] uppercase text-white bg-white/12 px-4 py-1.5 rounded-full mb-1">
             24 DE MAYO • 5:00 PM
+          </p>
+          <p className="font-body text-[0.6rem] font-bold uppercase tracking-[0.2em] text-white/60 mb-2">
+            Gran Salón del Valle
           </p>
           <span className="text-[0.65rem] font-semibold tracking-[0.12em] uppercase text-white text-center px-4">Universitarias • Emprendedoras • Profesionales</span>
         </div>
