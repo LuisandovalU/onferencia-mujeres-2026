@@ -242,12 +242,12 @@ export default function ManualRegistrationForm() {
           </div>
 
           <div className="md:col-span-6">
-            <label className="block text-[10px] font-black text-emerald-400 uppercase mb-2 tracking-widest text-left ml-4">Referido por</label>
+            <label className="block text-[10px] font-black text-emerald-400 uppercase mb-2 tracking-widest text-left ml-4">¿Cómo se enteró?</label>
             <input
               type="text"
               className="w-full bg-black/60 border-2 border-emerald-400/10 rounded-2xl p-5 text-white text-xl font-bold focus:outline-none focus:border-emerald-400"
               value={formData.referido_por}
-              placeholder="¿Quién invita?"
+              placeholder="Redes sociales, amigo, etc."
               onChange={(e) => setFormData({...formData, referido_por: e.target.value})}
             />
           </div>
@@ -261,7 +261,7 @@ export default function ManualRegistrationForm() {
           </div>
 
           <div className="md:col-span-6 space-y-3">
-             <label className="block text-[10px] font-black text-emerald-400 uppercase tracking-widest text-left ml-4">Procedencia</label>
+             <label className="block text-[10px] font-black text-emerald-400 uppercase tracking-widest text-left ml-4">¿Forma parte de la iglesia?</label>
              <div className="grid grid-cols-2 gap-3">
                 <button type="button" onClick={() => setFormData({...formData, es_casa: true})} className={`p-4 rounded-xl border-2 font-black uppercase text-xs transition-all ${formData.es_casa ? 'bg-emerald-500 border-emerald-300 text-black' : 'bg-black/40 border-white/5 text-gray-500'}`}>Casa (ICI)</button>
                 <button type="button" onClick={() => setFormData({...formData, es_casa: false})} className={`p-4 rounded-xl border-2 font-black uppercase text-xs transition-all ${!formData.es_casa ? 'bg-emerald-500 border-emerald-300 text-black' : 'bg-black/40 border-white/5 text-gray-500'}`}>Visita (Nueva)</button>

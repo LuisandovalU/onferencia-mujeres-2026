@@ -300,7 +300,7 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
                 <div className="flex gap-4">
                   <div className="flex-1">
                     <label htmlFor="esCasa" className="block font-body text-sm font-medium text-neutral-800">
-                      ¿Eres de casa (VNP)?
+                      ¿Formas parte de la iglesia?
                     </label>
                     <select
                       id="esCasa"
@@ -315,14 +315,14 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
                   </div>
                   <div className="flex-1">
                     <label htmlFor="quienInvito" className="block font-body text-sm font-medium text-neutral-800">
-                      ¿Quién te invitó?
+                      ¿Cómo te enteraste de la conferencia?
                     </label>
                     <input
                       id="quienInvito"
                       type="text"
                       value={quienInvito}
                       onChange={(e) => setQuienInvito(e.target.value)}
-                      placeholder="Nombre de la persona"
+                      placeholder="Redes sociales, un amigo, publicidad..."
                       className="mt-2 w-full rounded-xl border border-neutral-300 px-4 py-3 font-body text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-forest focus:ring-2 focus:ring-forest/25"
                     />
                   </div>
