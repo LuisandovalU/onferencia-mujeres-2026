@@ -217,8 +217,10 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
       <div
         onClick={(e) => e.stopPropagation()}
         className={cn(
-          "relative z-10 w-full overflow-hidden bg-white shadow-2xl transition-all duration-300",
-          step === 3 ? "max-h-screen sm:max-h-[90dvh] h-full sm:h-auto rounded-none sm:rounded-2xl" : "max-h-[90dvh] rounded-2xl",
+          "relative z-10 w-full bg-white shadow-2xl transition-all duration-300",
+          step === 3 
+            ? "h-full sm:h-auto sm:max-h-[90dvh] rounded-none sm:rounded-2xl flex flex-col" 
+            : "max-h-[90dvh] rounded-2xl",
           "max-w-lg p-0 sm:p-8"
         )}
       >
@@ -351,8 +353,8 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
 
           {/* PASO 3: Pasarela de Stripe Full Width */}
           {step === 3 && clientSecret && (
-            <div className="w-full h-full flex-1 bg-white pt-12 sm:pt-10 pb-6 px-0 sm:px-6 animate-in zoom-in-95 duration-500 flex flex-col min-h-0">
-                 <div className="flex-1 overflow-y-auto w-full overscroll-contain">
+            <div className="w-full h-full flex-1 bg-white pt-14 sm:pt-10 pb-10 px-0 sm:px-6 animate-in zoom-in-95 duration-500 flex flex-col min-h-0 overflow-y-auto">
+                 <div className="w-full min-h-fit">
                    <EmbeddedCheckoutProvider
                      stripe={stripePromise}
                      options={{ clientSecret }}
@@ -360,6 +362,8 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
                      <EmbeddedCheckout />
                    </EmbeddedCheckoutProvider>
                  </div>
+                 {/* Espacio extra al final para asegurar que el botón de Stripe no se corte */}
+                 <div className="h-20 w-full flex-shrink-0"></div>
             </div>
           )}
 
