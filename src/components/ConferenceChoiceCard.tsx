@@ -71,7 +71,7 @@ const ConferenceChoiceCard = memo(() => {
         }}
         transition={{ duration: 0.6, ease: SILK_EASE }}
         style={{ backgroundColor: VALIENTE_BG }}
-        className="absolute inset-0 z-0 h-full w-full cursor-pointer touch-none flex flex-col items-center justify-end px-8 pb-10 will-change-transform"
+        className="absolute inset-0 z-0 h-full w-full cursor-pointer touch-pan-y flex flex-col items-center justify-end px-8 pb-10 will-change-transform"
       >
         <div className={cn(
           "flex flex-col items-center text-center transition-all duration-700",
@@ -109,7 +109,7 @@ const ConferenceChoiceCard = memo(() => {
         }}
         transition={{ duration: 0.8, ease: SILK_EASE }}
         style={{ backgroundColor: BRAVE_BG }}
-        className="absolute inset-0 z-10 h-full w-full cursor-pointer shadow-2xl touch-none flex flex-col items-center justify-start px-8 pt-10 will-change-transform"
+        className="absolute inset-0 z-10 h-full w-full cursor-pointer shadow-2xl touch-pan-y flex flex-col items-center justify-start px-8 pt-10 will-change-transform"
       >
         <div className={cn(
           "flex flex-col items-center text-center transition-all duration-700",
