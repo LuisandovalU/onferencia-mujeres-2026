@@ -61,27 +61,42 @@ const copy = {
 </div>
 
 <!-- Pequeña ventana emergente muy detallada y femenina -->
-<dialog id="brave-details-modal" class="backdrop:backdrop-blur-md backdrop:bg-black/50 rounded-[2rem] bg-brave-dark-deep border border-white/10 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] max-w-sm w-[90vw] overflow-hidden text-white m-auto fixed inset-0 z-50">
-  <div class="relative p-10 pt-12 text-center flex flex-col items-center">
+<dialog id="brave-details-modal" class="backdrop:backdrop-blur-md backdrop:bg-black/50 rounded-[2.5rem] bg-brave-dark-deep border border-white/10 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] max-w-md w-[90vw] overflow-hidden text-white m-auto fixed inset-0 z-50">
+  <div class="relative p-8 md:p-12 flex flex-col items-start overflow-y-auto max-h-[90vh]">
     <button onclick="document.getElementById('brave-details-modal').close(); event.stopPropagation();" class="absolute top-5 right-5 text-white/40 hover:text-white hover:bg-white/10 p-2 rounded-full transition-all outline-none" aria-label="Cerrar detalles">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
     </button>
     
-    <!-- Elemento decorativo simple pero estético -->
-    <div class="w-10 h-1 bg-white/20 rounded-full mb-6"></div>
+    <img src={BRAVE_TEXT_SRC} alt="Brave" class="h-10 mb-8 brightness-0 invert opacity-[0.85] self-center" />
     
-    <img src={BRAVE_TEXT_SRC} alt="Brave" class="h-10 mb-6 brightness-0 invert opacity-[0.85]" />
-    
-    <p class="font-body text-[1.05rem] leading-[1.7] text-white/90">
-      Un espacio para mujeres que están construyendo su camino.<br/><br/>
-      Entre la universidad, el inicio de la vida profesional, presión, relaciones, sueños, decisiones y cambios constantes, nacen muchas preguntas. <br/><br/>
-      <strong>BRAVE</strong> es un encuentro para hablar de la valentía que se necesita para enfrentar esta etapa y escuchar la voz de Dios en medio del ruido.<br/><br/>
-      Si estás formando tu identidad y tu dirección, este espacio es para ti.
-    </p>
+    <div class="space-y-6 text-left w-full">
+      <p class="font-body text-[1.1rem] leading-[1.6] text-white/90">
+        Un espacio para mujeres que están construyendo su camino.
+      </p>
+      
+      <p class="font-body text-[1rem] leading-[1.6] text-white/70">
+        Entre la universidad, el inicio de la vida profesional, presión, relaciones, sueños, decisiones y cambios constantes, nacen muchas preguntas.
+      </p>
 
-    <div class="mt-8 flex flex-col items-center gap-1 text-white/50 font-body text-[0.65rem] uppercase tracking-[0.2em] font-bold">
-      <p>Cuándo: 24 de mayo • 5:00 PM</p>
-      <p>Dónde: Gran Salón del Valle</p>
+      <p class="font-body text-[1rem] leading-[1.6] text-white/90">
+        <strong class="text-white">BRAVE</strong> es un encuentro para hablar de la valentía que se necesita para enfrentar esta etapa y escuchar la voz de Dios en medio del ruido.
+      </p>
+
+      <p class="font-body text-[1rem] leading-[1.6] text-white/80 italic border-l-2 border-[#a8c480]/30 pl-4">
+        Si estás formando tu identidad y tu dirección, este espacio es para ti.
+      </p>
+    </div>
+
+    <!-- Sección de Logística con diseño de tarjeta -->
+    <div class="mt-10 w-full p-6 rounded-2xl bg-white/5 border border-white/10 flex flex-col gap-3">
+      <div class="flex items-center gap-3 text-white/60 font-body text-[0.7rem] uppercase tracking-[0.2em] font-black">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-[#a8c480]"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        <span>Cuándo: 24 de mayo • 5:00 PM</span>
+      </div>
+      <div class="flex items-center gap-3 text-white/60 font-body text-[0.7rem] uppercase tracking-[0.2em] font-black">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-[#a8c480]"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+        <span>Dónde: Gran Salón del Valle</span>
+      </div>
     </div>
 
     <div class="mt-8 mb-2 w-full flex flex-col gap-4">
