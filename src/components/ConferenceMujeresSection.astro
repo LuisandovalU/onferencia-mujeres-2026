@@ -3,7 +3,6 @@ import ConferenceHero from "./ConferenceHero.astro";
 import EncuentrosGrid from "./EncuentrosGrid.astro";
 import BraveDetails from "./BraveDetails.astro";
 import ValienteDetails from "./ValienteDetails.astro";
-import { InscriptionModal } from "./InscriptionModal";
 import { InscribeteButton } from "./InscribeteButton";
 ---
 
@@ -15,7 +14,6 @@ import { InscribeteButton } from "./InscribeteButton";
 
 
   <div class="relative z-10 flex flex-col">
-    <InscriptionModal client:load />
 
     <div class="px-4 pb-4 pt-3 sm:px-5 sm:pb-6 sm:pt-5 md:px-6 md:pb-8 md:pt-6 lg:px-8 xl:px-10 2xl:px-12">
       <ConferenceHero />
