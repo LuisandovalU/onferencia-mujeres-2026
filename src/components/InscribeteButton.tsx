@@ -14,9 +14,11 @@ export const InscribeteButton: React.FC<InscribeteButtonProps> = ({
   className,
   children = 'Inscribete'
 }) => {
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log("InscribeteButton clicked!");
+    
     // 1. Cerrar cualquier diálogo administrativo o informativo abierto (ej: BraveDetails/ValienteDetails)
-    // Esto asegura que el modal de inscripción no quede "detrás" del diálogo actual.
     const openDialogs = document.querySelectorAll('dialog[open]');
     openDialogs.forEach((dialog) => {
       (dialog as HTMLDialogElement).close();

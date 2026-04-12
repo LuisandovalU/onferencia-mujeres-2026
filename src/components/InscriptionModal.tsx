@@ -73,6 +73,7 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
 
   useEffect(() => {
     const handleOpenEvent = (e: any) => {
+      console.log("Opening Inscription Modal event received", e.detail);
       const { conferencia: preset } = e.detail || {};
       if (preset) {
         setEtapa(preset);
