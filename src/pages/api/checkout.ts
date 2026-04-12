@@ -57,7 +57,15 @@ export const POST: APIRoute = async ({ request, url }) => {
     try {
         const session = await stripe.checkout.sessions.create({
             ui_mode: 'embedded_page',
-            payment_method_types: ['card', 'oxxo'],
+            payment_method_types: ['card', 'oxxo', 'customer_balance'],
+            payment_method_options: {
+                customer_balance: {
+                    funding_type: 'bank_transfer',
+                    bank_transfer: {
+                        type: 'mx_bank_transfer',
+                    },
+                },
+            },
             line_items: [{
                 price_data: {
                     currency: 'mxn',

@@ -386,6 +386,9 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
                   <button onClick={handleClose} className="mt-8 px-6 py-3 bg-neutral-900 text-white font-semibold rounded-full font-body text-sm uppercase tracking-widest hover:bg-neutral-800 transition shadow">
                     Entendido, cerrar
                   </button>
+                  <p className="mt-6 text-[0.65rem] text-neutral-400 font-body uppercase tracking-wider">
+                    *Si cierras esta ventana, podrás recuperar tu ficha usando tu WhatsApp al final de la página principal.*
+                  </p>
                 </div>
               )}
 
@@ -405,19 +408,12 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
                     ↓ DESCARGAR BOLETO QR 
                   </a>
 
-                  <a 
-                    href={`https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(buildWhatsAppMessage(nombreRespuesta || nombre, etapa))}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-3 block w-full bg-white border-2 border-green-500 text-green-600 py-3 rounded-full font-body font-bold text-xs tracking-wide hover:bg-green-50 transition-colors uppercase"
-                  >
-                    Notificar por WhatsApp
-                  </a>
-
-                  <p className="text-xs text-neutral-400 mt-6 !leading-relaxed">
-                    Si el boleto da error o no carga enseguida, dale unos 15 segundos extra y vuelve a picarle (el servidor puede estar dibujándolo). 
+                  <p className="text-xs text-neutral-400 mt-10 !leading-relaxed border-t border-neutral-100 pt-6">
+                    Si el boleto no carga de inmediato, espera unos segundos y vuelve a intentarlo.
                     <br/><br/>
-                    *No te preocupes si lo pierdes, también te enviaremos tu entrada más tarde por correo electrónico.*
+                    <strong class="text-neutral-500">¿Perdiste tu boleto?</strong> 
+                    <br/>
+                    No te preocupes, puedes volver a esta página en cualquier momento y usar tu número de WhatsApp en la sección <span class="text-forest font-bold">"Recuperar Boleto"</span> para descargarlo de nuevo.
                   </p>
                 </div>
               )}
