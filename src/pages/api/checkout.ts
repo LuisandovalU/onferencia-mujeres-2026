@@ -55,18 +55,26 @@ export const POST: APIRoute = async ({ request, url }) => {
     if (!nombre) return new Response(JSON.stringify({ error: "El nombre es requerido" }), { status: 400 });
 
     try {
+        const keyPrefix = stripeKey.substring(0, 7);
+        console.log(`[Stripe Debug] Intentando crear sesión con llave: ${keyPrefix}... y moneda: mxn`);
+
+        if (keyPrefix.includes('test')) {
+            console.warn('⚠️ ATENCIÓN: Se está usando una llave de PRUEBA (test) en lugar de la REAL (live).');
+        }
+
         // 1. Crear un Cliente en Stripe (necesario para 'customer_balance' / SPEI)
         const customer = await stripe.customers.create({
             name: nombre,
             metadata: {
-                whatsapp: whatsapp
+                whatsapp: whatsapp,
+                source: 'conferencia_mujeres_web'
             }
         });
 
         // 2. Crear la sesión de Checkout asociada al cliente
         const session = await stripe.checkout.sessions.create({
             ui_mode: 'embedded_page',
-            customer: customer.id, // <--- Esto soluciona el error
+            customer: customer.id,
             payment_method_types: ['card', 'oxxo', 'customer_balance'],
             payment_method_options: {
                 customer_balance: {
@@ -78,7 +86,7 @@ export const POST: APIRoute = async ({ request, url }) => {
             },
             line_items: [{
                 price_data: {
-                    currency: 'mxn',
+                    currency: 'mxn', // Forzamos minúsculas
                     product_data: {
                         name: esBrave ? 'Conferencia BRAVE 2026' : 'Conferencia VALIENTE 2026'
                     },
