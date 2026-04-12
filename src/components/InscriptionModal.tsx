@@ -354,7 +354,21 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
           {/* PASO 3: Pasarela de Stripe Full Width */}
           {step === 3 && clientSecret && (
             <div className="w-full h-full flex-1 bg-white pt-14 sm:pt-10 pb-10 px-0 sm:px-6 animate-in zoom-in-95 duration-500 flex flex-col min-h-0 overflow-y-auto">
-                 <div className="w-full min-h-fit">
+                 <div className="w-full min-h-fit px-4 sm:px-0">
+                   {/* Banner Informativo de Métodos de Pago */}
+                   <div className="mb-6 p-4 bg-amber-50 rounded-xl border border-amber-100/50 flex gap-3 items-start">
+                     <div className="w-5 h-5 text-amber-600 mt-0.5 shrink-0">
+                       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                     </div>
+                     <div className="space-y-1">
+                       <p className="text-[0.7rem] font-bold text-amber-900 uppercase tracking-tight">Información de Pago</p>
+                       <p className="text-[0.75rem] text-amber-800/80 leading-relaxed font-body">
+                         <span className="font-bold">Tarjeta:</span> Acceso inmediato. <br/>
+                         <span className="font-bold">Transferencia/OXXO:</span> Tu boleto se liberará automáticamente al confirmarse el pago. Podrás descargarlo en la sección <span className="font-bold">"Recuperar Boleto"</span>.
+                       </p>
+                     </div>
+                   </div>
+
                    <EmbeddedCheckoutProvider
                      stripe={stripePromise}
                      options={{ clientSecret }}
