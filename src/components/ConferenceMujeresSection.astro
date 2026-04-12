@@ -22,93 +22,79 @@ import { InscribeteButton } from "./InscribeteButton";
     <div class="relative overflow-x-visible">
 
     <!-- ═══════════════════════════════════════════
-         SECCIÓN CENTRAL: ¿Qué es una conferencia?
-         El corazón de la página
+         SECCIÓN CENTRAL: El Corazón de la Conferencia
+         Diseño Rediseñado (Abril 2026)
     ════════════════════════════════════════════ -->
     <section id="contenido" class="section-container scroll-mt-4 pb-12 pt-10 md:pb-16 md:pt-12">
+      <!-- Card único con diseño premium -->
+      <div class="relative rounded-[3.5rem] overflow-hidden bg-brave-dark-deep shadow-2xl border border-white/5">
+        
+        <!-- Capas de iluminación dinámica -->
+        <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(74,110,58,0.15),transparent_70%)]" aria-hidden="true"></div>
+        <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(30,51,25,0.4),transparent_60%)]" aria-hidden="true"></div>
 
-      <!-- Card único con hojas adentro -->
-      <div class="relative rounded-[2.5rem] overflow-hidden bg-brave-dark-deep shadow-2xl">
-
-        <!-- Capas de profundidad -->
-        <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_70%_at_50%_0%,#4a6e3a,transparent_65%)]" aria-hidden="true"></div>
-        <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_0%_100%,#1e3319,transparent_70%)]" aria-hidden="true"></div>
-
-        <!-- 🌿 Fondo botánico completo -->
+        <!-- 🌿 Fondo botánico sutil -->
         <img
           src="/fondo.webp"
           alt=""
           aria-hidden="true"
-          class="pointer-events-none select-none absolute inset-0 w-full h-full object-cover opacity-[0.08] z-0"
+          class="pointer-events-none select-none absolute inset-0 w-full h-full object-cover opacity-[0.06] grayscale z-0"
         />
 
-        <!-- Overlay oscuro para legibilidad -->
-        <div class="pointer-events-none absolute inset-0 bg-brave-dark-deep/70 z-[1]" aria-hidden="true"></div>
-
-
-
-        <!-- Línea decorativa superior -->
-        <div class="absolute z-10 top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-
-        <div class="relative z-10 px-8 py-12 md:px-14 md:py-16">
-
-          <!-- Eyebrow -->
-          <p class="font-body text-[0.65rem] font-bold uppercase tracking-[0.5em] text-white mb-8">
-            La pregunta central
-          </p>
-
-          <!-- Pregunta principal — el corazón -->
-          <h2 class="font-display font-extrabold tracking-tight text-white leading-[1.08] text-[clamp(1.9rem,5.5vw,3.4rem)] max-w-2xl mb-10">
-            ¿Qué es una<br/>
-            <span class="relative inline-block">
-              <span class="relative z-10">conferencia de</span>
-            </span><br/>
-            <em class="not-italic text-transparent bg-clip-text bg-gradient-to-r from-[#a8c480] via-[#c8de9e] to-[#a8c480]">mujeres?</em>
-          </h2>
-
-          <!-- Separador con punto -->
-          <div class="flex items-center gap-3 mb-10">
-            <div class="h-px w-10 bg-white/20"></div>
-            <div class="h-2 w-2 rounded-full bg-[#a8c480]"></div>
-            <div class="h-px flex-1 max-w-[5rem] bg-white/10"></div>
-          </div>
-
-          <!-- Respuesta / copy -->
-          <p class="font-body text-[1.05rem] leading-[1.8] text-white max-w-xl mb-12">
-            Es un espacio sagrado para <strong class="font-semibold text-white">encontrarnos con Dios y entre nosotras</strong>.
-            Un lugar donde la adoración abre el corazón, la enseñanza transforma la mente, y la comunidad fortalece el camino.
-          </p>
-
-          <!-- Los tres pilares — fila horizontal con ícono de línea -->
-          <div class="grid grid-cols-3 gap-4 mb-12 max-w-lg">
-            <div class="flex flex-col gap-2 animate-fade-in-up" style="animation-delay: 100ms;">
-              <div class="h-px w-full bg-white/15"></div>
-              <p class="font-body text-[0.6rem] font-bold uppercase tracking-[0.3em] text-[#a8c480]">Adoración</p>
-              <p class="font-body text-[0.75rem] text-white leading-snug">El corazón que adora</p>
-            </div>
-            <div class="flex flex-col gap-2 animate-fade-in-up" style="animation-delay: 200ms;">
-              <div class="h-px w-full bg-white/15"></div>
-              <p class="font-body text-[0.6rem] font-bold uppercase tracking-[0.3em] text-[#a8c480]">Enseñanza</p>
-              <p class="font-body text-[0.75rem] text-white leading-snug">La mente que crece</p>
-            </div>
-            <div class="flex flex-col gap-2 animate-fade-in-up" style="animation-delay: 300ms;">
-              <div class="h-px w-full bg-white/15"></div>
-              <p class="font-body text-[0.6rem] font-bold uppercase tracking-[0.3em] text-[#a8c480]">Comunidad</p>
-              <p class="font-body text-[0.75rem] text-white leading-snug">El lazo que une</p>
-            </div>
-          </div>
-
-          <!-- Cita / frase poderosa -->
-          <blockquote class="border-l-2 border-[#a8c480]/80 pl-6 mb-10">
-            <p class="font-display italic text-[1.1rem] leading-[1.7] text-white max-w-md">
-              "Dos encuentros con el mismo corazón, pensados para fortalecer tu fe y tu caminar."
+        <div class="relative z-10 px-8 py-16 md:px-20 md:py-24 max-w-5xl mx-auto">
+          
+          <!-- Eyebrow con resalto -->
+          <div class="flex items-center gap-4 mb-10 animate-fade-in">
+            <div class="h-px w-8 bg-[#a8c480]/40"></div>
+            <p class="font-body text-[0.65rem] md:text-[0.7rem] font-black uppercase tracking-[0.4em] text-[#a8c480]">
+              Hay espacios que no se repiten y este es uno de ellos
             </p>
-          </blockquote>
+          </div>
 
+          <!-- Declaración Principal -->
+          <div class="space-y-8 mb-16">
+            <h2 class="font-display font-black text-white leading-[1.1] text-[clamp(1.75rem,5vw,3.8rem)] tracking-tighter">
+              Nuestra <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#a8c480] via-[#def2c1] to-[#a8c480]">conferencia de mujeres</span> es un evento que sucede solo una vez al año.
+            </h2>
+            <p class="font-body text-[1.1rem] md:text-[1.35rem] leading-[1.6] text-white/80 font-medium max-w-3xl">
+              Diseñado por y para mujeres que desean <span class="text-white border-b-2 border-[#a8c480]/30 italic">hacer una pausa</span>, y encontrarse con Dios de una manera real.
+            </p>
+          </div>
 
+          <!-- Bloque de Profundización -->
+          <div class="grid md:grid-cols-2 gap-12 items-start mb-20">
+            <p class="font-body text-[0.95rem] md:text-[1.05rem] leading-[1.8] text-white/70">
+              Cada año tenemos un tema distinto para profundizar en nuestros corazones y este es una invitación a 
+              <strong class="text-white">dejar el miedo</strong> y recordar que no caminamos solas, que Dios está presente en cada etapa, sosteniéndonos, guiándonos y dándonos fuerzas.
+            </p>
+            
+            <!-- Versículo Bíblico: Diseño de Resalto -->
+            <div class="relative p-8 md:p-10 rounded-[2.5rem] bg-white/[0.03] backdrop-blur-sm border border-white/10 shadow-inner overflow-hidden group">
+              <div class="absolute -right-10 -top-10 w-32 h-32 bg-[#a8c480]/10 rounded-full blur-3xl transition-all group-hover:bg-[#a8c480]/20"></div>
+              
+              <svg class="absolute top-6 left-6 w-10 h-10 text-[#a8c480]/20" fill="currentColor" viewBox="0 0 24 24"><path d="M14.017 21L14.017 18C14.017 16.8954 14.9124 16 16.017 16H19.017C19.5693 16 20.017 15.5523 20.017 15V9C20.017 8.44772 19.5693 8 19.017 8H15.017C14.4647 8 14.017 7.55228 14.017 7V5C14.017 4.44772 14.4647 4 15.017 4H19.017C21.2261 4 23.017 5.79086 23.017 8V15C23.017 18.3137 20.3307 21 17.017 21H14.017ZM1.017 21L1.017 18C1.017 16.8954 1.91243 16 3.017 16H6.017C6.56928 16 7.017 15.5523 7.017 15V9C7.017 8.44772 6.56928 8 6.017 8H2.017C1.46472 8 1.017 7.55228 1.017 7V5C1.017 4.44772 1.46472 4 2.017 4H6.017C8.22614 4 10.017 5.79086 10.017 8V15C10.017 18.3137 7.33072 21 4.017 21H1.017Z"/></svg>
 
-        </div>  <!-- /card -->
-      </div>  <!-- /wrapper botanico -->
+              <blockquote class="relative z-10">
+                <p class="font-display italic text-[1.15rem] md:text-[1.25rem] leading-[1.7] text-[#def2c1] mb-6 pt-4">
+                  “No tengas miedo, que yo estoy contigo; no te desanimes, que yo soy tu Dios. Yo soy quien te da fuerzas, y siempre te ayudaré; siempre te sostendré con mi justiciera mano derecha.”
+                </p>
+                <footer class="font-body text-[0.65rem] font-bold uppercase tracking-[0.3em] text-[#a8c480]/60">
+                  — Isaías 41:10
+                </footer>
+              </blockquote>
+            </div>
+          </div>
+
+          <!-- Cierre / Invitación Contextual -->
+          <div class="pt-10 border-t border-white/10">
+            <p class="font-display text-[1.2rem] md:text-[1.5rem] text-white leading-relaxed max-w-2xl">
+              La conferencia está pensada para <span class="text-[#a8c480] font-bold italic">acompañarte</span> según la etapa en la que estás viviendo. No importa si estás comenzando a construir tu camino o si ya llevas años recorriéndolo… 
+              <span class="block mt-4 text-transparent bg-clip-text bg-gradient-to-r from-white to-white/40 font-black uppercase tracking-widest text-sm md:text-base">hay un espacio para ti.</span>
+            </p>
+          </div>
+
+        </div>  <!-- /relative z-10 px -->
+      </div>  <!-- /card premium -->
     </section>
 
     <section id="encuentros" class="section-container scroll-mt-4 py-12 md:py-20">
