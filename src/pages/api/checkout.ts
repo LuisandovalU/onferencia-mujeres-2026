@@ -55,8 +55,18 @@ export const POST: APIRoute = async ({ request, url }) => {
     if (!nombre) return new Response(JSON.stringify({ error: "El nombre es requerido" }), { status: 400 });
 
     try {
+        // 1. Crear un Cliente en Stripe (necesario para 'customer_balance' / SPEI)
+        const customer = await stripe.customers.create({
+            name: nombre,
+            metadata: {
+                whatsapp: whatsapp
+            }
+        });
+
+        // 2. Crear la sesión de Checkout asociada al cliente
         const session = await stripe.checkout.sessions.create({
             ui_mode: 'embedded_page',
+            customer: customer.id, // <--- Esto soluciona el error
             payment_method_types: ['card', 'oxxo', 'customer_balance'],
             payment_method_options: {
                 customer_balance: {
