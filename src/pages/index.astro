@@ -5,6 +5,7 @@ import Footer from '../components/Footer.astro';
 
 // Islas de React (Componentes con interactividad compleja)
 import { InscriptionModal } from '../components/InscriptionModal';
+import TicketRecovery from '../components/TicketRecovery';
 import ConferenceMujeresSection from '../components/ConferenceMujeresSection.astro';
 ---
 
@@ -13,6 +14,11 @@ import ConferenceMujeresSection from '../components/ConferenceMujeresSection.ast
     
     <main>
         <ConferenceMujeresSection />
+        
+        {/* Sección de Recuperación de Boletos */}
+        <section class="bg-black/40 border-t border-white/5">
+            <TicketRecovery client:visible />
+        </section>
     </main>
 
     <Footer />

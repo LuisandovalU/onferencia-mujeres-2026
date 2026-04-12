@@ -167,6 +167,12 @@ export default function ManualRegistrationForm() {
         >
           Cobrar Saldo
         </button>
+        <button 
+          onClick={() => window.open(`/api/admin/export-csv?key=${password}`, '_blank')}
+          className="px-8 py-3 rounded-2xl font-black uppercase text-sm tracking-widest transition-all bg-emerald-500/10 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30"
+        >
+          Exportar CSV 📊
+        </button>
       </div>
 
       <div className="flex flex-col items-center mb-16 relative z-10">

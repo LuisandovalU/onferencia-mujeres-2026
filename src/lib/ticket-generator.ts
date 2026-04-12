@@ -14,6 +14,8 @@ interface TicketData {
   fileName: string; 
 }
 
+let cachedFont: Buffer | null = null;
+
 export async function generateAndUploadTicket({
   asistenteId,
   nombre_completo,
@@ -31,9 +33,13 @@ export async function generateAndUploadTicket({
     const templatePath = path.join(cwd, 'public', 'tickets', templateName);
     const fontPath = path.join(cwd, 'public', 'fonts', 'Montserrat-Bold.ttf');
     
-    // 2. Cargar fuente como buffer
-    const fontBuffer = await fs.readFile(fontPath);
-    console.log(`🔤 Fuente leída: ${fontBuffer.length} bytes`);
+    // 2. Cargar fuente (con caché)
+    if (!cachedFont) {
+        console.log(`🔤 Cargando fuente Montserrat por primera vez...`);
+        cachedFont = await fs.readFile(fontPath);
+    }
+    const fontBuffer = cachedFont;
+    console.log(`🔤 Fuente lista (${fontBuffer.length} bytes)`);
 
     // 3. Obtener dimensiones de la plantilla
     const templateMeta = await sharp(templatePath).metadata();

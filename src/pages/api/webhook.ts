@@ -32,15 +32,18 @@ export const GET: APIRoute = async () => {
 };
 
 export const POST: APIRoute = async ({ request }) => {
-  const payload = await request.text();
+  // Obtenemos el cuerpo crudo (Buffer) para validar la firma de Stripe
+  const arrayBuffer = await request.arrayBuffer();
+  const payload = Buffer.from(arrayBuffer);
   const sig = request.headers.get('stripe-signature');
 
   let event;
   try {
     if (!sig || !endpointSecret) throw new Error('Missing stripe signature or secret');
+    // Important: Use the raw buffer, not the text string
     event = stripe.webhooks.constructEvent(payload, sig, endpointSecret);
   } catch (err: any) {
-    console.error(`Webhook Error: ${err.message}`);
+    console.error(`❌ Webhook Signature Error: ${err.message}`);
     return new Response(`Webhook Error: ${err.message}`, { status: 400 });
   }
 
@@ -66,6 +69,7 @@ export const POST: APIRoute = async ({ request }) => {
         return new Response('No metadata found', { status: 400 });
       }
 
+      const { getMXTimestamp } = await import('../../lib/date-utils');
       const { data: dbData, error: insertError } = await supabase
         .from('asistentes')
         .insert([{
@@ -77,7 +81,8 @@ export const POST: APIRoute = async ({ request }) => {
           monto_total: 130,
           status_pago: session.payment_status === 'paid' ? 'completado' : 'pendiente',
           monto_pagado: session.payment_status === 'paid' ? (session.amount_total || 0) / 100 : 0,
-          stripe_session_id: session.id
+          stripe_session_id: session.id,
+          created_at: getMXTimestamp()
         }])
         .select()
         .single();
