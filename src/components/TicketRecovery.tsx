@@ -40,7 +40,7 @@ export default function TicketRecovery() {
                 {/* Contenido */}
                 <div className="relative z-10">
                     <p className="font-body text-[0.65rem] font-bold uppercase tracking-[0.4em] text-[#a8c480] mb-6">
-                        Recupera tu boleto digital
+                        Busca tu boleto digital
                     </p>
                     <h2 className="font-display text-[clamp(1.8rem,5vw,3.5rem)] font-extrabold leading-tight tracking-tight text-white mb-6 uppercase">
                         ¿Ya te <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#a8c480] to-[#c8de9e]">inscribiste?</span>
@@ -62,7 +62,7 @@ export default function TicketRecovery() {
                             disabled={loading}
                             className="bg-white hover:bg-neutral-100 text-black font-black px-12 py-5 rounded-full transition-all shadow-xl shadow-white/5 uppercase tracking-[0.1em] text-sm disabled:opacity-50 ring-4 ring-white/10"
                         >
-                            {loading ? 'BUSCANDO...' : 'BUSCAR'}
+                            {loading ? 'BUSCANDO...' : 'BUSCAR BOLETO'}
                         </button>
                     </form>
 

@@ -364,7 +364,7 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
                        <p className="text-[0.7rem] font-bold text-amber-900 uppercase tracking-tight">Información de Pago</p>
                        <p className="text-[0.75rem] text-amber-800/80 leading-relaxed font-body">
                          <span className="font-bold">Tarjeta:</span> Acceso inmediato. <br/>
-                         <span className="font-bold">Transferencia/OXXO:</span> Tu boleto se liberará automáticamente al confirmarse el pago. Podrás descargarlo en la sección <span className="font-bold">"Recuperar Boleto"</span>.
+                         <span className="font-bold">Transferencia/OXXO:</span> Tu boleto se liberará automáticamente al confirmarse el pago. Podrás descargarlo en la sección <span className="font-bold">"Busca tu boleto"</span>.
                        </p>
                      </div>
                    </div>
@@ -404,7 +404,7 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
                   
                   <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-100 text-left w-full">
                     <p className="text-[0.7rem] text-neutral-500 leading-relaxed italic">
-                      <strong>¿Dónde obtengo mi boleto?</strong> No te preocupes, una vez confirmado el pago, podrás descargar tu código QR usando tu WhatsApp en la sección <span className="text-forest font-bold">"Recuperar Boleto"</span> al final de la página principal.
+                      <strong>¿Dónde obtengo mi boleto?</strong> No te preocupes, una vez confirmado el pago, podrás descargar tu código QR usando tu WhatsApp en la sección <span className="text-forest font-bold">"Busca tu boleto"</span> al final de la página principal.
                     </p>
                   </div>
 
@@ -435,7 +435,7 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
                     <br/><br/>
                     <strong class="text-neutral-500">¿Perdiste tu boleto?</strong> 
                     <br/>
-                    No te preocupes, puedes volver a esta página en cualquier momento y usar tu número de WhatsApp en la sección <span class="text-forest font-bold">"Recuperar Boleto"</span> para descargarlo de nuevo.
+                    No te preocupes, puedes volver a esta página en cualquier momento y usar tu número de WhatsApp en la sección <span class="text-forest font-bold">"Busca tu boleto"</span> para descargarlo de nuevo.
                   </p>
                 </div>
               )}

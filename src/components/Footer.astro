@@ -2,11 +2,22 @@
 const year = new Date().getFullYear();
 ---
 <footer class="bg-neutral-950 text-white/40 py-12 px-6">
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-        <div class="font-display font-extrabold text-white text-xl">
-            Conferencia de Mujeres
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+        <div class="flex flex-col items-center md:items-start gap-2">
+            <div class="font-display font-extrabold text-white text-xl">
+                Conferencia de Mujeres
+            </div>
+            <a 
+                href="mailto:sandoval.ramos.ll.a@gmail.com" 
+                class="font-body text-xs text-forest hover:text-[#c8de9e] transition-colors flex items-center gap-2"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                ¿Dudas o sugerencias? Escríbenos
+            </a>
         </div>
-        <div class="font-body text-sm">
+        <div class="font-body text-sm text-center md:text-right">
             &copy; {year} Conferencia de Mujeres. Todos los derechos reservados.
         </div>
     </div>
