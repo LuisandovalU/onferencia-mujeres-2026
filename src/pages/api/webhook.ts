@@ -21,7 +21,10 @@ export const GET: APIRoute = async () => {
   return new Response(JSON.stringify({ 
     status: 'active', 
     message: 'Webhook endpoint is alive. Use POST for Stripe events.',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    hasWebhookSecret: !!endpointSecret,
+    secretPrefix: endpointSecret ? endpointSecret.substring(0, 10) + '...' : 'MISSING',
+    hasStripeKey: !!stripeKey
   }), { 
     status: 200, 
     headers: { 'Content-Type': 'application/json' } 
