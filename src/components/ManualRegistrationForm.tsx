@@ -73,17 +73,30 @@ export default function ManualRegistrationForm() {
   };
 
   const handleSearch = async () => {
+    console.log('Iniciando búsqueda:', searchQuery);
     if (!searchQuery) return;
     setLoading(true);
-    const { supabase } = await import('../lib/supabase');
-    const { data, error } = await supabase
-      .from('asistentes')
-      .select('*')
-      .or(`nombre_completo.ilike.%${searchQuery}%,whatsapp.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`)
-      .limit(5);
-    
-    if (data) setSearchResults(data);
-    setLoading(false);
+    try {
+      const resp = await fetch('/api/admin/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: searchQuery, password })
+      });
+      console.log('Respuesta recibida:', resp.status);
+      const data = await resp.json();
+      if (resp.ok) {
+        console.log('Resultados encontrados:', data.results?.length);
+        setSearchResults(data.results || []);
+      } else {
+        console.error('Error en API:', data.error);
+        alert(data.error || 'Error al buscar');
+      }
+    } catch (err) {
+      console.error('Error de catch:', err);
+      alert('Error de conexión al realizar la búsqueda');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAddAbono = async (id: string) => {
@@ -324,9 +337,10 @@ export default function ManualRegistrationForm() {
             />
             <button 
               onClick={handleSearch}
-              className="bg-emerald-500 text-black font-black px-10 rounded-2xl uppercase tracking-widest"
+              disabled={loading}
+              className="bg-emerald-500 text-black font-black px-10 rounded-2xl uppercase tracking-widest disabled:opacity-50"
             >
-              Buscar
+              {loading ? 'Buscando...' : 'Buscar'}
             </button>
           </div>
 
