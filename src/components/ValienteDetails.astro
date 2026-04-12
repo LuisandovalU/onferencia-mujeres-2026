@@ -24,7 +24,10 @@ const copy = {
 };
 ---
 
-<div class="overflow-hidden rounded-[2rem] bg-valiente-beige shadow-card">
+<div 
+  class="overflow-hidden rounded-[2rem] bg-valiente-beige shadow-card cursor-pointer group transition-all duration-500 hover:ring-2 hover:ring-valiente-dark/10"
+  onclick="document.getElementById('valiente-details-modal').showModal()"
+>
   <div class="grid gap-0 md:grid-cols-2">
     <div class="order-2 flex flex-col justify-center p-8 md:order-1 md:p-12 lg:p-14">
       <p class="font-body text-label font-semibold uppercase tracking-[0.28em] text-valiente-dark/50 text-center md:text-left mb-4">

@@ -25,7 +25,10 @@ const copy = {
 };
 ---
 
-<div class="overflow-hidden rounded-[2rem] bg-brave-dark-deep">
+<div 
+  class="overflow-hidden rounded-[2rem] bg-brave-dark-deep cursor-pointer group transition-all duration-500 hover:ring-2 hover:ring-white/20 shadow-2xl"
+  onclick="document.getElementById('brave-details-modal').showModal()"
+>
   <div class="grid gap-0 md:grid-cols-2">
     <div class="relative aspect-[4/3] min-h-[240px] md:aspect-auto md:min-h-[420px]">
       <AutoImageCarousel
