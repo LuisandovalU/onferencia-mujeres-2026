@@ -379,20 +379,24 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
               )}
 
               {paymentStatus === "unpaid" && (
-                <div className="space-y-4 items-center flex flex-col max-w-sm">
-                  <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center text-orange-500 shadow-sm border border-orange-200 mb-4">
-                    <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <div className="space-y-6 items-center flex flex-col max-w-sm px-4">
+                  <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center text-amber-500 shadow-sm border border-amber-100 mb-2">
+                    <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                   </div>
-                  <h3 className="font-display text-2xl font-bold text-neutral-900">¡Tu ficha está lista!</h3>
-                  <p className="font-body text-neutral-600 text-sm">
-                    Has elegido pagar con OXXO. Te llegará el boleto oficial QR una vez que tu pago físico se procese en la sucursal (suele tardar unas horas).
+                  <h3 className="font-display text-2xl font-bold text-neutral-900">¡Ficha Generada!</h3>
+                  <p className="font-body text-neutral-600 text-sm leading-relaxed">
+                    Tu solicitud de pago ha sido creada exitosamente. Una vez que realices tu pago (OXXO o Transferencia), Stripe tardará un momento en procesarlo.
                   </p>
-                  <button onClick={handleClose} className="mt-8 px-6 py-3 bg-neutral-900 text-white font-semibold rounded-full font-body text-sm uppercase tracking-widest hover:bg-neutral-800 transition shadow">
+                  
+                  <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-100 text-left w-full">
+                    <p className="text-[0.7rem] text-neutral-500 leading-relaxed italic">
+                      <strong>¿Dónde obtengo mi boleto?</strong> No te preocupes, una vez confirmado el pago, podrás descargar tu código QR usando tu WhatsApp en la sección <span className="text-forest font-bold">"Recuperar Boleto"</span> al final de la página principal.
+                    </p>
+                  </div>
+
+                  <button onClick={handleClose} className="w-full py-4 bg-neutral-900 text-white font-semibold rounded-full font-body text-sm uppercase tracking-widest hover:bg-neutral-800 transition shadow-lg">
                     Entendido, cerrar
                   </button>
-                  <p className="mt-6 text-[0.65rem] text-neutral-400 font-body uppercase tracking-wider">
-                    *Si cierras esta ventana, podrás recuperar tu ficha usando tu WhatsApp al final de la página principal.*
-                  </p>
                 </div>
               )}
 
