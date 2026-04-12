@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Scanner } from '@yudiel/react-qr-scanner';
-import { supabase } from '../lib/supabase';
 
 export default function CheckinScanner() {
   const [password, setPassword] = useState('');
@@ -35,82 +34,39 @@ export default function CheckinScanner() {
 
   const procesarBoleto = async (scannedText: string) => {
     const rawText = scannedText.trim();
+    if (!rawText) return;
+
     setScanning(false);
     setScanResult(rawText);
-    setStatusText('Consultando Base de Datos...');
+    setStatusText('Verificando con el Servidor...');
     setColorState('gray');
 
     try {
-      console.log('🔍 Texto escaneado:', rawText);
-      
-      // 1. Identificar ID o Folio
-      let queryId: string | null = null;
-      let isFolio = false;
+      // Llamamos al nuevo API seguro en lugar de consultar Supabase directamente
+      const resp = await fetch('/api/admin/process-checkin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rawText, password }) // Enviamos password para autorizar
+      });
 
-      // Regex para UUID (formato estándar de IDs de Supabase)
-      const uuidRegex = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
-      const uuidMatch = rawText.match(uuidRegex);
+      const data = await resp.json();
 
-      if (uuidMatch) {
-        // Encontró un ID largo (ya sea solo o dentro de una URL)
-        queryId = uuidMatch[0];
-        isFolio = false;
-      } else if (/^\d+$/.test(rawText)) {
-        // Es un número puro (Folio manual)
-        queryId = rawText;
-        isFolio = true;
-      } else {
-        // Intentar buscar parámetro ?id= en una URL si la regex falló
-        try {
-          const url = new URL(rawText);
-          queryId = url.searchParams.get('id');
-          isFolio = false;
-        } catch(e) {
-          queryId = null;
-        }
+      if (!resp.ok) {
+        throw new Error(data.error || 'Error desconocido');
       }
 
-      if (!queryId) {
-        throw new Error(`Formato no reconocido. Leí: "${rawText.slice(0, 20)}..."`);
-      }
-
-      // 2. Ejecutar Query
-      const query = supabase.from('asistentes').select('*');
-      if (isFolio) {
-        query.eq('folio', Number(queryId));
-      } else {
-        query.eq('id', queryId);
-      }
-
-      const { data: asistente, error } = await query.single();
-
-      if (error || !asistente) {
-        throw new Error(`${isFolio ? 'Folio #' : 'ID '}${queryId.slice(0, 8)} no encontrado`);
-      } 
-      
-      // 3. Validar Estados
-      if (asistente.asistio) {
-        setStatusText(`⚠️ YA ESCANEADO - ${asistente.nombre_completo}`);
+      // 3. Manejar Respuestas de Éxito o Advertencia
+      if (data.success) {
+        setStatusText(data.message);
+        setColorState('green');
+      } else if (data.type === 'warning') {
+        setStatusText(data.message);
         setColorState('red');
-      } else if (asistente.status_pago !== 'completado') {
-        const deuda = (asistente.monto_total || 130) - (asistente.monto_pagado || 0);
-        setStatusText(`⏳ PAGO PENDIENTE - Debe $${deuda}`);
+      } else if (data.type === 'error') {
+        setStatusText(data.message);
         setColorState('orange');
-      } else {
-        // 4. Marcar Asistencia
-        const { error: updateError } = await supabase
-          .from('asistentes')
-          .update({ asistio: true, fecha_checkin: new Date().toISOString() })
-          .eq('id', asistente.id);
-
-        if (updateError) {
-          setStatusText('Error al guardar asistencia.');
-          setColorState('red');
-        } else {
-          setStatusText(`✅ ¡BIENVENIDA! - ${asistente.nombre_completo}`);
-          setColorState('green');
-        }
       }
+
     } catch (err: any) {
       console.error('❌ Error escaneo:', err.message);
       setStatusText(err.message);
@@ -233,4 +189,3 @@ export default function CheckinScanner() {
     </div>
   );
 }
-
