@@ -17,6 +17,17 @@ const stripe = new Stripe(stripeKey || 'sk_test_placeholder', {
   apiVersion: '2025-01-27.acacia' as any,
 });
 
+export const GET: APIRoute = async () => {
+  return new Response(JSON.stringify({ 
+    status: 'active', 
+    message: 'Webhook endpoint is alive. Use POST for Stripe events.',
+    timestamp: new Date().toISOString()
+  }), { 
+    status: 200, 
+    headers: { 'Content-Type': 'application/json' } 
+  });
+};
+
 export const POST: APIRoute = async ({ request }) => {
   const payload = await request.text();
   const sig = request.headers.get('stripe-signature');
