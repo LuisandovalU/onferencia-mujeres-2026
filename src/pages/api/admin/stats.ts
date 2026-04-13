@@ -45,11 +45,15 @@ export const POST: APIRoute = async ({ request }) => {
     const braveCount = asistentes.filter(a => a.es_brave).length;
     const valienteCount = totalInscritas - braveCount;
 
-    // 5. Procesar Métodos de Pago
-    const cashCount = asistentes.filter(a => a.metodo_pago === 'efectivo').length;
-    const transferCount = asistentes.filter(a => a.metodo_pago === 'transferencia').length;
+    // 5. Procesar Métodos de Pago (Ahora sumando montos reales)
+    const cashTotal = asistentes
+      .filter(a => a.metodo_pago === 'efectivo')
+      .reduce((sum, a) => sum + (Number(a.monto_pagado) || 0), 0);
+    const transferTotal = asistentes
+      .filter(a => a.metodo_pago === 'transferencia' || a.stripe_session_id)
+      .reduce((sum, a) => sum + (Number(a.monto_pagado) || 0), 0);
 
-    // 6. Procesar Origen (Casa vs Visita)
+    // 6. Procesar Origen (Forma parte del Reino)
     const casaCount = asistentes.filter(a => a.es_casa).length;
     const visitaCount = totalInscritas - casaCount;
 
@@ -79,6 +83,7 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response(JSON.stringify({
       kpis: {
         totalVentas,
+        totalPendiente,
         totalInscritas,
         porcentajeMeta,
         meta
@@ -88,12 +93,12 @@ export const POST: APIRoute = async ({ request }) => {
         { name: 'Valiente', value: valienteCount }
       ],
       paymentMethods: [
-        { name: 'Efectivo', value: cashCount },
-        { name: 'Transferencia', value: transferCount }
+        { name: 'Efectivo', value: cashTotal },
+        { name: 'En Línea/Transf.', value: transferTotal }
       ],
       originStats: [
-        { name: 'Casa (ICI)', value: casaCount },
-        { name: 'Visitas', value: visitaCount }
+        { name: 'Casa', value: casaCount },
+        { name: 'Visita', value: visitaCount }
       ],
       hypeChart,
       sparkline: sparklineData,

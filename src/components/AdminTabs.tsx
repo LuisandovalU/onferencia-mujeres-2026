@@ -39,8 +39,8 @@ export default function AdminTabs() {
                 href={tab.href}
                 className={`flex flex-col md:flex-row items-center gap-1 md:gap-3 px-4 md:px-6 py-3 md:py-4 rounded-3xl font-bold transition-all duration-300 uppercase tracking-tighter text-[9px] md:text-xs
                   ${isActive 
-                    ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/30 scale-105 md:scale-100' 
-                    : 'text-zinc-500 hover:text-white hover:bg-white/10'
+                    ? 'bg-gradient-to-r from-brave-forest to-brave-moss text-white shadow-lg shadow-black/40 scale-105 md:scale-100 ring-1 ring-white/10' 
+                    : 'text-zinc-500 hover:text-white hover:bg-white/5'
                   }`}
               >
                 <div className={`${isActive ? 'scale-110' : ''} transition-transform duration-300`}>

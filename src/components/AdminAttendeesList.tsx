@@ -23,7 +23,11 @@ export default function AdminAttendeesList() {
   const [loading, setLoading] = useState(true);
   const [asistentes, setAsistentes] = useState<Asistente[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [onlyPending, setOnlyPending] = useState(false);
+  const [filters, setFilters] = useState({
+    status: 'all', // 'all', 'completado', 'pendiente'
+    type: 'all',   // 'all', 'brave', 'valiente'
+    method: 'all'  // 'all', 'stripe', 'efectivo', 'transferencia'
+  });
 
   const fetchData = async () => {
     const password = sessionStorage.getItem('admin_password');
@@ -59,10 +63,19 @@ export default function AdminAttendeesList() {
       nombre.toLowerCase().includes(searchQuery.toLowerCase()) || 
       whatsapp.includes(searchQuery);
     
-    if (onlyPending) {
-      return matchesSearch && a.status_pago === 'pendiente';
+    const matchesStatus = filters.status === 'all' || a.status_pago === filters.status;
+    const matchesType = filters.type === 'all' || (filters.type === 'brave' ? a.es_brave : !a.es_brave);
+    
+    let matchesMethod = true;
+    if (filters.method !== 'all') {
+      if (filters.method === 'stripe') {
+        matchesMethod = !!a.stripe_session_id;
+      } else {
+        matchesMethod = a.metodo_pago === filters.method && !a.stripe_session_id;
+      }
     }
-    return matchesSearch;
+
+    return matchesSearch && matchesStatus && matchesType && matchesMethod;
   });
 
   const totalRecaudado = filteredAsistentes.reduce((sum, a) => sum + a.monto_pagado, 0);
@@ -72,10 +85,10 @@ export default function AdminAttendeesList() {
     return (
       <div className="w-full h-[60vh] flex flex-col items-center justify-center">
         <div className="relative w-20 h-20">
-          <div className="absolute inset-0 border-4 border-purple-500/20 rounded-full"></div>
-          <div className="absolute inset-0 border-t-4 border-purple-500 rounded-full animate-spin"></div>
+          <div className="absolute inset-0 border-4 border-brave-forest/20 rounded-full"></div>
+          <div className="absolute inset-0 border-t-4 border-brave-light-soft rounded-full animate-spin"></div>
         </div>
-        <p className="mt-8 text-zinc-500 font-black uppercase tracking-[0.3em] text-[10px] animate-pulse">Obteniendo Registros...</p>
+        <p className="mt-8 text-brave-light-soft/50 font-black uppercase tracking-[0.3em] text-[10px] animate-pulse">Obteniendo Registros...</p>
       </div>
     );
   }
@@ -86,53 +99,87 @@ export default function AdminAttendeesList() {
       {/* Header & Mini Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
         <div className="glass-card p-6 rounded-[2.5rem] border-t-white/10 shadow-xl overflow-hidden relative">
-          <div className="absolute -right-4 -top-4 w-24 h-24 bg-purple-600/10 blur-3xl rounded-full"></div>
-          <p className="text-[10px] text-zinc-500 font-black uppercase tracking-widest mb-1 relative z-10">En esta vista (Inscritas)</p>
+          <div className="absolute -right-4 -top-4 w-24 h-24 bg-brave-forest/20 blur-3xl rounded-full"></div>
+          <p className="text-[10px] text-brave-light-soft/50 font-black uppercase tracking-widest mb-1 relative z-10">En esta vista (Inscritas)</p>
           <h3 className="text-4xl text-glow-gold relative z-10">
             <AnimatedCounter value={filteredAsistentes.length} />
           </h3>
         </div>
         <div className="glass-card p-6 rounded-[2.5rem] border-t-white/10 shadow-xl overflow-hidden relative">
           <div className="absolute -right-4 -top-4 w-24 h-24 bg-emerald-600/10 blur-3xl rounded-full"></div>
-          <p className="text-[10px] text-zinc-500 font-black uppercase tracking-widest mb-1 relative z-10">Recaudado (Muestra)</p>
+          <p className="text-[10px] text-brave-light-soft/50 font-black uppercase tracking-widest mb-1 relative z-10">Recaudado (Muestra)</p>
           <h3 className="text-4xl text-emerald-400 relative z-10">
             <AnimatedCounter value={totalRecaudado} prefix="$" />
           </h3>
         </div>
         <div className="glass-card p-6 rounded-[2.5rem] border-t-white/10 shadow-xl overflow-hidden relative">
           <div className="absolute -right-4 -top-4 w-24 h-24 bg-orange-600/10 blur-3xl rounded-full"></div>
-          <p className="text-[10px] text-zinc-500 font-black uppercase tracking-widest mb-1 relative z-10">Saldo Pendiente</p>
+          <p className="text-[10px] text-brave-light-soft/50 font-black uppercase tracking-widest mb-1 relative z-10">Saldo Pendiente</p>
           <h3 className="text-4xl text-orange-400 relative z-10">
             <AnimatedCounter value={totalPendiente} prefix="$" />
           </h3>
         </div>
       </div>
 
-      {/* Control Bar */}
-      <div className="glass-card p-4 md:p-6 rounded-[2.5rem] md:rounded-[3.5rem] flex flex-col md:flex-row items-center gap-6 mb-12 shadow-2xl border-t-white/10 relative z-50">
-        <div className="relative flex-1 w-full">
-          <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
-          <input 
-            type="text" 
-            placeholder="Buscar por nombre o celular..." 
-            className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-16 pr-6 text-sm text-white focus:outline-none focus:border-purple-500 transition-all font-bold placeholder:text-zinc-600"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+      {/* Control Bar (Advanced Filters) */}
+      <div className="glass-card p-6 md:p-8 rounded-[3rem] md:rounded-[4rem] flex flex-col gap-6 mb-12 shadow-2xl border-t-white/10 relative z-50">
+        <div className="w-full">
+          <p className="text-[10px] text-brave-light-soft/40 font-black uppercase tracking-[0.3em] mb-4 px-2">Buscador Principal</p>
+          <div className="relative flex-1 w-full">
+            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-brave-light-soft/40" size={18} />
+            <input 
+              type="text" 
+              placeholder="Buscar por nombre o celular..." 
+              className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-16 pr-6 text-sm text-white focus:outline-none focus:border-brave-forest/50 transition-all font-bold placeholder:text-brave-light-soft/20 shadow-inner"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
         
-        <div className="flex items-center gap-4 w-full md:w-auto">
-          <button 
-            onClick={() => setOnlyPending(!onlyPending)}
-            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all
-              ${onlyPending 
-                ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20 ring-2 ring-orange-400/50' 
-                : 'bg-white/5 text-zinc-400 border border-white/10 hover:text-white hover:bg-white/10'
-              }`}
-          >
-            <Filter size={14} />
-            {onlyPending ? 'Solo Pendientes' : 'Todos'}
-          </button>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Estatus de Pago */}
+          <div className="space-y-2">
+            <label className="text-[9px] font-black uppercase text-brave-light-soft/50 tracking-widest px-2">Estatus de Pago</label>
+            <select 
+              value={filters.status}
+              onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+              className="w-full bg-admin-deep border border-white/10 rounded-2xl py-4 px-6 text-xs text-white focus:outline-none focus:border-brave-forest transition-all font-bold appearance-none cursor-pointer"
+            >
+              <option value="all">Todos los Estatus</option>
+              <option value="completado">Liquidado ✅</option>
+              <option value="pendiente">Pendiente ⏳</option>
+            </select>
+          </div>
+
+          {/* Tipo de Boleto */}
+          <div className="space-y-2">
+            <label className="text-[9px] font-black uppercase text-brave-light-soft/50 tracking-widest px-2">Marca / Tipo</label>
+            <select 
+              value={filters.type}
+              onChange={(e) => setFilters({ ...filters, type: e.target.value })}
+              className="w-full bg-admin-deep border border-white/10 rounded-2xl py-4 px-6 text-xs text-white focus:outline-none focus:border-brave-forest transition-all font-bold appearance-none cursor-pointer"
+            >
+              <option value="all">Brave & Valiente</option>
+              <option value="brave">Solo Brave 🌿</option>
+              <option value="valiente">Solo Valiente 🔥</option>
+            </select>
+          </div>
+
+          {/* Método de Pago */}
+          <div className="space-y-2">
+            <label className="text-[9px] font-black uppercase text-brave-light-soft/50 tracking-widest px-2">Origen del Pago</label>
+            <select 
+              value={filters.method}
+              onChange={(e) => setFilters({ ...filters, method: e.target.value })}
+              className="w-full bg-admin-deep border border-white/10 rounded-2xl py-4 px-6 text-xs text-white focus:outline-none focus:border-brave-forest transition-all font-bold appearance-none cursor-pointer"
+            >
+              <option value="all">Cualquier Método</option>
+              <option value="stripe">Pago en Línea (Stripe) 💳</option>
+              <option value="efectivo">Efectivo 💵</option>
+              <option value="transferencia">Transferencia SPEI 🏦</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -153,7 +200,7 @@ export default function AdminAttendeesList() {
                 <div className={`p-4 rounded-3xl ${a.status_pago === 'completado' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-orange-500/10 text-orange-400'}`}>
                   {a.status_pago === 'completado' ? <UserCheck size={24} /> : <UserMinus size={24} />}
                 </div>
-                <div className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${a.es_brave ? 'bg-purple-500/10 border-purple-500/30 text-purple-400' : 'bg-amber-500/10 border-amber-500/30 text-amber-400'}`}>
+                <div className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${a.es_brave ? 'bg-brave-forest/20 border-brave-forest/30 text-brave-light-soft' : 'bg-amber-500/10 border-amber-500/30 text-amber-400'}`}>
                   {a.es_brave ? 'Brave' : 'Valiente'}
                 </div>
               </div>
@@ -195,11 +242,11 @@ export default function AdminAttendeesList() {
                 <div className="pt-6 border-t border-white/10 flex flex-col gap-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                       <span className="text-[10px] font-black uppercase text-zinc-500 tracking-tighter">Método:</span>
+                       <span className="text-[10px] font-black uppercase text-brave-light-soft/40 tracking-tighter">Método:</span>
                        <div className={`px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${
                          a.stripe_session_id 
-                           ? 'bg-purple-500/10 border-purple-500/20 text-purple-400' 
-                           : 'bg-zinc-500/10 border-white/5 text-zinc-300'
+                           ? 'bg-brave-forest/20 border-brave-forest/30 text-brave-light-soft' 
+                           : 'bg-white/10 border-white/5 text-brave-light-soft/60'
                        }`}>
                          {a.stripe_session_id ? '💳 Pago en Línea (Stripe)' : (a.metodo_pago || '💵 Efectivo')}
                        </div>
@@ -207,9 +254,9 @@ export default function AdminAttendeesList() {
                   </div>
 
                   {a.stripe_session_id && (
-                    <div className="bg-purple-500/5 rounded-2xl p-4 border border-purple-500/10 flex flex-col gap-3 group/stripe hover:bg-purple-500/10 transition-all">
+                    <div className="bg-brave-forest/10 rounded-2xl p-4 border border-brave-forest/20 flex flex-col gap-3 group/stripe hover:bg-brave-forest/20 transition-all">
                       <div className="flex flex-col">
-                        <span className="text-[8px] font-black text-purple-400/60 uppercase tracking-widest mb-1">IDC de Transacción</span>
+                        <span className="text-[8px] font-black text-brave-light-soft/40 uppercase tracking-widest mb-1">IDC de Transacción</span>
                         <code className="text-[10px] font-mono text-zinc-500 break-all bg-black/20 p-2 rounded-lg">
                           {a.stripe_session_id}
                         </code>
@@ -218,7 +265,7 @@ export default function AdminAttendeesList() {
                         href={`https://dashboard.stripe.com/checkout/sessions/${a.stripe_session_id}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-purple-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-purple-500 transition-all shadow-lg shadow-purple-500/20 active:scale-95"
+                        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-brave-forest text-white text-[10px] font-black uppercase tracking-widest hover:bg-brave-moss transition-all shadow-lg shadow-black/40 active:scale-95"
                       >
                         <ExternalLink size={12} />
                         Verificar Pago en Stripe

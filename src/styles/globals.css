@@ -5,6 +5,11 @@
 :root {
   --background: #f5f5f5;
   --foreground: #000000;
+  /* Brand Admin Colors */
+  --admin-forest-deep: #142416;
+  --admin-forest-card: #1B2F1B;
+  --admin-sage: #A8C480;
+  --admin-sage-soft: #DEF2C1;
 }
 
 body {
@@ -46,7 +51,9 @@ html {
 
 /* Staff Premium Utilities */
 .glass-card {
-  @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)];
+  @apply backdrop-blur-3xl border shadow-[0_20px_50px_rgba(0,0,0,0.5)];
+  background: linear-gradient(135deg, rgba(27,47,27,0.7) 0%, rgba(20,36,22,0.4) 100%);
+  border-color: rgba(168, 196, 128, 0.1);
 }
 
 .text-glow-gold {
@@ -56,8 +63,8 @@ html {
   font-weight: 800;
 }
 
-.bg-zinc-950 {
-  background-color: #09090b;
+.bg-admin-deep {
+  background-color: var(--admin-forest-deep);
 }
 
 @keyframes scan-line {
