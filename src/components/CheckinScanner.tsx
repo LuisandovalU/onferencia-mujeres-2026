@@ -1,10 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Scanner } from '@yudiel/react-qr-scanner';
 
 export default function CheckinScanner() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const savedPass = sessionStorage.getItem('admin_password');
+    if (savedPass) {
+      setPassword(savedPass);
+      setIsAuthenticated(true);
+    }
+  }, []);
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [statusText, setStatusText] = useState('Apuntando cámara...');
   const [colorState, setColorState] = useState<'gray' | 'green' | 'orange' | 'red'>('gray');
@@ -122,12 +130,10 @@ export default function CheckinScanner() {
   };
 
   return (
-    <div className={`fixed inset-0 transition-all duration-700 flex flex-col items-center justify-start ${screenBgClasses[colorState]}`}>
-      {/* Overlay de color envolvente */}
-      <div className={`fixed inset-0 pointer-events-none transition-opacity duration-700 ${colorState !== 'gray' ? 'opacity-30' : 'opacity-0'} ${screenBgClasses[colorState]}`}></div>
-
-      <div className="w-full max-w-lg mx-auto p-6 flex flex-col items-center mt-8 relative z-10">
-        <div className={`w-full p-8 rounded-[2.5rem] mb-10 text-center font-black text-2xl md:text-3xl transition-all duration-500 border-4 uppercase tracking-tight leading-none ${colorClasses[colorState]}`}>
+    <div className={`w-full transition-all duration-700 flex flex-col items-center justify-start min-h-[60vh] pb-20`}>
+      {/* Indicador de Estado Flotante Refinado */}
+      <div className="w-full max-w-lg mx-auto p-4 flex flex-col items-center relative z-10">
+        <div className={`w-full p-4 md:p-6 rounded-2xl mb-8 text-center font-black text-lg md:text-xl transition-all duration-500 border-2 uppercase tracking-tight leading-none ${colorClasses[colorState]}`}>
           {statusText}
         </div>
         
@@ -171,12 +177,6 @@ export default function CheckinScanner() {
           />
         </div>
 
-        <button 
-          onClick={() => window.location.href = '/admin/registro-manual'}
-          className="mt-8 text-emerald-400/30 hover:text-emerald-400 font-black uppercase text-[10px] tracking-[0.3em] transition-all"
-        >
-          ← Volver al Registro Manual
-        </button>
       </div>
       
       <style dangerouslySetInnerHTML={{ __html: `

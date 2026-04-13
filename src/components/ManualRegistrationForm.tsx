@@ -1,11 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function ManualRegistrationForm() {
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const savedPass = sessionStorage.getItem('admin_password');
+    if (savedPass) {
+      setPassword(savedPass);
+      setIsAuthenticated(true);
+    }
+  }, []);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'nuevo' | 'buscar'>('nuevo');
   const [result, setResult] = useState<{ success?: boolean; error?: string; ticketUrl?: string; mensaje?: string } | null>(null);
+  const [stats, setStats] = useState<{
+    total: number,
+    pagado: number,
+    pendiente: number,
+    brave: number,
+    valiente: number,
+    casa: number,
+    visita: number
+  } | null>(null);
 
   // Form states (Registro)
   const [formData, setFormData] = useState({
@@ -46,6 +63,28 @@ export default function ManualRegistrationForm() {
     }
   };
 
+  const fetchStats = async () => {
+    try {
+      const resp = await fetch('/api/admin/get-stats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        setStats(data);
+      }
+    } catch (err) {
+      console.error('Error fetching stats:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchStats();
+    }
+  }, [isAuthenticated]);
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -62,6 +101,7 @@ export default function ManualRegistrationForm() {
       if (response.ok) {
         setResult({ success: true, ticketUrl: data.ticketUrl, mensaje: data.mensaje });
         setFormData({ ...formData, nombre: '', whatsapp: '', email: '', referido_por: '', monto_pagado: '130', es_brave: true, es_casa: true });
+        fetchStats(); // Refresh stats
       } else {
         setResult({ error: data.error || 'Error desconocido' });
       }
@@ -118,7 +158,8 @@ export default function ManualRegistrationForm() {
           ticketUrl: data.ticketUrl 
         });
         setAbonoAmount('');
-        handleSearch(); // Refresh
+        handleSearch(); // Refresh search
+        fetchStats(); // Refresh stats
       } else {
         alert(data.error);
       }
@@ -192,7 +233,39 @@ export default function ManualRegistrationForm() {
         <h2 className="text-6xl md:text-8xl font-black text-white uppercase tracking-tighter leading-none mb-4 drop-shadow-2xl">
           {activeTab === 'nuevo' ? 'Registro' : 'Cobro'} <span className="text-emerald-400">{activeTab === 'nuevo' ? 'Manual' : 'Digital'}</span>
         </h2>
-        <div className="w-40 h-1.5 bg-emerald-500 rounded-full mb-8"></div>
+        <div className="w-40 h-1.5 bg-emerald-500 rounded-full mb-12"></div>
+
+        {/* Dashboard de Estadísticas */}
+        {stats && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-4xl animate-in fade-in slide-in-from-top duration-1000">
+            <div className="bg-black/40 backdrop-blur-md border border-emerald-400/20 p-6 rounded-[2rem] text-center group hover:border-emerald-400/50 transition-all">
+               <p className="text-[10px] font-black text-emerald-400/60 uppercase tracking-widest mb-1">Registradas</p>
+               <p className="text-4xl font-black text-white tabular-nums">{stats.total}</p>
+            </div>
+            <div className="bg-black/40 backdrop-blur-md border border-emerald-400/20 p-6 rounded-[2rem] text-center group hover:border-emerald-400/50 transition-all">
+               <p className="text-[10px] font-black text-emerald-400/60 uppercase tracking-widest mb-1">Recaudado</p>
+               <p className="text-3xl font-black text-emerald-400 tabular-nums">${stats.pagado}</p>
+            </div>
+            <div className="bg-black/40 backdrop-blur-md border border-emerald-400/20 p-6 rounded-[2rem] text-center group hover:border-emerald-400/50 transition-all">
+               <p className="text-[10px] font-black text-orange-400/60 uppercase tracking-widest mb-1">Pendiente</p>
+               <p className="text-3xl font-black text-orange-400 tabular-nums">${stats.pendiente}</p>
+            </div>
+            <div className="bg-black/40 backdrop-blur-md border border-emerald-400/20 p-6 rounded-[2rem] text-center group hover:border-emerald-400/50 transition-all">
+               <p className="text-[10px] font-black text-emerald-400/60 uppercase tracking-widest mb-1">Categorías</p>
+               <div className="flex justify-center gap-3 mt-1">
+                 <div className="text-center">
+                   <p className="text-[8px] font-bold text-white/40 uppercase">Brave</p>
+                   <p className="text-xl font-black text-white">{stats.brave}</p>
+                 </div>
+                 <div className="w-px h-8 bg-emerald-400/20 self-center"></div>
+                 <div className="text-center">
+                   <p className="text-[8px] font-bold text-white/40 uppercase">Vali</p>
+                   <p className="text-xl font-black text-white">{stats.valiente}</p>
+                 </div>
+               </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {result?.success && (

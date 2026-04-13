@@ -43,3 +43,28 @@ html {
 .animate-fade-in-up {
   animation: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+
+/* Staff Premium Utilities */
+.glass-card {
+  @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)];
+}
+
+.text-glow-gold {
+  color: #d4af37;
+  text-shadow: 0 0 20px rgba(212, 175, 55, 0.4), 0 0 40px rgba(212, 175, 55, 0.2);
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+}
+
+.bg-zinc-950 {
+  background-color: #09090b;
+}
+
+@keyframes scan-line {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+.animate-scan {
+  animation: scan-line 8s linear infinite;
+}

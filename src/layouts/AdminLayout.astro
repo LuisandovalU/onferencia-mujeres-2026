@@ -1,0 +1,41 @@
+---
+interface Props {
+	title: string;
+}
+
+const { title } = Astro.props;
+import '../styles/globals.css';
+import AdminSessionGuard from '../components/AdminSessionGuard';
+import BotanicalBackground from '../components/BotanicalBackground.astro';
+---
+
+<!doctype html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="description" content="Panel de Administración - Mujeres 2026" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title} | Staff Mujeres 2026</title>
+		<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+	</head>
+	<body class="bg-zinc-950 min-h-screen">
+		<BotanicalBackground />
+		<AdminSessionGuard client:only="react">
+			<slot />
+		</AdminSessionGuard>
+	</body>
+</html>
+
+<style is:global>
+	:root {
+		--font-hero: 'Montserrat', sans-serif;
+	}
+	body {
+		font-family: 'Inter', sans-serif;
+	}
+	h1, h2, h3, h4, .font-montserrat {
+		font-family: 'Montserrat', sans-serif;
+	}
+</style>
