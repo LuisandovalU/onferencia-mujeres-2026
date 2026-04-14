@@ -10,21 +10,42 @@ export const GET: APIRoute = async ({ request }) => {
       return new Response('ID de boleto no provisto', { status: 400 });
     }
 
-    // El nombre del archivo en Storage es el ID + .jpg (o el id tal cual si ya lo trae)
-    const fileName = id.endsWith('.jpg') ? id : `${id}.jpg`;
-
-    // 1. Obtener la URL firmada o descargar el archivo directamente
-    // Usamos download() para actuar como proxy y que no haya problemas de CORS
-    const { data, error } = await supabase.storage
+    // 1. Intentar descargar directamente con el ID provisto (UUID o SessionID)
+    const directFileName = id.endsWith('.jpg') ? id : `${id}.jpg`;
+    let { data, error } = await supabase.storage
       .from('tickets')
-      .download(fileName);
+      .download(directFileName);
+
+    // 2. Si falló, intentar buscar si el ID es un UUID que tiene un stripe_session_id asociado (Legacy Support)
+    if (error || !data) {
+      console.log(`🔍 No se encontró boleto para ${id}, buscando alternativas...`);
+      
+      const { data: asistente } = await supabase
+        .from('asistentes')
+        .select('stripe_session_id')
+        .eq('id', id)
+        .single();
+
+      if (asistente?.stripe_session_id) {
+        console.log(`📦 Intentando con Session ID: ${asistente.stripe_session_id}`);
+        const legacyFileName = `${asistente.stripe_session_id}.jpg`;
+        const { data: legacyData, error: legacyError } = await supabase.storage
+          .from('tickets')
+          .download(legacyFileName);
+        
+        if (!legacyError && legacyData) {
+          data = legacyData;
+          error = null;
+        }
+      }
+    }
 
     if (error || !data) {
       console.error('Download Error:', error);
       return new Response('El boleto no existe o aún se está procesando. Intenta de nuevo en unos segundos.', { status: 404 });
     }
 
-    // 2. Retornar la imagen con los headers correctos
+    // 3. Retornar la imagen con los headers correctos
     return new Response(data, {
       status: 200,
       headers: {

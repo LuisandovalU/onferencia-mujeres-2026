@@ -25,71 +25,68 @@ export const GET: APIRoute = async ({ request }) => {
         // Si el pago fue exitoso, asegurar que el boleto exista
         if (session.payment_status === 'paid') {
             try {
-                // Verificar si el ticket ya existe en Supabase Storage
-                const { data: fileList } = await supabase.storage
-                    .from('tickets')
-                    .list('', { search: `${sessionId}.jpg` });
+                // 1. Buscar asistente en la base de datos primero para tener su ID (UUID)
+                let { data: asistente } = await supabase
+                    .from('asistentes')
+                    .select('*')
+                    .eq('stripe_session_id', sessionId)
+                    .single();
 
-                const ticketExists = fileList && fileList.some(f => f.name === `${sessionId}.jpg`);
-
-                if (!ticketExists) {
-                    console.log(`🎟️ check-status: Boleto no encontrado para ${sessionId}, generando...`);
-                    
-                    // Buscar asistente en la base de datos
-                    const { data: asistente } = await supabase
+                if (!asistente) {
+                    // El asistente aún no está en la BD — insertarlo
+                    console.log(`📝 check-status: Asistente no encontrado en BD, insertando...`);
+                    const { getMXTimestamp } = await import('../../lib/date-utils');
+                    const { data: newAsistente, error: insertError } = await supabase
                         .from('asistentes')
-                        .select('*')
-                        .eq('stripe_session_id', sessionId)
+                        .insert([{
+                            nombre_completo: session.metadata?.nombre || 'Sin Nombre',
+                            whatsapp: session.metadata?.whatsapp || '',
+                            es_brave: session.metadata?.es_brave === 'true',
+                            es_casa: session.metadata?.es_casa === 'true',
+                            referido_por: session.metadata?.quien_invito || 'N/A',
+                            monto_total: 130,
+                            status_pago: 'completado',
+                            monto_pagado: (session.amount_total || 0) / 100,
+                            stripe_session_id: sessionId,
+                            created_at: getMXTimestamp()
+                        }])
+                        .select()
                         .single();
+                    
+                    if (!insertError && newAsistente) {
+                        asistente = newAsistente;
+                    }
+                }
 
-                    if (asistente) {
-                        // Generar ticket al vuelo
+                if (asistente) {
+                    // 2. Verificar si el ticket ya existe en Supabase Storage (buscamos por UUID preferentemente)
+                    const { data: fileList } = await supabase.storage
+                        .from('tickets')
+                        .list('', { search: asistente.id });
+
+                    // Verificamos si existe con el UUID o con el sessionId (legacy)
+                    const ticketExists = fileList && fileList.some(f => 
+                        f.name === `${asistente.id}.jpg` || f.name === `${sessionId}.jpg`
+                    );
+
+                    if (!ticketExists) {
+                        console.log(`🎟️ check-status: Boleto no encontrado para ${asistente.nombre_completo}, generando...`);
                         const { generateAndUploadTicket } = await import('../../lib/ticket-generator');
                         await generateAndUploadTicket({
                             asistenteId: asistente.id,
                             nombre_completo: asistente.nombre_completo,
                             folio: asistente.folio,
                             es_brave: asistente.es_brave,
-                            fileName: sessionId
+                            fileName: asistente.id // Usamos UUID ahora
                         });
-                        console.log(`✅ check-status: Boleto generado exitosamente para ${asistente.nombre_completo}`);
-                    } else {
-                        // El asistente aún no está en la BD — insertarlo
-                        console.log(`📝 check-status: Asistente no encontrado en BD, insertando...`);
-                        const { getMXTimestamp } = await import('../../lib/date-utils');
-                        const { data: newAsistente, error: insertError } = await supabase
-                            .from('asistentes')
-                            .insert([{
-                                nombre_completo: session.metadata?.nombre || 'Sin Nombre',
-                                whatsapp: session.metadata?.whatsapp || '',
-                                es_brave: session.metadata?.es_brave === 'true',
-                                es_casa: session.metadata?.es_casa === 'true',
-                                referido_por: session.metadata?.quien_invito || 'N/A',
-                                monto_total: 130,
-                                status_pago: 'completado',
-                                monto_pagado: (session.amount_total || 0) / 100,
-                                stripe_session_id: sessionId,
-                                created_at: getMXTimestamp()
-                            }])
-                            .select()
-                            .single();
-
-                        if (!insertError && newAsistente) {
-                            const { generateAndUploadTicket } = await import('../../lib/ticket-generator');
-                            await generateAndUploadTicket({
-                                asistenteId: newAsistente.id,
-                                nombre_completo: newAsistente.nombre_completo,
-                                folio: newAsistente.folio,
-                                es_brave: newAsistente.es_brave,
-                                fileName: sessionId
-                            });
-                            console.log(`✅ check-status: Nuevo asistente registrado y boleto generado`);
-                        }
+                        console.log(`✅ check-status: Boleto generado exitosamente.`);
                     }
+
+                    // Adjuntar el ID del asistente a la respuesta para que el modal lo use
+                    (session as any).asistenteId = asistente.id;
                 }
             } catch (ticketErr: any) {
-                // No bloqueamos la respuesta si falla la generación del ticket
-                console.error(`⚠️ check-status: Error generando ticket: ${ticketErr.message}`);
+                console.error(`⚠️ check-status: Error procesando ticket: ${ticketErr.message}`);
             }
         }
 
@@ -97,7 +94,8 @@ export const GET: APIRoute = async ({ request }) => {
             status: session.status,
             payment_status: session.payment_status,
             customer_email: session.customer_details?.email,
-            nombre: session.metadata?.nombre || ""
+            nombre: session.metadata?.nombre || "",
+            asistenteId: (session as any).asistenteId // Retornamos el UUID
         }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' }

@@ -111,7 +111,9 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
               setPaymentStatus("unpaid");
             } else if (data.payment_status === "paid") {
               setPaymentStatus("paid");
-              setTicketUrl(`https://fkifwxauqdjmfjbceypa.supabase.co/storage/v1/object/public/tickets/${session_id}.jpg`);
+              // Usamos el API de descarga con el ID del asistente (UUID) si está disponible, sino el sessionId
+              const finalId = data.asistenteId || session_id;
+              setTicketUrl(`/api/download-ticket?id=${finalId}`);
             }
          })
          .catch(err => setPaymentStatus("verificando")); 
@@ -182,9 +184,8 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
       if (data.clientSecret) {
         setClientSecret(data.clientSecret);
         
-        // El frontend asume que el backend generará el ticket JPG con el nombre del ID de Stripe.
-        const bucketUrl = `https://fkifwxauqdjmfjbceypa.supabase.co/storage/v1/object/public/tickets/${data.sessionId}.jpg`;
-        setTicketUrl(bucketUrl);
+        // El ticket se buscará por Session ID inicialmente hasta que check-status devuelva el UUID
+        setTicketUrl(`/api/download-ticket?id=${data.sessionId}`);
 
         setStep(3); // Muestra Stripe
       } else {

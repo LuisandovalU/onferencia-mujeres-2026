@@ -125,7 +125,7 @@ export const POST: APIRoute = async ({ request }) => {
         nombre_completo: objAsistente.nombre_completo,
         folio: objAsistente.folio,
         es_brave: objAsistente.es_brave,
-        fileName: session.id // Usamos ID de Stripe para el nombre del archivo
+        fileName: asistenteId // Cambiado de session.id a asistenteId para consistencia
       });
 
       console.log('Ticket generado y subido a través de la librería compartida.');
