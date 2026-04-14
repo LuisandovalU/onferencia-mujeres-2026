@@ -45,13 +45,9 @@ export const POST: APIRoute = async ({ request }) => {
     const braveCount = asistentes.filter(a => a.es_brave).length;
     const valienteCount = totalInscritas - braveCount;
 
-    // 5. Procesar Métodos de Pago (Ahora sumando montos reales)
-    const cashTotal = asistentes
-      .filter(a => a.metodo_pago === 'efectivo')
-      .reduce((sum, a) => sum + (Number(a.monto_pagado) || 0), 0);
-    const transferTotal = asistentes
-      .filter(a => a.metodo_pago === 'transferencia' || a.stripe_session_id)
-      .reduce((sum, a) => sum + (Number(a.monto_pagado) || 0), 0);
+    // 5. Procesar Métodos de Pago (Ahora contando personas)
+    const cashCount = asistentes.filter(a => a.metodo_pago === 'efectivo').length;
+    const stripeCount = asistentes.filter(a => a.metodo_pago === 'transferencia' || a.stripe_session_id).length;
 
     // 6. Procesar Origen (Forma parte del Reino)
     const casaCount = asistentes.filter(a => a.es_casa).length;
@@ -93,8 +89,8 @@ export const POST: APIRoute = async ({ request }) => {
         { name: 'Valiente', value: valienteCount }
       ],
       paymentMethods: [
-        { name: 'Efectivo', value: cashTotal },
-        { name: 'En Línea/Transf.', value: transferTotal }
+        { name: 'Efectivo', value: cashCount },
+        { name: 'Stripe', value: stripeCount }
       ],
       originStats: [
         { name: 'Casa', value: casaCount },

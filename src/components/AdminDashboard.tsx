@@ -271,8 +271,8 @@ export default function AdminDashboard() {
                     <CreditCard className="text-brave-light-soft" size={20} />
                   </div>
                   <div>
-                    <h4 className="text-xs font-black uppercase tracking-widest text-white">Distribución de Ingresos</h4>
-                    <p className="text-[10px] text-brave-light-soft/50 font-bold uppercase">Efectivo vs. En Línea</p>
+                    <h4 className="text-xs font-black uppercase tracking-widest text-white">Distribución de Inscritas</h4>
+                    <p className="text-[10px] text-brave-light-soft/50 font-bold uppercase">Efectivo vs. Stripe</p>
                   </div>
                 </div>
                 <div className="h-64 flex flex-col md:flex-row items-center">
