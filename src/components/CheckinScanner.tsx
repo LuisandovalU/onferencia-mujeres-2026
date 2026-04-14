@@ -1,48 +1,17 @@
-import React, { useState, useEffect } from 'react';
 import { Scanner } from '@yudiel/react-qr-scanner';
+import AdminMasterGuard from './AdminMasterGuard';
 
 export default function CheckinScanner() {
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  useEffect(() => {
-    const savedPass = sessionStorage.getItem('admin_password');
-    if (savedPass) {
-      setPassword(savedPass);
-      setIsAuthenticated(true);
-    }
-  }, []);
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [statusText, setStatusText] = useState('Apuntando cámara...');
   const [colorState, setColorState] = useState<'gray' | 'green' | 'orange' | 'red'>('gray');
   const [scanning, setScanning] = useState(true);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const resp = await fetch('/api/admin/verify-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password })
-      });
-      const data = await resp.json();
-      if (data.isValid) {
-        setIsAuthenticated(true);
-      } else {
-        alert('Clave incorrecta');
-      }
-    } catch (err) {
-      alert('Error de conexión');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const procesarBoleto = async (scannedText: string) => {
     const rawText = scannedText.trim();
     if (!rawText) return;
+
+    const password = sessionStorage.getItem('admin_password'); // Necesario para el API de check-in
 
     setScanning(false);
     setScanResult(rawText);
@@ -89,32 +58,6 @@ export default function CheckinScanner() {
     }
   };
 
-  if (!isAuthenticated) {
-    return (
-      <div className="w-full max-w-md bg-emerald-950/80 backdrop-blur-3xl border border-emerald-400/20 p-12 rounded-[3rem] shadow-[0_40px_80px_rgba(0,0,0,0.6)] text-center mt-12">
-        <div className="w-20 h-2 bg-emerald-400 mx-auto mb-10 rounded-full shadow-[0_0_20px_rgba(52,211,153,0.4)]"></div>
-        <h2 className="text-3xl font-black text-white mb-3 uppercase tracking-widest">Escáner <span className="text-emerald-400">Staff</span></h2>
-        <p className="text-emerald-200/40 text-[10px] mb-10 font-medium uppercase tracking-[0.3em]">Acceso Restringido</p>
-        <form onSubmit={handleLogin} className="space-y-6">
-          <input
-            type="password"
-            placeholder="Clave de acceso"
-            className="w-full bg-black/40 border border-emerald-400/10 rounded-2xl p-6 text-white text-center text-2xl focus:outline-none focus:border-emerald-400 transition-all font-bold placeholder:text-emerald-900"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <button 
-            disabled={loading}
-            className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-black py-6 rounded-2xl transition-all uppercase tracking-widest shadow-2xl shadow-emerald-500/20 disabled:opacity-50 text-lg"
-          >
-            {loading ? 'Verificando...' : 'Abrir Cámara'}
-          </button>
-        </form>
-      </div>
-    );
-  }
-
   const colorClasses = {
     gray: 'bg-emerald-950/50 text-emerald-400/50 border-emerald-400/10',
     green: 'bg-emerald-500 text-black shadow-[0_0_40px_rgba(16,185,129,0.8)] border-white scale-105',
@@ -130,7 +73,8 @@ export default function CheckinScanner() {
   };
 
   return (
-    <div className={`w-full transition-all duration-700 flex flex-col items-center justify-start min-h-[60vh] pb-20`}>
+    <AdminMasterGuard>
+      <div className={`w-full transition-all duration-700 flex flex-col items-center justify-start min-h-[60vh] pb-20`}>
       {/* Indicador de Estado Flotante Refinado */}
       <div className="w-full max-w-lg mx-auto p-4 flex flex-col items-center relative z-10">
         <div className={`w-full p-4 md:p-6 rounded-2xl mb-8 text-center font-black text-lg md:text-xl transition-all duration-500 border-2 uppercase tracking-tight leading-none ${colorClasses[colorState]}`}>
@@ -187,5 +131,6 @@ export default function CheckinScanner() {
         }
       `}} />
     </div>
+    </AdminMasterGuard>
   );
 }

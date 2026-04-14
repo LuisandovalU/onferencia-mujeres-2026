@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import DashboardFilters from './DashboardFilters';
 import AnimatedCounter from './AnimatedCounter';
+import AdminMasterGuard from './AdminMasterGuard';
 
 // --- Types ---
 interface KPIData {
@@ -227,240 +228,242 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto pb-32">
-      {svgFilters}
-      <DashboardFilters filters={filters} setFilters={setFilters} />
+    <AdminMasterGuard>
+      <div className="w-full max-w-7xl mx-auto pb-32">
+        {svgFilters}
+        <DashboardFilters filters={filters} setFilters={setFilters} />
 
-      <AnimatePresence mode="wait">
-        {stats && (
-          <motion.div 
-            key="dashboard-content"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="px-4 space-y-12"
-          >
-            {/* Main KPIs Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
-              <motion.div variants={itemVariants}>
-                <KPICard 
-                  title="Inscritas" 
-                  numericValue={stats.kpis.totalInscritas}
-                  subtitle="Mujeres confirmadas"
-                  icon={Users}
-                  sparklineData={stats.sparkline}
-                />
-              </motion.div>
+        <AnimatePresence mode="wait">
+          {stats && (
+            <motion.div 
+              key="dashboard-content"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="px-4 space-y-12"
+            >
+              {/* Main KPIs Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+                <motion.div variants={itemVariants}>
+                  <KPICard 
+                    title="Inscritas" 
+                    numericValue={stats.kpis.totalInscritas}
+                    subtitle="Mujeres confirmadas"
+                    icon={Users}
+                    sparklineData={stats.sparkline}
+                  />
+                </motion.div>
 
-              <motion.div variants={itemVariants}>
-                <KPICard 
-                  title="Tendencia" 
-                  numericValue={100}
-                  subtitle="Estado de Sistema Live"
-                  icon={Activity}
-                  sparklineData={stats.sparkline}
-                />
-              </motion.div>
-            </div>
+                <motion.div variants={itemVariants}>
+                  <KPICard 
+                    title="Tendencia" 
+                    numericValue={100}
+                    subtitle="Estado de Sistema Live"
+                    icon={Activity}
+                    sparklineData={stats.sparkline}
+                  />
+                </motion.div>
+              </div>
 
-            {/* Intermediate Analytics: Donut Charts Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <motion.div variants={itemVariants} className="glass-card p-10 rounded-[3rem] border-t-white/10 shadow-2xl relative overflow-hidden">
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="p-3 bg-brave-forest/20 rounded-2xl">
-                    <CreditCard className="text-brave-light-soft" size={20} />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-black uppercase tracking-widest text-white">Distribución de Inscritas</h4>
-                    <p className="text-[10px] text-brave-light-soft/50 font-bold uppercase">Efectivo vs. Stripe</p>
-                  </div>
-                </div>
-                <div className="h-64 flex flex-col md:flex-row items-center">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={stats.paymentMethods}
-                        innerRadius={60}
-                        outerRadius={80}
-                        paddingAngle={10}
-                        dataKey="value"
-                        animationDuration={1500}
-                      >
-                        <Cell fill="#C4CF9A" />
-                        <Cell fill="#d4af37" />
-                      </Pie>
-                      <Tooltip content={<CustomTooltip />} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="w-full md:w-48 space-y-4">
-                    {stats.paymentMethods.map((item, idx) => (
-                      <div key={item.name} className="flex justify-between items-center p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${idx === 0 ? 'bg-brave-light-soft' : 'bg-[#d4af37]'}`}></div>
-                          <span className="text-[10px] font-bold text-brave-light-soft/70 uppercase">{item.name}</span>
-                        </div>
-                        <span className="text-sm font-black text-white">{item.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-
-              <motion.div variants={itemVariants} className="glass-card p-10 rounded-[3rem] border-t-white/10 shadow-2xl relative overflow-hidden">
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="p-3 bg-emerald-500/10 rounded-2xl">
-                    <Home className="text-emerald-400" size={20} />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-black uppercase tracking-widest text-white">Forma parte del Reino</h4>
-                    <p className="text-[10px] text-brave-light-soft/50 font-bold uppercase tracking-widest">Casa vs Visitas</p>
-                  </div>
-                </div>
-                <div className="h-64 flex flex-col md:flex-row items-center">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={stats.originStats}
-                        innerRadius={60}
-                        outerRadius={80}
-                        paddingAngle={10}
-                        dataKey="value"
-                        animationDuration={1500}
-                      >
-                        <Cell fill="#10b981" />
-                        <Cell fill="#ffffff20" />
-                      </Pie>
-                      <Tooltip content={<CustomTooltip />} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="w-full md:w-48 space-y-4">
-                    {stats.originStats.map((item, idx) => (
-                      <div key={item.name} className="flex justify-between items-center p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${idx === 0 ? 'bg-emerald-500' : 'bg-zinc-700'}`}></div>
-                          <span className="text-[10px] font-bold text-zinc-300 uppercase">{item.name}</span>
-                        </div>
-                        <span className="text-sm font-black text-white">{item.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-
-            {/* Main Charts Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12">
-              <motion.div 
-                variants={itemVariants}
-                className="lg:col-span-2 glass-card p-10 rounded-[3rem] min-h-[400px] border-t-white/10 shadow-2xl relative overflow-hidden group"
-              >
-                <div className="absolute inset-0 bg-gradient-to-tr from-brave-forest/10 to-transparent"></div>
-                <div className="flex items-center justify-between mb-8 relative z-10">
-                  <div className="flex items-center gap-3">
-                    <TrendingUp className="text-brave-light-soft" size={18} />
-                    <h4 className="text-xs font-black uppercase tracking-widest text-white">Curva de Registro (Hype Chart)</h4>
-                  </div>
-                  <div className="flex items-center gap-2 bg-black/40 px-4 py-2 rounded-full border border-white/5">
-                    <div className="w-2 h-2 rounded-full bg-[#d4af37] animate-pulse"></div>
-                    <span className="text-[10px] text-brave-light-soft/50 font-bold uppercase">Registros Diarios</span>
-                  </div>
-                </div>
-
-                <div className="h-[300px] w-full relative z-10">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={stats.hypeChart}>
-                      <defs>
-                        <linearGradient id="hypeGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#C4CF9A" stopOpacity={0.6}/>
-                          <stop offset="95%" stopColor="#C4CF9A" stopOpacity={0}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="10 10" stroke="#ffffff05" vertical={false} />
-                      <XAxis 
-                        dataKey="date" 
-                        stroke="#ffffff20" 
-                        fontSize={8} 
-                        tickLine={false} 
-                        axisLine={false}
-                        tick={{ fill: '#71717a' }}
-                      />
-                      <YAxis 
-                        stroke="#ffffff20" 
-                        fontSize={8} 
-                        tickLine={false} 
-                        axisLine={false}
-                        tick={{ fill: '#71717a' }}
-                      />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Area 
-                        type="monotone" 
-                        dataKey="count" 
-                        stroke="#d4af37" 
-                        strokeWidth={4}
-                        fillOpacity={1} 
-                        fill="url(#hypeGradient)" 
-                        animationDuration={2000}
-                        filter="url(#goldAura)"
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </motion.div>
-
-              <motion.div 
-                variants={itemVariants} 
-                className="glass-card p-10 rounded-[3rem] flex flex-col border-t-white/10 shadow-2xl relative overflow-hidden group"
-              >
-                <div className="absolute inset-0 bg-gradient-to-bl from-brave-forest/10 to-transparent"></div>
-                <div className="flex items-center gap-3 mb-8 relative z-10">
-                  <PieIcon className="text-brave-light-soft" size={18} />
-                  <h4 className="text-xs font-black uppercase tracking-widest text-white">Brave vs Valiente</h4>
-                </div>
-                
-                <div className="flex-1 h-full min-h-[250px] relative z-10">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={stats.distribution}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
-                      <XAxis 
-                        dataKey="name" 
-                        stroke="#ffffff20" 
-                        fontSize={10} 
-                        tickLine={false} 
-                        axisLine={false}
-                        tick={{ fill: '#71717a' }}
-                      />
-                      <YAxis hide />
-                      <Tooltip content={<CustomTooltip />} cursor={{ fill: '#ffffff05' }} />
-                      <Bar dataKey="value" radius={[15, 15, 0, 0]} barSize={50} animationDuration={2000}>
-                        {stats.distribution.map((entry, index) => (
-                          <Cell 
-                            key={`cell-${index}`} 
-                            fill={index === 0 ? '#d4af37' : '#C4CF9A'} 
-                            fillOpacity={0.9}
-                            filter="url(#sageAura)"
-                          />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-                
-                <div className="mt-8 space-y-3 relative z-10">
-                  {stats.distribution.map((item, idx) => (
-                    <div key={item.name} className="flex items-center justify-between p-4 rounded-2xl bg-black/40 border border-white/5 hover:border-brave-light-soft/30 transition-all">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-3 h-3 rounded-full ${idx === 0 ? 'bg-[#d4af37]' : 'bg-brave-light-soft shadow-[0_0_10px_rgba(196,207,154,0.5)]'}`}></div>
-                        <span className="text-[10px] font-black text-white uppercase tracking-widest">{item.name}</span>
-                      </div>
-                      <span className="text-xl font-black text-white italic">{item.value}</span>
+              {/* Intermediate Analytics: Donut Charts Row */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <motion.div variants={itemVariants} className="glass-card p-10 rounded-[3rem] border-t-white/10 shadow-2xl relative overflow-hidden">
+                  <div className="flex items-center gap-4 mb-8">
+                    <div className="p-3 bg-brave-forest/20 rounded-2xl">
+                      <CreditCard className="text-brave-light-soft" size={20} />
                     </div>
-                  ))}
-                </div>
-              </motion.div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+                    <div>
+                      <h4 className="text-xs font-black uppercase tracking-widest text-white">Distribución de Inscritas</h4>
+                      <p className="text-[10px] text-brave-light-soft/50 font-bold uppercase">Efectivo vs. Stripe</p>
+                    </div>
+                  </div>
+                  <div className="h-64 flex flex-col md:flex-row items-center">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={stats.paymentMethods}
+                          innerRadius={60}
+                          outerRadius={80}
+                          paddingAngle={10}
+                          dataKey="value"
+                          animationDuration={1500}
+                        >
+                          <Cell fill="#C4CF9A" />
+                          <Cell fill="#d4af37" />
+                        </Pie>
+                        <Tooltip content={<CustomTooltip />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="w-full md:w-48 space-y-4">
+                      {stats.paymentMethods.map((item, idx) => (
+                        <div key={item.name} className="flex justify-between items-center p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full ${idx === 0 ? 'bg-brave-light-soft' : 'bg-[#d4af37]'}`}></div>
+                            <span className="text-[10px] font-bold text-brave-light-soft/70 uppercase">{item.name}</span>
+                          </div>
+                          <span className="text-sm font-black text-white">{item.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+
+                <motion.div variants={itemVariants} className="glass-card p-10 rounded-[3rem] border-t-white/10 shadow-2xl relative overflow-hidden">
+                  <div className="flex items-center gap-4 mb-8">
+                    <div className="p-3 bg-emerald-500/10 rounded-2xl">
+                      <Home className="text-emerald-400" size={20} />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black uppercase tracking-widest text-white">Forma parte del Reino</h4>
+                      <p className="text-[10px] text-brave-light-soft/50 font-bold uppercase tracking-widest">Casa vs Visitas</p>
+                    </div>
+                  </div>
+                  <div className="h-64 flex flex-col md:flex-row items-center">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={stats.originStats}
+                          innerRadius={60}
+                          outerRadius={80}
+                          paddingAngle={10}
+                          dataKey="value"
+                          animationDuration={1500}
+                        >
+                          <Cell fill="#10b981" />
+                          <Cell fill="#ffffff20" />
+                        </Pie>
+                        <Tooltip content={<CustomTooltip />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="w-full md:w-48 space-y-4">
+                      {stats.originStats.map((item, idx) => (
+                        <div key={item.name} className="flex justify-between items-center p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full ${idx === 0 ? 'bg-emerald-500' : 'bg-zinc-700'}`}></div>
+                            <span className="text-[10px] font-bold text-zinc-300 uppercase">{item.name}</span>
+                          </div>
+                          <span className="text-sm font-black text-white">{item.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* Main Charts Row */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12">
+                <motion.div 
+                  variants={itemVariants}
+                  className="lg:col-span-2 glass-card p-10 rounded-[3rem] min-h-[400px] border-t-white/10 shadow-2xl relative overflow-hidden group"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-tr from-brave-forest/10 to-transparent"></div>
+                  <div className="flex items-center justify-between mb-8 relative z-10">
+                    <div className="flex items-center gap-3">
+                      <TrendingUp className="text-brave-light-soft" size={18} />
+                      <h4 className="text-xs font-black uppercase tracking-widest text-white">Curva de Registro (Hype Chart)</h4>
+                    </div>
+                    <div className="flex items-center gap-2 bg-black/40 px-4 py-2 rounded-full border border-white/5">
+                      <div className="w-2 h-2 rounded-full bg-[#d4af37] animate-pulse"></div>
+                      <span className="text-[10px] text-brave-light-soft/50 font-bold uppercase">Registros Diarios</span>
+                    </div>
+                  </div>
+
+                  <div className="h-[300px] w-full relative z-10">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={stats.hypeChart}>
+                        <defs>
+                          <linearGradient id="hypeGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#C4CF9A" stopOpacity={0.6}/>
+                            <stop offset="95%" stopColor="#C4CF9A" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="10 10" stroke="#ffffff05" vertical={false} />
+                        <XAxis 
+                          dataKey="date" 
+                          stroke="#ffffff20" 
+                          fontSize={8} 
+                          tickLine={false} 
+                          axisLine={false}
+                          tick={{ fill: '#71717a' }}
+                        />
+                        <YAxis 
+                          stroke="#ffffff20" 
+                          fontSize={8} 
+                          tickLine={false} 
+                          axisLine={false}
+                          tick={{ fill: '#71717a' }}
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Area 
+                          type="monotone" 
+                          dataKey="count" 
+                          stroke="#d4af37" 
+                          strokeWidth={4}
+                          fillOpacity={1} 
+                          fill="url(#hypeGradient)" 
+                          animationDuration={2000}
+                          filter="url(#goldAura)"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </motion.div>
+
+                <motion.div 
+                  variants={itemVariants} 
+                  className="glass-card p-10 rounded-[3rem] flex flex-col border-t-white/10 shadow-2xl relative overflow-hidden group"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-bl from-brave-forest/10 to-transparent"></div>
+                  <div className="flex items-center gap-3 mb-8 relative z-10">
+                    <PieIcon className="text-brave-light-soft" size={18} />
+                    <h4 className="text-xs font-black uppercase tracking-widest text-white">Brave vs Valiente</h4>
+                  </div>
+                  
+                  <div className="flex-1 h-full min-h-[250px] relative z-10">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={stats.distribution}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                        <XAxis 
+                          dataKey="name" 
+                          stroke="#ffffff20" 
+                          fontSize={10} 
+                          tickLine={false} 
+                          axisLine={false}
+                          tick={{ fill: '#71717a' }}
+                        />
+                        <YAxis hide />
+                        <Tooltip content={<CustomTooltip />} cursor={{ fill: '#ffffff05' }} />
+                        <Bar dataKey="value" radius={[15, 15, 0, 0]} barSize={50} animationDuration={2000}>
+                          {stats.distribution.map((entry, index) => (
+                            <Cell 
+                              key={`cell-${index}`} 
+                              fill={index === 0 ? '#d4af37' : '#C4CF9A'} 
+                              fillOpacity={0.9}
+                              filter="url(#sageAura)"
+                            />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  
+                  <div className="mt-8 space-y-3 relative z-10">
+                    {stats.distribution.map((item, idx) => (
+                      <div key={item.name} className="flex items-center justify-between p-4 rounded-2xl bg-black/40 border border-white/5 hover:border-brave-light-soft/30 transition-all">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-3 h-3 rounded-full ${idx === 0 ? 'bg-[#d4af37]' : 'bg-brave-light-soft shadow-[0_0_10px_rgba(196,207,154,0.5)]'}`}></div>
+                          <span className="text-[10px] font-black text-white uppercase tracking-widest">{item.name}</span>
+                        </div>
+                        <span className="text-xl font-black text-white italic">{item.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </AdminMasterGuard>
   );
 }
