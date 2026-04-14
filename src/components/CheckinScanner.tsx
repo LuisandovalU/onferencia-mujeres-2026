@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import AdminMasterGuard from './AdminMasterGuard';
 
