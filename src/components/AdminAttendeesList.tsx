@@ -5,7 +5,6 @@ import {
   ExternalLink, Phone, Mail, Clock, AlertCircle
 } from 'lucide-react';
 import AnimatedCounter from './AnimatedCounter';
-import AdminMasterGuard from './AdminMasterGuard';
 
 interface Asistente {
   id: string;
@@ -94,7 +93,6 @@ export default function AdminAttendeesList() {
   }
 
   return (
-    <AdminMasterGuard>
       <div className="w-full max-w-6xl mx-auto px-4 pb-32">
         
         {/* Header & Mini Stats */}
@@ -269,6 +267,5 @@ export default function AdminAttendeesList() {
           </div>
         )}
       </div>
-    </AdminMasterGuard>
   );
 }

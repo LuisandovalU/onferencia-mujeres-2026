@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Scanner } from '@yudiel/react-qr-scanner';
-import AdminMasterGuard from './AdminMasterGuard';
 
 export default function CheckinScanner() {
   const [scanResult, setScanResult] = useState<string | null>(null);
@@ -74,7 +73,6 @@ export default function CheckinScanner() {
   };
 
   return (
-    <AdminMasterGuard>
       <div className={`w-full transition-all duration-700 flex flex-col items-center justify-start min-h-[60vh] pb-20`}>
       {/* Indicador de Estado Flotante Refinado */}
       <div className="w-full max-w-lg mx-auto p-4 flex flex-col items-center relative z-10">
@@ -132,6 +130,5 @@ export default function CheckinScanner() {
         }
       `}} />
     </div>
-    </AdminMasterGuard>
   );
 }
