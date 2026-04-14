@@ -241,17 +241,7 @@ export default function AdminDashboard() {
             className="px-4 space-y-12"
           >
             {/* Main KPIs Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              <motion.div variants={itemVariants}>
-                <KPICard 
-                  title="Ventas Totales" 
-                  numericValue={stats.kpis.totalVentas}
-                  prefix="$"
-                  subtitle="Ingresos brutos acumulados"
-                  icon={DollarSign}
-                  sparklineData={stats.sparkline}
-                />
-              </motion.div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
               <motion.div variants={itemVariants}>
                 <KPICard 
                   title="Inscritas" 
@@ -260,32 +250,6 @@ export default function AdminDashboard() {
                   icon={Users}
                   sparklineData={stats.sparkline}
                 />
-              </motion.div>
-
-              {/* Balance de Cobranza (Functional Replacement) */}
-              <motion.div variants={itemVariants} className="glass-card p-8 rounded-[3rem] border-t-white/10 shadow-2xl relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-brave-moss/10 to-transparent"></div>
-                <p className="text-[10px] text-brave-light-soft/50 font-black uppercase tracking-[0.3em] mb-4 relative z-10">Balance de Cobranza</p>
-                
-                <div className="space-y-4 relative z-10">
-                  <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-3xl">
-                    <p className="text-[8px] text-emerald-500/60 font-black uppercase tracking-widest mb-1">Liquidado</p>
-                    <p className="text-2xl font-black text-emerald-400">${stats.kpis.totalVentas}</p>
-                  </div>
-                  
-                  <div className="bg-orange-500/10 border border-orange-500/20 p-4 rounded-3xl">
-                    <p className="text-[8px] text-orange-500/60 font-black uppercase tracking-widest mb-1">Por Cobrar</p>
-                    <p className="text-2xl font-black text-orange-400">${stats.kpis.totalPendiente}</p>
-                  </div>
-                </div>
-
-                <div className="mt-4 flex items-center justify-between relative z-10">
-                  <div className="flex items-center gap-2">
-                    <Activity size={14} className="text-brave-light-soft/40" />
-                    <span className="text-[10px] text-brave-light-soft/40 font-bold uppercase tracking-widest whitespace-nowrap">Salud Financiera</span>
-                  </div>
-                  <span className="text-[10px] font-black text-white">{Math.round((stats.kpis.totalVentas / (stats.kpis.totalVentas + stats.kpis.totalPendiente || 1)) * 100)}%</span>
-                </div>
               </motion.div>
 
               <motion.div variants={itemVariants}>

@@ -63,7 +63,6 @@ export default function AdminAttendeesList() {
       nombre.toLowerCase().includes(searchQuery.toLowerCase()) || 
       whatsapp.includes(searchQuery);
     
-    const matchesStatus = filters.status === 'all' || a.status_pago === filters.status;
     const matchesType = filters.type === 'all' || (filters.type === 'brave' ? a.es_brave : !a.es_brave);
     
     let matchesMethod = true;
@@ -75,7 +74,7 @@ export default function AdminAttendeesList() {
       }
     }
 
-    return matchesSearch && matchesStatus && matchesType && matchesMethod;
+    return matchesSearch && matchesType && matchesMethod;
   });
 
   const totalRecaudado = filteredAsistentes.reduce((sum, a) => sum + a.monto_pagado, 0);
@@ -97,26 +96,12 @@ export default function AdminAttendeesList() {
     <div className="w-full max-w-6xl mx-auto px-4 pb-32">
       
       {/* Header & Mini Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        <div className="glass-card p-6 rounded-[2.5rem] border-t-white/10 shadow-xl overflow-hidden relative">
+      <div className="flex mb-12">
+        <div className="glass-card p-6 px-12 rounded-[2.5rem] border-t-white/10 shadow-xl overflow-hidden relative">
           <div className="absolute -right-4 -top-4 w-24 h-24 bg-brave-forest/20 blur-3xl rounded-full"></div>
           <p className="text-[10px] text-brave-light-soft/50 font-black uppercase tracking-widest mb-1 relative z-10">En esta vista (Inscritas)</p>
           <h3 className="text-4xl text-glow-gold relative z-10">
             <AnimatedCounter value={filteredAsistentes.length} />
-          </h3>
-        </div>
-        <div className="glass-card p-6 rounded-[2.5rem] border-t-white/10 shadow-xl overflow-hidden relative">
-          <div className="absolute -right-4 -top-4 w-24 h-24 bg-emerald-600/10 blur-3xl rounded-full"></div>
-          <p className="text-[10px] text-brave-light-soft/50 font-black uppercase tracking-widest mb-1 relative z-10">Recaudado (Muestra)</p>
-          <h3 className="text-4xl text-emerald-400 relative z-10">
-            <AnimatedCounter value={totalRecaudado} prefix="$" />
-          </h3>
-        </div>
-        <div className="glass-card p-6 rounded-[2.5rem] border-t-white/10 shadow-xl overflow-hidden relative">
-          <div className="absolute -right-4 -top-4 w-24 h-24 bg-orange-600/10 blur-3xl rounded-full"></div>
-          <p className="text-[10px] text-brave-light-soft/50 font-black uppercase tracking-widest mb-1 relative z-10">Saldo Pendiente</p>
-          <h3 className="text-4xl text-orange-400 relative z-10">
-            <AnimatedCounter value={totalPendiente} prefix="$" />
           </h3>
         </div>
       </div>
@@ -137,21 +122,7 @@ export default function AdminAttendeesList() {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Estatus de Pago */}
-          <div className="space-y-2">
-            <label className="text-[9px] font-black uppercase text-brave-light-soft/50 tracking-widest px-2">Estatus de Pago</label>
-            <select 
-              value={filters.status}
-              onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-              className="w-full bg-admin-deep border border-white/10 rounded-2xl py-4 px-6 text-xs text-white focus:outline-none focus:border-brave-forest transition-all font-bold appearance-none cursor-pointer"
-            >
-              <option value="all">Todos los Estatus</option>
-              <option value="completado">Liquidado ✅</option>
-              <option value="pendiente">Pendiente ⏳</option>
-            </select>
-          </div>
-
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Tipo de Boleto */}
           <div className="space-y-2">
             <label className="text-[9px] font-black uppercase text-brave-light-soft/50 tracking-widest px-2">Marca / Tipo</label>
