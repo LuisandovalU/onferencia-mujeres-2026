@@ -22,17 +22,20 @@ export const GET: APIRoute = async ({ request }) => {
 
         const session = await stripe.checkout.sessions.retrieve(sessionId);
 
-        // Si el pago fue exitoso, asegurar que el boleto exista
-        if (session.payment_status === 'paid') {
-            try {
-                // 1. Buscar asistente en la base de datos primero para tener su ID (UUID)
-                let { data: asistente } = await supabase
-                    .from('asistentes')
-                    .select('*')
-                    .eq('stripe_session_id', sessionId)
-                    .single();
+        // 1. Buscar asistente en la BD independientemente del estado en Stripe
+        let { data: asistente } = await supabase
+            .from('asistentes')
+            .select('*')
+            .eq('stripe_session_id', sessionId)
+            .maybeSingle(); // maybeSingle evita errores si no existe
 
-                if (!asistente) {
+        const isPaidInStripe = session.payment_status === 'paid';
+        const isPaidInDB = asistente?.status_pago === 'completado';
+
+        // Si el pago fue exitoso en Stripe, O SI un administrador lo marcó manualmente en BD
+        if (isPaidInStripe || isPaidInDB) {
+            try {
+                if (!asistente && isPaidInStripe) {
                     // El asistente aún no está en la BD — insertarlo
                     console.log(`📝 check-status: Asistente no encontrado en BD, insertando...`);
                     const { getMXTimestamp } = await import('../../lib/date-utils');
@@ -44,7 +47,7 @@ export const GET: APIRoute = async ({ request }) => {
                             es_brave: session.metadata?.es_brave === 'true',
                             es_casa: session.metadata?.es_casa === 'true',
                             referido_por: session.metadata?.quien_invito || 'N/A',
-                            monto_total: 130,
+                            monto_total: (session.amount_total || 13000) / 100,
                             status_pago: 'completado',
                             monto_pagado: (session.amount_total || 0) / 100,
                             stripe_session_id: sessionId,
@@ -59,7 +62,7 @@ export const GET: APIRoute = async ({ request }) => {
                 }
 
                 if (asistente) {
-                    // 2. Verificar si el ticket ya existe en Supabase Storage (buscamos por UUID preferentemente)
+                    // 2. Verificar si el ticket ya existe en Supabase Storage
                     const { data: fileList } = await supabase.storage
                         .from('tickets')
                         .list('', { search: asistente.id });
@@ -70,7 +73,7 @@ export const GET: APIRoute = async ({ request }) => {
                     );
 
                     if (!ticketExists) {
-                        console.log(`🎟️ check-status: Boleto no encontrado para ${asistente.nombre_completo}, generando...`);
+                        console.log(`🎟️ check-status: Boleto no encontrado para ${asistente.nombre_completo}, generando por validación manual o stripe...`);
                         const { generateAndUploadTicket } = await import('../../lib/ticket-generator');
                         await generateAndUploadTicket({
                             asistenteId: asistente.id,
@@ -86,16 +89,17 @@ export const GET: APIRoute = async ({ request }) => {
                     (session as any).asistenteId = asistente.id;
                 }
             } catch (ticketErr: any) {
-                console.error(`⚠️ check-status: Error procesando ticket: ${ticketErr.message}`);
+                console.error(`⚠️ check-status: Error procesando ticket en check-status: ${ticketErr.message}`);
             }
         }
 
+        // Si el pago es validado de forma manual en DB, forzamos valores 'paid' / 'complete' al Front-end
         return new Response(JSON.stringify({
-            status: session.status,
-            payment_status: session.payment_status,
+            status: isPaidInDB ? 'complete' : session.status,
+            payment_status: isPaidInDB ? 'paid' : session.payment_status,
             customer_email: session.customer_details?.email,
-            nombre: session.metadata?.nombre || "",
-            asistenteId: (session as any).asistenteId // Retornamos el UUID
+            nombre: asistente?.nombre_completo || session.metadata?.nombre || "",
+            asistenteId: (session as any).asistenteId || asistente?.id
         }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' }

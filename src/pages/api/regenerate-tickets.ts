@@ -41,18 +41,15 @@ export const GET: APIRoute = async ({ request }) => {
     // 3. Generar ticket para cada uno
     for (const asistente of asistentes) {
       try {
-        // Usar stripe_session_id como nombre de archivo (es lo que busca el frontend)
-        const fileName = asistente.stripe_session_id || asistente.id;
-        
         await generateAndUploadTicket({
           asistenteId: asistente.id,
           nombre_completo: asistente.nombre_completo,
           folio: asistente.folio,
           es_brave: asistente.es_brave,
-          fileName: fileName
+          fileName: asistente.id // Usar UUID por consistencia con el resto del sistema
         });
 
-        results.push(`✅ ${asistente.nombre_completo} (Folio #${asistente.folio}) → ${fileName}.jpg`);
+        results.push(`✅ ${asistente.nombre_completo} (Folio #${asistente.folio}) → ${asistente.id}.jpg`);
       } catch (err: any) {
         results.push(`❌ ${asistente.nombre_completo}: ${err.message}`);
       }

@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   TrendingUp, Users, DollarSign, Target, 
   ArrowUpRight, Activity, PieChart as PieIcon,
-  CreditCard, Home, UserPlus
+  CreditCard, Home, UserPlus, UserCheck, UserMinus
 } from 'lucide-react';
 import DashboardFilters from './DashboardFilters';
 import AnimatedCounter from './AnimatedCounter';
@@ -18,6 +18,10 @@ interface KPIData {
   totalVentas: number;
   totalPendiente: number;
   totalInscritas: number;
+  totalConfirmadas: number;
+  totalCompletadas: number;
+  totalParciales: number;
+  totalFaltaPago: number;
   porcentajeMeta: number;
   meta: number;
 }
@@ -243,12 +247,12 @@ export default function AdminDashboard() {
               className="px-4 space-y-12"
             >
               {/* Main KPIs Row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <motion.div variants={itemVariants}>
                   <KPICard 
-                    title="Inscritas" 
+                    title="Inscritas (Total)" 
                     numericValue={stats.kpis.totalInscritas}
-                    subtitle="Mujeres confirmadas"
+                    subtitle="Total en sistema"
                     icon={Users}
                     sparklineData={stats.sparkline}
                   />
@@ -256,10 +260,30 @@ export default function AdminDashboard() {
 
                 <motion.div variants={itemVariants}>
                   <KPICard 
-                    title="Tendencia" 
-                    numericValue={100}
-                    subtitle="Estado de Sistema Live"
+                    title="Ya Completaron" 
+                    numericValue={stats.kpis.totalCompletadas}
+                    subtitle="Liquidado al 100%"
+                    icon={UserCheck}
+                    sparklineData={stats.sparkline}
+                  />
+                </motion.div>
+
+                <motion.div variants={itemVariants}>
+                  <KPICard 
+                    title="No han Liquidado" 
+                    numericValue={stats.kpis.totalParciales}
+                    subtitle="Con Saldo Pendiente"
                     icon={Activity}
+                    sparklineData={stats.sparkline}
+                  />
+                </motion.div>
+
+                <motion.div variants={itemVariants}>
+                  <KPICard 
+                    title="Falta por Contactar" 
+                    numericValue={stats.kpis.totalFaltaPago}
+                    subtitle="Saldo en Ceros ($0)"
+                    icon={UserMinus}
                     sparklineData={stats.sparkline}
                   />
                 </motion.div>

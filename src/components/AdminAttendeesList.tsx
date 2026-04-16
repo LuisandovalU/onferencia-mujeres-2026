@@ -61,7 +61,9 @@ export default function AdminAttendeesList() {
     
     const matchesSearch = 
       nombre.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      whatsapp.includes(searchQuery);
+      whatsapp.includes(searchQuery) ||
+      (a.metodo_pago || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (a.status_pago || '').toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesType = filters.type === 'all' || (filters.type === 'brave' ? a.es_brave : !a.es_brave);
     
@@ -69,8 +71,18 @@ export default function AdminAttendeesList() {
     if (filters.method !== 'all') {
       if (filters.method === 'stripe') {
         matchesMethod = !!a.stripe_session_id;
+      } else if (filters.method === 'stripe-tarjeta') {
+        matchesMethod = !!a.stripe_session_id && a.metodo_pago?.includes('Tarjeta');
+      } else if (filters.method === 'stripe-spei') {
+        matchesMethod = !!a.stripe_session_id && a.metodo_pago?.includes('SPEI');
+      } else if (filters.method === 'stripe-oxxo') {
+        matchesMethod = !!a.stripe_session_id && a.metodo_pago?.includes('OXXO');
+      } else if (filters.method === 'unpaid') {
+        matchesMethod = Number(a.monto_pagado) === 0;
+      } else if (filters.method === 'efectivo') {
+        matchesMethod = a.metodo_pago === 'efectivo' || (!a.stripe_session_id && a.metodo_pago?.toLowerCase().includes('efectivo'));
       } else {
-        matchesMethod = a.metodo_pago === filters.method && !a.stripe_session_id;
+        matchesMethod = a.metodo_pago === filters.method;
       }
     }
 
@@ -146,9 +158,12 @@ export default function AdminAttendeesList() {
                 className="w-full bg-admin-deep border border-white/10 rounded-2xl py-4 px-6 text-xs text-white focus:outline-none focus:border-brave-forest transition-all font-bold appearance-none cursor-pointer"
               >
                 <option value="all">Cualquier Método</option>
-                <option value="stripe">Pago en Línea (Stripe) 💳</option>
-                <option value="efectivo">Efectivo 💵</option>
-                <option value="transferencia">Transferencia SPEI 🏦</option>
+                <option value="stripe">Todo Stripe (En Línea) 🌐</option>
+                <option value="stripe-tarjeta">╰─ Solo Tarjetas 💳</option>
+                <option value="stripe-spei">╰─ Solo Transferencias Stripe (SPEI) ⚡</option>
+                <option value="stripe-oxxo">╰─ Solo Pagos en OXXO 🏪</option>
+                <option value="efectivo">Efectivo Físico 💵</option>
+                <option value="unpaid">FALTA PAGO / Ceros 🚨</option>
               </select>
             </div>
           </div>
@@ -165,10 +180,14 @@ export default function AdminAttendeesList() {
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
                 transition={{ duration: 0.4, delay: idx * 0.05 }}
-                className="glass-card p-8 rounded-[3rem] group hover:border-white/30 transition-all border-t-white/20 border-b-white/5 border-x-white/10 shadow-xl relative overflow-hidden"
+                className={`glass-card p-8 rounded-[3rem] group transition-all border-t-white/20 border-b-white/5 border-x-white/10 shadow-xl relative overflow-hidden ${
+                  Number(a.monto_pagado) === 0 
+                  ? 'bg-red-950/40 border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.2)] hover:border-red-400' 
+                  : 'hover:border-white/30'
+                }`}
               >
                 <div className="flex justify-between items-start mb-6">
-                  <div className={`p-4 rounded-3xl ${a.status_pago === 'completado' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-orange-500/10 text-orange-400'}`}>
+                  <div className={`p-4 rounded-3xl ${a.status_pago === 'completado' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-500'}`}>
                     {a.status_pago === 'completado' ? <UserCheck size={24} /> : <UserMinus size={24} />}
                   </div>
                   <div className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${a.es_brave ? 'bg-brave-forest/20 border-brave-forest/30 text-brave-light-soft' : 'bg-amber-500/10 border-amber-500/30 text-amber-400'}`}>
@@ -219,7 +238,11 @@ export default function AdminAttendeesList() {
                              ? 'bg-brave-forest/20 border-brave-forest/30 text-brave-light-soft' 
                              : 'bg-white/10 border-white/5 text-brave-light-soft/60'
                          }`}>
-                           {a.stripe_session_id ? '💳 Pago en Línea (Stripe)' : (a.metodo_pago || '💵 Efectivo')}
+                           {a.stripe_session_id 
+                             ? (a.metodo_pago && a.metodo_pago.includes('Stripe') 
+                                 ? `💳 ${a.metodo_pago}` 
+                                 : '💳 Stripe (En Línea)') 
+                             : (a.metodo_pago || '💵 Efectivo')}
                          </div>
                       </div>
                     </div>
