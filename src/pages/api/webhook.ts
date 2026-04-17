@@ -67,14 +67,33 @@ export const POST: APIRoute = async ({ request }) => {
     console.log(`[Webhook] Event Received: ${evtType} | Stripe Session ID: ${session.id} | Payment Status: ${session.payment_status} | Métdo: ${stripeMetodoStr}`);
 
     // 1. BUSCAMOS LOGICA ROBUSTA: OBTENER REGISTRO ACTUAL SI EXISTE
-    const { data: existingData, error: searchError } = await supabase
+    let { data: existingData, error: searchError } = await supabase
       .from('asistentes')
       .select('*')
       .eq('stripe_session_id', session.id)
-      .maybeSingle(); // maybeSingle allows 0 rows without throwing an error
+      .maybeSingle(); 
 
     if (searchError) {
-      console.error(`[Webhook] Error buscando registro previo:`, searchError);
+      console.error(`[Webhook] Error buscando registro previo por session_id:`, searchError);
+    }
+
+    // 1b. DEDUPLICACIÓN INTELIGENTE: Si no hay match por session_id, buscamos por "Identidad" (Nombre + WhatsApp)
+    if (!existingData && !searchError && session.metadata?.nombre && session.metadata?.whatsapp) {
+      const { data: identityMatch, error: identityError } = await supabase
+        .from('asistentes')
+        .select('*')
+        .eq('nombre_completo', session.metadata.nombre)
+        .eq('whatsapp', session.metadata.whatsapp)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (identityError) {
+        console.error(`[Webhook] Error buscando por identidad:`, identityError);
+      } else if (identityMatch) {
+        console.log(`[Webhook] 🛡️ Deduplicación: Encontrado registro previo por identidad (Folio: ${identityMatch.folio}). Reutilizando...`);
+        existingData = identityMatch;
+      }
     }
 
     let objAsistente = existingData;
@@ -83,32 +102,40 @@ export const POST: APIRoute = async ({ request }) => {
     if (existingData) {
       console.log(`[Webhook] Registro encontrado en Supabase. ID: ${existingData.id} | Status BD: ${existingData.status_pago}`);
       
-      // ACTUALIZACION si ya existe y el estatus cambia a paid
+      const updatePayload: any = {};
+      
+      // Actualización si el estatus cambia a 'paid'
       if (session.payment_status === 'paid' && existingData.status_pago !== 'completado') {
-        console.log(`[Webhook] OXXO/Transferencia confirmada. Actualizando registro ${existingData.id} a 'completado'...`);
+        console.log(`[Webhook] Pago confirmado. Marcando registro ${existingData.id} como completado...`);
+        updatePayload.status_pago = 'completado';
+        updatePayload.monto_pagado = (session.amount_total || 0) / 100;
+        updatePayload.metodo_pago = `Stripe ${stripeMetodoStr}`;
+      } else if (existingData.status_pago === 'pendiente' && stripeMetodoStr !== 'En Línea') {
+        // Refinar método de pago si es pendiente pero ya sabemos el tipo (OXXO/SPEI)
+        updatePayload.metodo_pago = `Stripe ${stripeMetodoStr}`;
+      }
+      
+      // Siempre vinculamos el nuevo session_id si es una sesión distinta para esta identidad
+      if (existingData.stripe_session_id !== session.id) {
+        updatePayload.stripe_session_id = session.id;
+      }
+
+      if (Object.keys(updatePayload).length > 0) {
         const { data: updated, error: updateError } = await supabase
           .from('asistentes')
-          .update({ 
-            status_pago: 'completado', 
-            monto_pagado: (session.amount_total || 0) / 100,
-            metodo_pago: `Stripe ${stripeMetodoStr}`
-          })
+          .update(updatePayload)
           .eq('id', asistenteId)
           .select()
           .single();
-          
+        
         if (updateError) {
-          console.error(`[Webhook] Error actualizando asistente a pagado:`, updateError);
+          console.error(`[Webhook] Error actualizando asistente:`, updateError);
         } else {
           objAsistente = updated;
-          console.log('[Webhook] ✅ ¡Asistente existente actualizado a PAGADO exitosamente!');
+          console.log('[Webhook] ✅ ¡Registro existente actualizado exitosamente!');
         }
       } else {
-        // En caso de que se haya pagado en el registro y fuera un método manual, o simplemente refinar.
-        if (existingData.status_pago === 'pendiente' && stripeMetodoStr !== 'En Línea') {
-            await supabase.from('asistentes').update({ metodo_pago: `Stripe ${stripeMetodoStr}` }).eq('id', asistenteId);
-        }
-        console.log(`[Webhook] No se requiere actualización a pagado. Status Stripe: ${session.payment_status}, Status BD: ${existingData.status_pago}`);
+        console.log(`[Webhook] No se requiere actualización para el registro ${existingData.id}.`);
       }
     } else {
       // INSERCION DE NUEVO USUARIO (Evita duplicados asegurando que no entra aqui si !existingData no fuera falso)
