@@ -7,6 +7,7 @@ import braveCarousel1 from "@/assets/brave-carousel-1.webp";
 import braveCarousel2 from "@/assets/brave-carousel-2.webp";
 import braveCarousel3 from "@/assets/brave-carousel-3.webp";
 import braveCarousel4 from "@/assets/brave-carousel-4.webp";
+import queesBraveImg from "@/assets/queesbrave.webp";
 
 const BRAVE_SLIDES = [
   { src: braveCarousel1, alt: "Conferencia Brave — comunidad" },
@@ -49,12 +50,24 @@ const copy = {
         class="group relative inline-flex items-center justify-center md:justify-start outline-none transition-all"
         aria-label="Descubre qué es Brave"
       >
-        <p class="font-display text-[clamp(2.5rem,4vw,3.5rem)] font-extrabold tracking-tight text-white text-center md:text-left leading-tight flex items-center transition-transform duration-300 group-hover:scale-[1.02] group-active:scale-[0.98] cursor-pointer">
-          ¿Qué es <img src={BRAVE_TEXT_SRC} alt="Brave" class="inline-block h-[0.9em] w-auto mx-2 -translate-y-1 object-contain brightness-0 invert" />?
-        </p>
+        <img 
+          src={queesBraveImg.src} 
+          alt="¿Qué es Brave?" 
+          class="h-[70px] md:h-[100px] w-auto brightness-0 invert opacity-[0.85] transition-transform duration-300 group-hover:scale-[1.05]" 
+        />
         <!-- Subrayado estilizado -->
         <span class="absolute -bottom-1 left-0 h-[3px] rounded-full w-0 bg-white/40 transition-all duration-300 group-hover:w-[90%] md:group-hover:w-[80%]"></span>
       </button>
+
+      <!-- Bajada Textual Estática -->
+      <div class="mt-8 flex flex-col text-center md:text-left gap-3">
+        <p class="font-body text-base md:text-lg leading-[1.6] text-white/90 max-w-md">
+          Si estás formando tu identidad y tu dirección, este espacio es para ti.
+        </p>
+        <span class="font-body text-[0.65rem] md:text-xs font-extrabold tracking-[0.2em] uppercase text-[#a8c480]">
+          UNIVERSITARIAS • EMPRENDEDORAS • PROFESIONALES
+        </span>
+      </div>
 
     </div>
   </div>

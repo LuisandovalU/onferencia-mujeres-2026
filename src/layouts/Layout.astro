@@ -12,7 +12,6 @@ const {
 } = Astro.props;
 
 import '../styles/globals.css';
-import BotanicalBackground from '../components/BotanicalBackground.astro';
 import heroBotanicalBg from '../assets/hero-botanical-bg.webp';
 ---
 
@@ -31,9 +30,6 @@ import heroBotanicalBg from '../assets/hero-botanical-bg.webp';
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link rel="preload" href={heroBotanicalBg.src} as="image" fetchpriority="high" />
-		<link rel="preload" href="/plantas/version1.webp" as="image" fetchpriority="high" />
-		<link rel="preload" href="/plantas/version2.webp" as="image" fetchpriority="high" />
-		<link rel="preload" href="/plantas/version3.webp" as="image" fetchpriority="high" />
 
 		<!-- 2. Critical Path Inline CSS (Antigravity Architecture) -->
 		<style is:inline>
@@ -41,7 +37,7 @@ import heroBotanicalBg from '../assets/hero-botanical-bg.webp';
 				--hero-bg-skeleton: radial-gradient(circle at center, #2d4a24 0%, #0a0a0a 100%);
 			}
 			html {
-				background: #0a0a0a;
+				background: #ffffff;
 				overflow-x: hidden;
 				scroll-behavior: smooth;
 				-webkit-text-size-adjust: 100%;
@@ -64,7 +60,7 @@ import heroBotanicalBg from '../assets/hero-botanical-bg.webp';
 		</style>
 
 		<!-- 3. Fonts & Styles (Pre-Tailwind) -->
-		<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&family=Nunito:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
 		<!-- Open Graph / Facebook -->
 		<meta property="og:type" content="website" />
@@ -80,8 +76,7 @@ import heroBotanicalBg from '../assets/hero-botanical-bg.webp';
 		<meta property="twitter:description" content={description} />
 		<meta property="twitter:image" content={new URL(image, Astro.url)} />
 	</head>
-	<body class="min-h-screen bg-[#f5f5f5] antialiased relative z-0">
-		<BotanicalBackground />
+	<body class="min-h-screen bg-white antialiased relative z-0">
 		<div class="relative z-10 flex flex-col min-h-screen">
 			<slot />
 		</div>
@@ -89,9 +84,15 @@ import heroBotanicalBg from '../assets/hero-botanical-bg.webp';
 </html>
 
 <style is:global>
+	@font-face {
+		font-family: 'Montserrat';
+		src: url('/fonts/Montserrat-Bold.ttf') format('truetype');
+		font-weight: 700 900;
+		font-display: swap;
+	}
 	:root {
 		--font-hero: 'Montserrat', system-ui, sans-serif;
-		--font-display: 'Nunito', system-ui, sans-serif;
+		--font-display: 'Montserrat', system-ui, sans-serif;
 		--font-body: 'Inter', system-ui, sans-serif;
 	}
 </style>

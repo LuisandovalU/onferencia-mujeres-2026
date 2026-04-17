@@ -1,17 +1,76 @@
 "use client";
 
-import React, { useState, useCallback, memo } from 'react';
+import React, { useState, useCallback, memo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/utils";
 import braveTextSrc from "@/assets/brave.webp";
 import valienteTextSrc from "@/assets/valiente.webp";
+import braveBgSrc from "@/assets/brave-carousel-2.webp";
+import valienteBgSrc from "@/assets/valiente-carousel-1.webp";
 
-const BRAVE_BG   = '#2F4A2C'; // brave-dark-deep
-const VALIENTE_BG = '#E3DBCF'; // valiente-beige
-const SILK_EASE = [0.16, 1, 0.3, 1] as any;
+const DATA = {
+  brave: {
+    id: 'brave',
+    bg: (braveBgSrc as any).src ?? braveBgSrc,
+    titleSrc: braveTextSrc,
+    date: '24 DE MAYO • 5:00 PM',
+    location: 'Gran Salón del Valle',
+    target: 'Universitarias • Emprendedoras • Profesionales',
+    color: '#ebf2d5',
+    themeColor: '#A8C480'
+  },
+  valiente: {
+    id: 'valiente',
+    bg: (valienteBgSrc as any).src ?? valienteBgSrc,
+    titleSrc: valienteTextSrc,
+    date: '31 DE MAYO • 3:00 PM',
+    location: 'Gran Salón del Valle',
+    target: 'Madres • Casadas • Mujeres +40',
+    color: '#e6dfd3',
+    themeColor: '#D89982'
+  }
+};
 
 const ConferenceChoiceCard = memo(() => {
-  const [selected, setSelected] = useState<'brave' | 'valiente' | null>(null);
+  const [activeItem, setActiveItem] = useState<'brave' | 'valiente'>('brave');
+  const [isExpanding, setIsExpanding] = useState(false);
+
+  const activeData = DATA[activeItem];
+  const inactiveItem = activeItem === 'brave' ? 'valiente' : 'brave';
+  const inactiveData = DATA[inactiveItem];
+
+  const isExpandingRef = useRef(false);
+
+  const triggerSwap = useCallback((id: 'brave' | 'valiente') => {
+    if (isExpandingRef.current || id === activeItem) return;
+    setIsExpanding(true);
+    isExpandingRef.current = true;
+    
+    // Hacemos el swap rapidísimo a los 0.35s (350ms)
+    setTimeout(() => {
+      setActiveItem(id);
+      setIsExpanding(false);
+      isExpandingRef.current = false;
+    }, 350);
+  }, [activeItem]);
+
+  // Timer "Indestructible" (Una sola instancia, ideal para no congelarse en móviles)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (isExpandingRef.current) return;
+      
+      setIsExpanding(true);
+      isExpandingRef.current = true;
+      
+      setTimeout(() => {
+        setActiveItem(prev => prev === 'brave' ? 'valiente' : 'brave');
+        setIsExpanding(false);
+        isExpandingRef.current = false;
+      }, 350);
+    }, 4000);
+    
+    return () => clearInterval(timer);
+  }, []);
 
   const openModal = useCallback((conf: 'brave' | 'valiente') => {
     window.dispatchEvent(
@@ -19,171 +78,127 @@ const ConferenceChoiceCard = memo(() => {
     );
   }, []);
 
-  const handleBackdropClick = useCallback(() => {
-    if (selected) setSelected(null);
-  }, [selected]);
-
-  const handleValienteClick = useCallback((e: React.MouseEvent) => {
-    if (selected === 'brave') {
-      setSelected(null);
-      e.stopPropagation();
-    } else if (!selected) {
-      setSelected('valiente');
-    }
-  }, [selected]);
-
-  const handleBraveClick = useCallback((e: React.MouseEvent) => {
-    if (selected === 'valiente') {
-      setSelected(null);
-      e.stopPropagation();
-    } else if (!selected) {
-      setSelected('brave');
-    }
-  }, [selected]);
-
-  const handleReset = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    setSelected(null);
-  }, []);
-
-  const handleActionClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (selected) openModal(selected);
-  }, [selected, openModal]);
-
   return (
-    <div 
-      onClick={handleBackdropClick}
-      className={cn(
-        "relative w-full max-w-[460px] mx-auto aspect-[3/4] rounded-[3rem] overflow-hidden bg-neutral-950 shadow-[0_0_100px_-20px_rgba(0,0,0,0.6)] ring-1 ring-black/10 transition-all will-change-transform",
-        selected ? "cursor-pointer scale-[1.01]" : ""
-      )}
-      style={{ transform: 'translate3d(0,0,0)' }}
-    >
-      {/* ── SECCIÓN VALIENTE (base) ── */}
-      <motion.div
-        onClick={handleValienteClick}
-        animate={{
-          filter: selected === 'brave'
-            ? 'grayscale(1) brightness(0.15)'
-            : 'grayscale(0) brightness(1)',
-          transform: 'translate3d(0,0,0)'
-        }}
-        transition={{ duration: 0.6, ease: SILK_EASE }}
-        style={{ backgroundColor: VALIENTE_BG }}
-        className="absolute inset-0 z-0 h-full w-full cursor-pointer touch-pan-y flex flex-col items-center justify-end px-8 pb-10 will-change-transform"
-      >
-        <div className={cn(
-          "flex flex-col items-center text-center transition-all duration-700",
-          selected === 'brave' ? "opacity-0 translate-y-10 blur-sm" : "opacity-100 translate-y-0 blur-0",
-        )}>
-          <img
-            src={(valienteTextSrc as any).src ?? valienteTextSrc}
-            alt="Valiente"
-            loading="eager"
-            // @ts-ignore
-            fetchpriority="high"
-            className="h-[5.25rem] w-auto object-contain mb-3"
+    <div className="w-full max-w-6xl mx-auto px-0 md:px-8">
+      {/* Contenedor Principal (Marco) */}
+      <div className="relative w-full h-[550px] md:h-[750px] overflow-hidden group shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] md:shadow-2xl rounded-none md:rounded-[3rem] bg-[#0d140e]">
+        
+        {/* 1. FONDO ESTÁTICO CONSTANTE (La tarjeta antigua que será cubierta) */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src={activeData.bg} 
+            alt="Fondo estático"
+            className="absolute inset-0 w-full h-full object-cover opacity-50 md:opacity-60 mix-blend-screen grayscale"
           />
-          <p className="font-body text-[0.7rem] font-black tracking-[0.35em] uppercase text-[#2F4A2C] bg-[#2F4A2C]/8 px-4 py-1.5 rounded-full mb-1">
-            31 DE MAYO • 3:00 PM
-          </p>
-          <p className="font-body text-[0.6rem] font-bold uppercase tracking-[0.2em] text-[#2F4A2C]/60 mb-2">
-            Gran Salón del Valle
-          </p>
-          <span className="text-[0.65rem] font-semibold tracking-[0.12em] uppercase text-[#2F4A2C] text-center px-4">Madres • Casadas • Mujeres Maduras</span>
-        </div>
-      </motion.div>
-      
-      {/* ── SECCIÓN BRAVE (capa superior con corte diagonal) ── */}
-      <motion.div
-        onClick={handleBraveClick}
-        initial={false}
-        animate={{
-          clipPath: selected === 'brave'
-            ? 'polygon(0 0, 100% 0, 100% 90%, 0 100%)'
-            : selected === 'valiente'
-            ? 'polygon(0 0, 100% 0, 100% 10%, 0 20%)'
-            : 'polygon(0 0, 100% 0, 100% 45%, 0 55%)',
-          filter: selected === 'valiente'
-            ? 'grayscale(1) brightness(0.15)'
-            : 'grayscale(0) brightness(1)',
-          transform: 'translate3d(0,0,0)'
-        }}
-        transition={{ duration: 0.8, ease: SILK_EASE }}
-        style={{ backgroundColor: BRAVE_BG }}
-        className="absolute inset-0 z-10 h-full w-full cursor-pointer shadow-2xl touch-pan-y flex flex-col items-center justify-start px-8 pt-10 will-change-transform"
-      >
-        <div className={cn(
-          "flex flex-col items-center text-center transition-all duration-700",
-          selected === 'valiente' ? "opacity-0 -translate-y-10 blur-sm" : "opacity-100 translate-y-0 blur-0",
-        )}>
-          <img
-            src={(braveTextSrc as any).src ?? braveTextSrc}
-            alt="Brave"
-            loading="eager"
-            // @ts-ignore
-            fetchpriority="high"
-            className="h-[5.25rem] w-auto object-contain mb-3 brightness-0 invert"
-          />
-          <p className="font-body text-[0.7rem] font-black tracking-[0.35em] uppercase text-white bg-white/12 px-4 py-1.5 rounded-full mb-1">
-            24 DE MAYO • 5:00 PM
-          </p>
-          <p className="font-body text-[0.6rem] font-bold uppercase tracking-[0.2em] text-white/60 mb-2">
-            Gran Salón del Valle
-          </p>
-          <span className="text-[0.65rem] font-semibold tracking-[0.12em] uppercase text-white text-center px-4">Universitarias • Emprendedoras • Profesionales</span>
+          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/40 to-transparent pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none"></div>
         </div>
 
-        {/* Línea de brillo cuando no hay selección */}
-        {!selected && (
-          <motion.div
-            initial={{ x: "-100%" }}
-            animate={{ x: "100%" }}
-            transition={{ repeat: Infinity, duration: 3, ease: "linear" }}
-            className="absolute bottom-0 left-0 w-full h-[3px] bg-gradient-to-r from-transparent via-white/40 to-transparent"
-          />
-        )}
-      </motion.div>
-
-      {/* ── PANEL DE ACCIÓN DINÁMICO ── */}
-      <AnimatePresence>
-        {selected && (
-          <motion.div
-            key={selected}
-            initial={{ opacity: 0, y: selected === 'brave' ? 40 : -40 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            transition={{ duration: 0.5, ease: SILK_EASE }}
+        {/* 2. EL OBJETO VOLADOR (La miniatura que se expande, vuela SOBRE el fondo antiguo) */}
+        <motion.div
+           layout
+           key={`flyer-${inactiveItem}`} // Al cambiar el inactiveItem este nodo se destruye, evitando animaciones de reversa.
+           initial={{ opacity: 0, x: 30 }}
+           animate={{ opacity: 1, x: 0 }}
+           exit={{ opacity: 0 }}
+           onClick={() => triggerSwap(inactiveItem)}
+           // Cuando vuela (isExpanding), se apropia de inset-0.
+           className={cn(
+             "absolute z-20 overflow-hidden cursor-pointer",
+             isExpanding 
+               ? "inset-0 rounded-none md:rounded-[3rem]" 
+               : "bottom-6 right-4 md:bottom-12 md:right-12 w-[90px] h-[130px] md:w-[160px] md:h-[220px] rounded-2xl md:rounded-3xl shadow-2xl ring-1 md:ring-2 ring-white/30 hover:ring-white group/thumb"
+           )}
+           transition={{ layout: { duration: 0.35, ease: [0.32, 0.72, 0, 1] }, x: { duration: 0.25 }, opacity: { duration: 0.25 } }}
+        >
+          {/* La Imagen Voladora */}
+          <motion.img 
+            layout
+            src={inactiveData.bg} 
+            alt="Miniatura Voladora"
             className={cn(
-              "absolute left-0 z-40 w-full px-10 flex flex-col gap-4 will-change-transform",
-              selected === 'brave' ? "bottom-12" : "top-12"
+              "absolute inset-0 w-full h-full object-cover transition-all duration-300",
+              isExpanding ? "opacity-50 md:opacity-60 mix-blend-screen grayscale" : "grayscale brightness-75 md:brightness-100 group-hover/thumb:scale-110"
             )}
-            style={{ transform: 'translate3d(0,0,0)' }}
+            transition={{ layout: { duration: 0.35, ease: [0.32, 0.72, 0, 1] } }}
+          />
+
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent transition-opacity duration-200 group-hover/thumb:opacity-80" />
+          
+          {/* Letras de la miniatura que desaparecen sutilmente mientras vuela */}
+          <motion.div 
+             animate={{ opacity: isExpanding ? 0 : 1, y: isExpanding ? 10 : 0 }}
+             transition={{ duration: 0.15 }}
+             className="absolute bottom-3 md:bottom-5 left-0 w-full flex justify-center pointer-events-none z-10"
           >
-            <button
-              onClick={handleActionClick}
-              className={cn(
-                "w-full rounded-2xl py-5 text-[0.7rem] font-black uppercase tracking-[0.35em] shadow-2xl active:scale-95 transition-all duration-300",
-                selected === 'brave'
-                  ? "bg-white text-[#2F4A2C]"
-                  : "bg-[#2F4A2C] text-white"
-              )}
-            >
-              Aparta tu lugar
-            </button>
-            <button
-              onClick={handleReset}
-              className={cn(
-                "text-[0.55rem] font-black tracking-[0.3em] uppercase text-center opacity-40 py-2",
-                selected === 'brave' ? "text-white" : "text-[#2F4A2C]"
-              )}
-            >
-              ← Volver a elegir
-            </button>
+             <img src={(inactiveData.titleSrc as any).src ?? inactiveData.titleSrc} className="h-4 md:h-9 w-auto brightness-0 invert opacity-80" />
           </motion.div>
-        )}
-      </AnimatePresence>
+        </motion.div>
+
+
+
+        {/* 3. CONTENIDO DEL FONDO ACTIVO (Textos que salen despues de la expansión) */}
+        <div className="absolute inset-0 p-8 md:p-16 flex flex-col justify-center pointer-events-none z-30">
+          <AnimatePresence mode="wait">
+            {!isExpanding && (
+              <motion.div
+                key={`content-${activeItem}`}
+                // El texto nuevo aparece de abajo, el viejo sale violentamente hacia arriba
+                initial={{ opacity: 0, y: 20, filter: 'blur(5px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, y: -20, filter: 'blur(5px)', transition: { duration: 0.1 } }}
+                transition={{ duration: 0.3, delay: 0.1, ease: 'easeOut' }}
+                className="max-w-xl pointer-events-auto"
+              >
+                {/* Título Imagen */}
+                <img 
+                  src={(activeData.titleSrc as any).src ?? activeData.titleSrc} 
+                  className="h-16 md:h-24 w-auto mb-8 brightness-0 invert drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)]" 
+                  alt={activeData.id}
+                />
+                
+                {/* Datos */}
+                <div className="space-y-3 mb-10">
+                  <p className="font-body text-2xl md:text-3xl font-black text-white tracking-[0.25em] drop-shadow-md">
+                    {activeData.date}
+                  </p>
+                  <p 
+                    style={{ color: activeData.themeColor }}
+                    className="font-body text-xs md:text-base font-bold tracking-widest uppercase items-center flex gap-2 transition-colors duration-500"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    {activeData.location}
+                  </p>
+                  {/* Público Objetivo (Minimalista y Simple) */}
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 opacity-60">
+                    {activeData.target.split('•').map((part, i, arr) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <span className="font-body text-[0.6rem] md:text-[0.7rem] font-bold uppercase tracking-[0.15em] text-white">
+                          {part.trim()}
+                        </span>
+                        {i < arr.length - 1 && (
+                          <div 
+                            style={{ backgroundColor: activeData.themeColor }} 
+                            className="w-1 h-1 rounded-full opacity-50" 
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <button 
+                  onClick={() => openModal(activeItem)}
+                  className="hidden md:inline-flex group relative overflow-hidden bg-white text-black px-10 py-5 rounded-full font-black uppercase tracking-widest text-sm hover:scale-105 transition-all duration-500 shadow-[0_0_40px_-10px_rgba(255,255,255,0.4)] w-max"
+                >
+                  <span className="relative z-10 transition-colors duration-500 group-hover:text-black">Apartar mi lugar</span>
+                  <div style={{ backgroundColor: activeData.themeColor }} className="absolute inset-0 transform scale-x-0 origin-left group-hover:scale-x-100 transition-all duration-500 ease-[0.16,1,0.3,1] z-0"></div>
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
     </div>
   );
 });

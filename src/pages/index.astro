@@ -7,6 +7,7 @@ import Footer from '../components/Footer.astro';
 import { InscriptionModal } from '../components/InscriptionModal';
 import TicketRecovery from '../components/TicketRecovery';
 import ConferenceMujeresSection from '../components/ConferenceMujeresSection.astro';
+import FloatingActionButton from '../components/FloatingActionButton';
 ---
 
 <Layout title="Conferencia de Mujeres 2026">
@@ -23,6 +24,7 @@ import ConferenceMujeresSection from '../components/ConferenceMujeresSection.ast
 
     <Footer />
     
+    <FloatingActionButton client:load />
     <InscriptionModal client:load />
 </Layout>
 

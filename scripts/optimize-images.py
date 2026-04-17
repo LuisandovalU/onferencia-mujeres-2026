@@ -14,17 +14,16 @@ def optimize_images(directory):
                     # Convert to RGBA for transparency support
                     img = img.convert('RGBA')
                     
-                    # If it's one of the lettering files or has a 'letters' hint, remove white background
-                    # We also apply this to PNGs with 'brave' or 'valiente' in the name
-                    if any(x in name.lower() for x in ['brave', 'valiente', 'letters']):
+                    # Special processing: Removing white background from Typography
+                    if any(name_hint in name.lower() for name_hint in ['brave', 'valiente', 'letters']):
                         print(f"Special processing: Removing white background from {filename}")
                         pixdata = img.load()
                         width, height = img.size
                         for y in range(height):
                             for x in range(width):
                                 r, g, b, a = pixdata[x, y]
-                                # If pixel is close to white, make it transparent
-                                if r > 240 and g > 240 and b > 240:
+                                # Very high threshold (252) to only remove background
+                                if r > 252 and g > 252 and b > 252:
                                     pixdata[x, y] = (r, g, b, 0)
                     
                     # Higher quality for typography assets

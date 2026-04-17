@@ -1,24 +1,152 @@
 ---
+import igPost1 from "@/assets/ig-post-1.webp";
+import igPost2 from "@/assets/ig-post-2.webp";
+import igPost3 from "@/assets/ig-post-3.webp";
+import igProfilePic from "@/assets/ig-profile-pic.webp";
+
 const year = new Date().getFullYear();
+const instagramPostUrl = "https://www.instagram.com/p/DVmvwgDEedg/";
+const igPhotos = [igPost1, igPost2, igPost3];
 ---
-<footer class="bg-neutral-950 text-white/40 py-12 px-6">
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-        <div class="flex flex-col items-center md:items-start gap-2">
-            <div class="font-display font-extrabold text-white text-xl">
-                Conferencia de Mujeres
+<footer class="bg-neutral-950 text-white/40 pt-20 pb-12 px-6">
+    <div class="max-w-7xl mx-auto flex flex-col gap-16">
+        
+        {/* === SECCIÓN DE REDES Y MEDIA === */}
+        <div>
+            <h3 class="font-display text-4xl md:text-5xl font-black text-white text-center mb-10 tracking-tighter">
+                Conecta con nosotras
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                
+                {/* 1. INSTAGRAM PREMIUM CAROUSEL (Sin Seguidores) */}
+                <div class="bg-neutral-900 rounded-[1.5rem] border border-white/5 overflow-hidden flex flex-col group transition-all duration-500 hover:border-white/10">
+                    {/* Header: Sencillo sin seguidores */}
+                    <div class="p-4 flex items-center justify-between border-b border-white/5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center border border-white/10 overflow-hidden">
+                                <img src={igProfilePic.src} alt="cdmxicc.oficial" class="w-full h-full object-cover" />
+                            </div>
+                            <span class="text-[13px] font-bold text-white/90">cdmxicc.oficial</span>
+                        </div>
+                        <svg class="w-5 h-5 text-white/20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+                    </div>
+
+                    {/* Cuerpo: Carrusel con Scroll Snap */}
+                    <div class="relative overflow-hidden group/slider">
+                        <div 
+                            class="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar cursor-grab active:cursor-grabbing" 
+                            id="ig-carousel"
+                        >
+                            {igPhotos.map((photo, idx) => (
+                                <div class="min-w-full aspect-square snap-center">
+                                    <img 
+                                        src={photo.src} 
+                                        alt={`Slide ${idx + 1}`} 
+                                        class="w-full h-full object-cover"
+                                        loading="lazy"
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                        
+                        {/* Overlay "Ver en Instagram" */}
+                        <a 
+                            href={instagramPostUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="absolute inset-0 bg-black/40 opacity-0 group-hover/slider:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-sm"
+                        >
+                            <span class="bg-white text-black px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-2xl">
+                                Ver publicación completa
+                            </span>
+                        </a>
+                    </div>
+
+                    {/* Acciones & Caption */}
+                    <div class="p-5 space-y-4">
+                        <div class="flex items-center justify-between text-white/80">
+                            <div class="flex items-center gap-5">
+                                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                            </div>
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                        </div>
+                        
+                        <div class="space-y-1.5">
+                            <p class="text-xs font-black text-white/90">141 Me gusta</p>
+                            <p class="text-[13px] leading-relaxed text-white/60">
+                                <span class="font-bold text-white mr-1">cdmxicc.oficial</span>
+                                Así es como Dios ve a la mujer: con amor, valor y propósito. ✨ Desliza para descubrir más verdades.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <style>
+                    .hide-scrollbar::-webkit-scrollbar {
+                        display: none;
+                    }
+                    .hide-scrollbar {
+                        -ms-overflow-style: none;
+                        scrollbar-width: none;
+                    }
+                </style>
+
+                {/* 2. SPOTIFY */}
+                <div class="h-[352px] rounded-[1.5rem] bg-neutral-900 border border-neutral-800 overflow-hidden transform transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_20px_40px_-10px_rgba(30,215,96,0.2)]">
+                    <iframe 
+                        style="border-radius:1.5rem" 
+                        src="https://open.spotify.com/embed/episode/2yf3hS3KQ2tsUZupW3JRaE?utm_source=generator&theme=0" 
+                        width="100%" 
+                        height="352" 
+                        frameBorder="0" 
+                        allowfullscreen="" 
+                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                        loading="lazy"
+                    ></iframe>
+                </div>
+
+                {/* 3. YOUTUBE */}
+                <div class="h-[352px] rounded-[1.5rem] bg-neutral-900 border border-neutral-800 overflow-hidden transform transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_20px_40px_-10px_rgba(255,0,0,0.2)]">
+                    <iframe 
+                        width="100%" 
+                        height="352" 
+                        src="https://www.youtube.com/embed/N3PHV7_s1zg" 
+                        title="Día Internacional de la Mujer" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        referrerPolicy="strict-origin-when-cross-origin" 
+                        allowfullscreen
+                        className="rounded-[1.5rem]"
+                    ></iframe>
+                </div>
+                
             </div>
-            <a 
-                href="mailto:sandoval.ramos.ll.a@gmail.com" 
-                class="font-body text-xs text-forest hover:text-[#c8de9e] transition-colors flex items-center gap-2"
-            >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                ¿Dudas o sugerencias? Escríbenos
-            </a>
         </div>
-        <div class="font-body text-sm text-center md:text-right">
-            &copy; {year} Conferencia de Mujeres. Todos los derechos reservados.
+
+        <div class="w-full h-px bg-white/10"></div>
+
+        {/* === COPYRIGHT & INFO === */}
+        <div class="flex flex-col md:flex-row justify-between items-center gap-8">
+            <div class="flex flex-col items-center md:items-start gap-2">
+                <div class="font-display font-extrabold text-white text-xl">
+                    Conferencia de Mujeres
+                </div>
+                <a 
+                    href="mailto:sandoval.ramos.ll.a@gmail.com" 
+                    class="font-body text-xs text-[#a8c480] hover:text-[#c8de9e] transition-colors flex items-center gap-2"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    ¿Dudas o sugerencias? Escríbenos
+                </a>
+            </div>
+            <div class="font-body text-sm text-center md:text-right">
+                &copy; {year} Conferencia de Mujeres. Todos los derechos reservados.
+            </div>
         </div>
     </div>
 </footer>

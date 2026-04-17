@@ -5,6 +5,7 @@ import valienteText from "@/assets/valiente.webp";
 import valienteCarousel1 from "@/assets/valiente-carousel-1.webp";
 import valienteCarousel2 from "@/assets/valiente-carousel-2.webp";
 import valienteCarousel3 from "@/assets/valiente-carousel-3.webp";
+import queesValienteImg from "@/assets/queesvaliente.webp";
 
 const VALIENTE_SLIDES = [
   { src: valienteCarousel1, alt: "Conferencia Valiente — comunidad y adoración" },
@@ -36,11 +37,23 @@ const copy = {
         class="group relative inline-flex items-center justify-center md:justify-start outline-none transition-all"
         aria-label="Descubre qué es Valiente"
       >
-        <p class="font-display text-[clamp(2.5rem,4vw,3.5rem)] font-extrabold tracking-tight text-valiente-dark text-center md:text-left leading-tight flex items-center transition-transform duration-300 group-hover:scale-[1.02] group-active:scale-[0.98] cursor-pointer">
-          ¿Qué es <img src={VALIENTE_TEXT_SRC} alt="Valiente" class="inline-block h-[0.75em] w-auto mx-2 -translate-y-1 object-contain" />?
-        </p>
+        <img 
+          src={queesValienteImg.src} 
+          alt="¿Qué es Valiente?" 
+          class="h-[70px] md:h-[100px] w-auto opacity-[0.95] transition-transform duration-300 group-hover:scale-[1.05]" 
+        />
         <span class="absolute -bottom-1 left-0 h-[3px] rounded-full w-0 bg-valiente-dark/20 transition-all duration-300 group-hover:w-[90%] md:group-hover:w-[80%]"></span>
       </button>
+
+      <!-- Bajada Textual Estática -->
+      <div class="mt-8 flex flex-col text-center md:text-left gap-3">
+        <p class="font-body text-base md:text-lg leading-[1.6] text-valiente-dark/90 max-w-md">
+          Si sabes que aún hay más que Dios quiere hacer en ti, este espacio es para ti.
+        </p>
+        <span class="font-body text-[0.65rem] md:text-xs font-extrabold tracking-[0.2em] uppercase text-valiente-dark/60">
+          MADRES • CASADAS • MUJERES +40
+        </span>
+      </div>
 
     </div>
     <div class="relative order-1 aspect-[4/3] min-h-[240px] md:order-2 md:aspect-auto md:min-h-[420px]">
