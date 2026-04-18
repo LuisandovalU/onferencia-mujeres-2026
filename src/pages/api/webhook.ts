@@ -52,7 +52,7 @@ export const POST: APIRoute = async ({ request }) => {
   if (evtType === 'checkout.session.completed' || evtType === 'checkout.session.async_payment_succeeded') {
     const session = event.data.object as Stripe.Checkout.Session;
     
-    // Identificar el método de pago exacto directamente desde Stripe
+    // ── 1. Identificar método de pago exacto desde Stripe ──
     let stripeMetodoStr = 'En Línea';
     if (session.payment_intent) {
         try {
@@ -64,137 +64,173 @@ export const POST: APIRoute = async ({ request }) => {
         } catch(e) {}
     }
 
-    console.log(`[Webhook] Event Received: ${evtType} | Stripe Session ID: ${session.id} | Payment Status: ${session.payment_status} | Métdo: ${stripeMetodoStr}`);
+    console.log(`[Webhook] ─────────────────────────────────────────────`);
+    console.log(`[Webhook] Event: ${evtType}`);
+    console.log(`[Webhook] Session ID: ${session.id}`);
+    console.log(`[Webhook] Payment Status: ${session.payment_status} | Método: ${stripeMetodoStr}`);
+    console.log(`[Webhook] Metadata: nombre=${session.metadata?.nombre} | whatsapp=${session.metadata?.whatsapp}`);
 
-    // 1. BUSCAMOS LOGICA ROBUSTA: OBTENER REGISTRO ACTUAL SI EXISTE
-    let { data: existingData, error: searchError } = await supabase
+    // ── 2. Validar que tengamos metadata de identidad ──
+    if (!session.metadata?.nombre || !session.metadata?.whatsapp) {
+      console.warn('[Webhook] ⚠️ Session sin metadata de identidad (nombre/whatsapp). Abortando.', session.id);
+      return new Response('No identity metadata found', { status: 400 });
+    }
+
+    const nombre = session.metadata.nombre;
+    const whatsapp = session.metadata.whatsapp;
+    const isPaid = session.payment_status === 'paid';
+
+    // ── 3. Determinar el payload base para upsert ──
+    const { getMXTimestamp } = await import('../../lib/date-utils');
+
+    const upsertPayload: Record<string, any> = {
+      nombre_completo: nombre,
+      whatsapp: whatsapp,
+      es_brave: session.metadata.es_brave === 'true',
+      es_casa: session.metadata.es_casa === 'true',
+      referido_por: session.metadata.quien_invito || 'N/A',
+      monto_total: (session.amount_total || 13000) / 100,
+      metodo_pago: `Stripe ${stripeMetodoStr}`,
+      stripe_session_id: session.id,
+    };
+
+    // Solo establecer status_pago y monto_pagado en el payload de inserción base.
+    // Para actualizaciones, lo manejamos condicionalmente abajo.
+    if (isPaid) {
+      upsertPayload.status_pago = 'completado';
+      upsertPayload.monto_pagado = (session.amount_total || 0) / 100;
+    } else {
+      upsertPayload.status_pago = 'pendiente';
+      upsertPayload.monto_pagado = 0;
+    }
+
+    // ── 4. Buscar registro existente ANTES del upsert ──
+    //    Necesitamos saber si ya existe para decidir si actualizar o insertar,
+    //    y para proteger el status 'completado' de ser degradado a 'pendiente'.
+    let { data: existingRecord, error: lookupError } = await supabase
       .from('asistentes')
       .select('*')
-      .eq('stripe_session_id', session.id)
-      .maybeSingle(); 
+      .eq('nombre_completo', nombre)
+      .eq('whatsapp', whatsapp)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-    if (searchError) {
-      console.error(`[Webhook] Error buscando registro previo por session_id:`, searchError);
+    if (lookupError) {
+      console.error('[Webhook] Error buscando registro existente:', lookupError);
     }
 
-    // 1b. DEDUPLICACIÓN INTELIGENTE: Si no hay match por session_id, buscamos por "Identidad" (Nombre + WhatsApp)
-    if (!existingData && !searchError && session.metadata?.nombre && session.metadata?.whatsapp) {
-      const { data: identityMatch, error: identityError } = await supabase
+    // También intentar por stripe_session_id si no hubo match por identidad
+    if (!existingRecord && !lookupError) {
+      const { data: sessionMatch, error: sessionError } = await supabase
         .from('asistentes')
         .select('*')
-        .eq('nombre_completo', session.metadata.nombre)
-        .eq('whatsapp', session.metadata.whatsapp)
-        .order('created_at', { ascending: false })
-        .limit(1)
+        .eq('stripe_session_id', session.id)
         .maybeSingle();
-
-      if (identityError) {
-        console.error(`[Webhook] Error buscando por identidad:`, identityError);
-      } else if (identityMatch) {
-        console.log(`[Webhook] 🛡️ Deduplicación: Encontrado registro previo por identidad (Folio: ${identityMatch.folio}). Reutilizando...`);
-        existingData = identityMatch;
+      
+      if (sessionError) {
+        console.error('[Webhook] Error buscando por session_id:', sessionError);
+      } else if (sessionMatch) {
+        existingRecord = sessionMatch;
       }
     }
 
-    let objAsistente = existingData;
-    let asistenteId = existingData?.id;
+    let objAsistente: any = null;
+    let asistenteId: string | null = null;
 
-    if (existingData) {
-      console.log(`[Webhook] Registro encontrado en Supabase. ID: ${existingData.id} | Status BD: ${existingData.status_pago}`);
-      
-      const updatePayload: any = {};
-      
-      // Actualización si el estatus cambia a 'paid'
-      if (session.payment_status === 'paid' && existingData.status_pago !== 'completado') {
-        console.log(`[Webhook] Pago confirmado. Marcando registro ${existingData.id} como completado...`);
+    if (existingRecord) {
+      // ── 5a. ACTUALIZACIÓN de registro existente ──
+      console.log(`[Webhook] 🛡️ Registro existente encontrado. ID: ${existingRecord.id} | Folio: ${existingRecord.folio} | Status BD: ${existingRecord.status_pago}`);
+
+      const updatePayload: Record<string, any> = {
+        stripe_session_id: session.id,
+        metodo_pago: `Stripe ${stripeMetodoStr}`,
+      };
+
+      // REGLA CLAVE: Nunca degradar un pago 'completado' → 'pendiente'
+      if (isPaid && existingRecord.status_pago !== 'completado') {
+        console.log(`[Webhook] 💰 Pago confirmado. Actualizando ${existingRecord.id} de '${existingRecord.status_pago}' → 'completado'`);
         updatePayload.status_pago = 'completado';
         updatePayload.monto_pagado = (session.amount_total || 0) / 100;
-        updatePayload.metodo_pago = `Stripe ${stripeMetodoStr}`;
-      } else if (existingData.status_pago === 'pendiente' && stripeMetodoStr !== 'En Línea') {
-        // Refinar método de pago si es pendiente pero ya sabemos el tipo (OXXO/SPEI)
-        updatePayload.metodo_pago = `Stripe ${stripeMetodoStr}`;
-      }
-      
-      // Siempre vinculamos el nuevo session_id si es una sesión distinta para esta identidad
-      if (existingData.stripe_session_id !== session.id) {
-        updatePayload.stripe_session_id = session.id;
-      }
-
-      if (Object.keys(updatePayload).length > 0) {
-        const { data: updated, error: updateError } = await supabase
-          .from('asistentes')
-          .update(updatePayload)
-          .eq('id', asistenteId)
-          .select()
-          .single();
-        
-        if (updateError) {
-          console.error(`[Webhook] Error actualizando asistente:`, updateError);
-        } else {
-          objAsistente = updated;
-          console.log('[Webhook] ✅ ¡Registro existente actualizado exitosamente!');
-        }
+      } else if (existingRecord.status_pago === 'completado') {
+        console.log(`[Webhook] ✅ Registro ya estaba completado. No se degrada el estado.`);
+        // No tocamos status_pago ni monto_pagado
       } else {
-        console.log(`[Webhook] No se requiere actualización para el registro ${existingData.id}.`);
-      }
-    } else {
-      // INSERCION DE NUEVO USUARIO (Evita duplicados asegurando que no entra aqui si !existingData no fuera falso)
-      console.log(`[Webhook] No se encontró registro previo para session_id: ${session.id}. Insertando nuevo asistente...`);
-      if (!session.metadata?.nombre) {
-        console.warn('[Webhook] Session sin metadata de nombre:', session.id);
-        return new Response('No metadata found', { status: 400 });
+        // Sigue pendiente, pero refinamos metadata
+        console.log(`[Webhook] ⏳ Pago aún pendiente. Refinando metadata del registro.`);
       }
 
-      const { getMXTimestamp } = await import('../../lib/date-utils');
-      const { data: dbData, error: insertError } = await supabase
+      const { data: updated, error: updateError } = await supabase
         .from('asistentes')
-        .insert([{
-          nombre_completo: session.metadata.nombre,
-          whatsapp: session.metadata.whatsapp,
-          es_brave: session.metadata.es_brave === 'true',
-          es_casa: session.metadata.es_casa === 'true',
-          referido_por: session.metadata.quien_invito || 'N/A',
-          monto_total: (session.amount_total || 13000) / 100,
-          status_pago: session.payment_status === 'paid' ? 'completado' : 'pendiente',
-          monto_pagado: session.payment_status === 'paid' ? (session.amount_total || 0) / 100 : 0,
-          metodo_pago: `Stripe ${stripeMetodoStr}`,
-          stripe_session_id: session.id,
-          created_at: getMXTimestamp()
-        }])
+        .update(updatePayload)
+        .eq('id', existingRecord.id)
         .select()
         .single();
-        
-      if (insertError || !dbData) {
-        console.error('[Webhook] Error insertando nuevo usuario en supabase:', insertError);
-        return new Response('Database Error', { status: 500 });
+
+      if (updateError) {
+        console.error('[Webhook] ❌ Error actualizando asistente:', updateError);
+        return new Response('Database Update Error', { status: 500 });
       }
+
+      objAsistente = updated;
+      asistenteId = updated.id;
+      console.log(`[Webhook] ✅ Registro actualizado exitosamente. ID: ${asistenteId} | Status final: ${objAsistente.status_pago}`);
+    } else {
+      // ── 5b. INSERCIÓN de nuevo registro (con protección contra race condition) ──
+      console.log(`[Webhook] 🆕 No se encontró registro previo. Insertando nuevo asistente...`);
+
+      // Agregar created_at solo en la inserción
+      upsertPayload.created_at = getMXTimestamp();
+
+      const { data: dbData, error: insertError } = await supabase
+        .from('asistentes')
+        .upsert(upsertPayload, {
+          onConflict: 'nombre_completo,whatsapp',
+          ignoreDuplicates: false,
+        })
+        .select()
+        .single();
+
+      if (insertError || !dbData) {
+        console.error('[Webhook] ❌ Error en upsert de nuevo asistente:', insertError);
+        return new Response('Database Upsert Error', { status: 500 });
+      }
+
       objAsistente = dbData;
       asistenteId = dbData.id;
-      console.log(`[Webhook] Nuevo asistente registrado exitosamente. ID: ${asistenteId} | Estado: ${objAsistente.status_pago}`);
+      console.log(`[Webhook] ✅ Asistente registrado vía upsert. ID: ${asistenteId} | Folio: ${objAsistente.folio} | Status: ${objAsistente.status_pago}`);
     }
 
-    // 4. Generación del Ticket solo si se ha PAGADO
-    if (session.payment_status === 'paid') {
-      console.log(`[Webhook] Iniciando generación de Ticket para Asistente ID: ${asistenteId}...`);
+    // ── 6. Generación del Ticket: SOLO cuando el pago está 100% confirmado ──
+    const finalStatus = objAsistente?.status_pago;
+    const alreadyHasTicket = !!objAsistente?.ticket_url;
+
+    if (finalStatus === 'completado' && !alreadyHasTicket) {
+      console.log(`[Webhook] 🎟️ Iniciando generación de Ticket para Asistente ID: ${asistenteId}...`);
       try {
         const { generateAndUploadTicket } = await import('../../lib/ticket-generator');
         
         await generateAndUploadTicket({
-          asistenteId: asistenteId,
+          asistenteId: asistenteId!,
           nombre_completo: objAsistente.nombre_completo,
           folio: objAsistente.folio,
           es_brave: objAsistente.es_brave,
-          fileName: asistenteId
+          fileName: asistenteId!
         });
 
-        console.log('[Webhook] ✅ Ticket generado y subido a través de la librería compartida.');
+        console.log('[Webhook] ✅ Ticket generado y subido exitosamente.');
       } catch (qrErr) {
-        console.error('[Webhook] ❌ Error generando el QR/Ticket en Webhook:', qrErr);
+        console.error('[Webhook] ❌ Error generando el Ticket:', qrErr);
       }
+    } else if (finalStatus === 'completado' && alreadyHasTicket) {
+      console.log(`[Webhook] 🎟️ Ticket ya existe para ${asistenteId}. Omitiendo regeneración.`);
     } else {
-      console.log(`[Webhook] Pago no concretado aún (status: ${session.payment_status}). Omitiendo generación de ticket en este momento.`);
+      console.log(`[Webhook] ⏳ Pago no confirmado aún (status: ${session.payment_status}). Ticket pendiente hasta confirmación.`);
     }
+
+    console.log(`[Webhook] ─────────────────────────────────────────────`);
   }
 
   return new Response('Webhook recibido', { status: 200 });
 };
+
