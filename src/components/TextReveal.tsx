@@ -1,34 +1,39 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { motion, useScroll, useTransform, type MotionValue } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 
 type Line = { text: string };
 
+/**
+ * A single line that fades in with a staggered delay.
+ * Animates only `opacity` and `translateY` — GPU-composited properties
+ * that avoid layout recalculations (no reflow).
+ */
 function RevealLine({
   text,
   index,
-  total,
-  scrollYProgress,
+  isVisible,
 }: {
   text: string;
   index: number;
-  total: number;
-  scrollYProgress: MotionValue<number>;
+  isVisible: boolean;
 }) {
-  const start = index / (total + 1);
-  const end = Math.min(0.98, start + 0.42);
-  const opacity = useTransform(scrollYProgress, [start, end], [0, 1]);
-  const y = useTransform(scrollYProgress, [start, end], [28, 0]);
+  // Staggered delay: each word gets 80ms more delay than the previous
+  const delay = index * 80;
 
   return (
-    <motion.p
-      style={{ opacity, y }}
-      className="text-display-sm font-medium tracking-tight text-neutral-900 md:text-display"
+    <p
+      className="text-display-sm font-medium tracking-tight text-neutral-900 md:text-display transform-gpu"
+      style={{
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible ? 'translateY(0)' : 'translateY(28px)',
+        transition: `opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`,
+        willChange: 'opacity, transform',
+      }}
     >
       {text}
-    </motion.p>
+    </p>
   );
 }
 
@@ -39,16 +44,38 @@ type TextRevealProps = {
 
 export function TextReveal({ lines, className }: TextRevealProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start 0.85", "end 0.35"],
-  });
+  const [isVisible, setIsVisible] = useState(false);
+
+  const handleIntersect = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      const [entry] = entries;
+      if (entry.isIntersecting) {
+        setIsVisible(true);
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(handleIntersect, {
+      threshold: 0.2,
+    });
+
+    observer.observe(node);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [handleIntersect]);
 
   return (
     <div
       ref={ref}
       className={cn(
-        "relative flex min-h-[180vh] flex-col justify-center px-6 py-24",
+        "relative flex flex-col justify-center px-6 py-24",
         className
       )}
     >
@@ -58,8 +85,7 @@ export function TextReveal({ lines, className }: TextRevealProps) {
             key={i}
             text={line.text}
             index={i}
-            total={lines.length}
-            scrollYProgress={scrollYProgress}
+            isVisible={isVisible}
           />
         ))}
       </div>

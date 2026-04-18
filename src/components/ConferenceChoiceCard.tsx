@@ -88,7 +88,7 @@ const ConferenceChoiceCard = memo(() => {
           <img 
             src={activeData.bg} 
             alt="Fondo estático"
-            className="absolute inset-0 w-full h-full object-cover opacity-50 md:opacity-60 mix-blend-screen grayscale"
+            className="absolute inset-0 w-full h-full object-cover opacity-50 md:opacity-60 mix-blend-screen grayscale transform-gpu"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/40 to-transparent pointer-events-none"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none"></div>
@@ -104,11 +104,12 @@ const ConferenceChoiceCard = memo(() => {
            onClick={() => triggerSwap(inactiveItem)}
            // Cuando vuela (isExpanding), se apropia de inset-0.
            className={cn(
-             "absolute z-20 overflow-hidden cursor-pointer",
+             "absolute z-20 overflow-hidden cursor-pointer transform-gpu",
              isExpanding 
                ? "inset-0 rounded-none md:rounded-[3rem]" 
                : "bottom-6 right-4 md:bottom-12 md:right-12 w-[90px] h-[130px] md:w-[160px] md:h-[220px] rounded-2xl md:rounded-3xl shadow-2xl ring-1 md:ring-2 ring-white/30 hover:ring-white group/thumb"
            )}
+           style={{ willChange: 'transform' }}
            transition={{ layout: { duration: 0.35, ease: [0.32, 0.72, 0, 1] }, x: { duration: 0.25 }, opacity: { duration: 0.25 } }}
         >
           {/* La Imagen Voladora */}
@@ -117,7 +118,7 @@ const ConferenceChoiceCard = memo(() => {
             src={inactiveData.bg} 
             alt="Miniatura Voladora"
             className={cn(
-              "absolute inset-0 w-full h-full object-cover transition-all duration-300",
+              "absolute inset-0 w-full h-full object-cover transition-all duration-300 transform-gpu",
               isExpanding ? "opacity-50 md:opacity-60 mix-blend-screen grayscale" : "grayscale brightness-75 md:brightness-100 group-hover/thumb:scale-110"
             )}
             transition={{ layout: { duration: 0.35, ease: [0.32, 0.72, 0, 1] } }}
@@ -137,18 +138,18 @@ const ConferenceChoiceCard = memo(() => {
 
 
 
-        {/* 3. CONTENIDO DEL FONDO ACTIVO (Textos que salen despues de la expansión) */}
+        {/* 3. CONTENIDO DEL FONDO ACTIVO — Usa CSS Grid 0fr→1fr para expansión fluida sin reflow */}
         <div className="absolute inset-0 p-8 md:p-16 flex flex-col justify-center pointer-events-none z-30">
           <AnimatePresence mode="wait">
             {!isExpanding && (
               <motion.div
                 key={`content-${activeItem}`}
-                // El texto nuevo aparece de abajo, el viejo sale violentamente hacia arriba
-                initial={{ opacity: 0, y: 20, filter: 'blur(5px)' }}
-                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                exit={{ opacity: 0, y: -20, filter: 'blur(5px)', transition: { duration: 0.1 } }}
+                initial={{ opacity: 0, filter: 'blur(5px)' }}
+                animate={{ opacity: 1, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, filter: 'blur(5px)', transition: { duration: 0.1 } }}
                 transition={{ duration: 0.3, delay: 0.1, ease: 'easeOut' }}
-                className="max-w-xl pointer-events-auto"
+                className="max-w-xl pointer-events-auto transform-gpu"
+                style={{ willChange: 'transform, opacity' }}
               >
                 {/* Título Imagen */}
                 <img 
@@ -157,39 +158,48 @@ const ConferenceChoiceCard = memo(() => {
                   alt={activeData.id}
                 />
                 
-                {/* Datos */}
-                <div className="space-y-3 mb-10">
-                  <p className="font-body text-2xl md:text-3xl font-black text-white tracking-[0.25em] drop-shadow-md">
-                    {activeData.date}
-                  </p>
-                  <p 
-                    style={{ color: activeData.themeColor }}
-                    className="font-body text-xs md:text-base font-bold tracking-widest uppercase items-center flex gap-2 transition-colors duration-500"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    {activeData.location}
-                  </p>
-                  {/* Público Objetivo (Minimalista y Simple) */}
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 opacity-60">
-                    {activeData.target.split('•').map((part, i, arr) => (
-                      <div key={i} className="flex items-center gap-2">
-                        <span className="font-body text-[0.6rem] md:text-[0.7rem] font-bold uppercase tracking-[0.15em] text-white">
-                          {part.trim()}
-                        </span>
-                        {i < arr.length - 1 && (
-                          <div 
-                            style={{ backgroundColor: activeData.themeColor }} 
-                            className="w-1 h-1 rounded-full opacity-50" 
-                          />
-                        )}
+                {/* Datos — Grid 0fr→1fr expansion trick (no max-height reflow) */}
+                <div
+                  className={cn(
+                    "grid transition-[grid-template-rows] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
+                    !isExpanding ? "[grid-template-rows:1fr]" : "[grid-template-rows:0fr]"
+                  )}
+                >
+                  <div className="overflow-hidden">
+                    <div className="space-y-3 mb-10">
+                      <p className="font-body text-2xl md:text-3xl font-black text-white tracking-[0.25em] drop-shadow-md">
+                        {activeData.date}
+                      </p>
+                      <p 
+                        style={{ color: activeData.themeColor }}
+                        className="font-body text-xs md:text-base font-bold tracking-widest uppercase items-center flex gap-2 transition-colors duration-500"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        {activeData.location}
+                      </p>
+                      {/* Público Objetivo (Minimalista y Simple) */}
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 opacity-60">
+                        {activeData.target.split('•').map((part, i, arr) => (
+                          <div key={i} className="flex items-center gap-2">
+                            <span className="font-body text-[0.6rem] md:text-[0.7rem] font-bold uppercase tracking-[0.15em] text-white">
+                              {part.trim()}
+                            </span>
+                            {i < arr.length - 1 && (
+                              <div 
+                                style={{ backgroundColor: activeData.themeColor }} 
+                                className="w-1 h-1 rounded-full opacity-50" 
+                              />
+                            )}
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    </div>
                   </div>
                 </div>
                 
                 <button 
                   onClick={() => openModal(activeItem)}
-                  className="hidden md:inline-flex group relative overflow-hidden bg-white text-black px-10 py-5 rounded-full font-black uppercase tracking-widest text-sm hover:scale-105 transition-all duration-500 shadow-[0_0_40px_-10px_rgba(255,255,255,0.4)] w-max"
+                  className="hidden md:inline-flex group relative overflow-hidden bg-white text-black px-10 py-5 rounded-full font-black uppercase tracking-widest text-sm hover:scale-105 transition-all duration-500 shadow-[0_0_40px_-10px_rgba(255,255,255,0.4)] w-max transform-gpu"
                 >
                   <span className="relative z-10 transition-colors duration-500 group-hover:text-black">Apartar mi lugar</span>
                   <div style={{ backgroundColor: activeData.themeColor }} className="absolute inset-0 transform scale-x-0 origin-left group-hover:scale-x-100 transition-all duration-500 ease-[0.16,1,0.3,1] z-0"></div>
