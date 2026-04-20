@@ -5,8 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/utils";
 import braveTextSrc from "@/assets/brave.webp";
 import valienteTextSrc from "@/assets/valiente.webp";
-import braveBgSrc from "@/assets/brave-carousel-2.webp";
-import valienteBgSrc from "@/assets/valiente-carousel-1.webp";
+import braveBgSrc from "@/assets/Brave-1.webp";
+import valienteBgSrc from "@/assets/Val-1.webp";
 
 const DATA = {
   brave: {

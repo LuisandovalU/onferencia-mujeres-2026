@@ -5,7 +5,9 @@ import BraveDetails from "./BraveDetails.astro";
 import ValienteDetails from "./ValienteDetails.astro";
 import { InscribeteButton } from "./InscribeteButton";
 import CommentsMarquee from "./CommentsMarquee";
-import fotoPausa from "@/assets/valiente-carousel-3.webp";
+import seccion1 from "@/assets/Seccion1.webp";
+import seccion2 from "@/assets/Seccion2.webp";
+import seccion3 from "@/assets/Seccion3.webp";
 import avatarAbril from "@/assets/brave-carousel-1.webp";
 import avatarItzia from "@/assets/valiente-carousel-2.webp";
 ---
@@ -42,46 +44,59 @@ import avatarItzia from "@/assets/valiente-carousel-2.webp";
 
       <div class="max-w-4xl mx-auto text-center">
         <h2 class="font-display font-black text-black leading-[1.05] text-[clamp(2.5rem,6vw,4.5rem)] tracking-tighter">
-          Nuestra <span class="italic font-medium text-neutral-400">conferencia de mujeres</span> es un evento que sucede solo una vez al año.
+          Nuestra <span class="italic font-medium text-[#6A8654]">conferencia de mujeres</span> es un evento que sucede solo una vez al año.
         </h2>
       </div>
     </section>
 
-    <!-- 2. Sección Independiente +40 -->
-    <section class="section-container pb-20 md:pb-32">
-      <div class="grid md:grid-cols-2 gap-10 md:gap-16 items-center max-w-6xl mx-auto">
-        <div class="order-2 md:order-1 relative aspect-[4/5] md:aspect-square rounded-[2.5rem] overflow-hidden bg-neutral-100 shadow-2xl">
-          <img src={fotoPausa.src} alt="Mujer haciendo una pausa" class="absolute inset-0 w-full h-full object-cover grayscale opacity-90 mix-blend-multiply" />
+    <!-- 2. Sección Independiente (Hacer una pausa) -->
+    <section class="section-container pb-24 md:pb-32 px-6">
+      <div class="grid md:grid-cols-2 gap-12 md:gap-20 items-center max-w-6xl mx-auto">
+        <div class="relative aspect-[4/5] md:aspect-square rounded-[2rem] md:rounded-[2.5rem] overflow-hidden bg-neutral-100 shadow-2xl">
+          <img src={seccion1.src} alt="Conferencia de mujeres" class="absolute inset-0 w-full h-full object-cover opacity-100 transition-opacity duration-700" />
           <div class="absolute inset-0 bg-black/5 mix-blend-overlay"></div>
         </div>
-        <div class="order-1 md:order-2 space-y-6">
-          <h3 class="font-display text-[1.75rem] md:text-[3rem] leading-[1.15] text-black font-bold tracking-tight">
-            Diseñado por y para mujeres que desean <span class="bg-neutral-100 px-3 py-1 rounded-lg italic font-medium">hacer una pausa</span>, y encontrarse con Dios de una manera real.
+        <div class="space-y-6">
+          <h3 class="font-display text-[1.85rem] md:text-[3rem] leading-[1.15] text-black font-bold tracking-tight text-center md:text-left">
+            Diseñado por y para mujeres que desean <span class="underline decoration-[#B9CF63] decoration-[3px] underline-offset-[8px] italic font-medium">hacer una pausa</span>, y encontrarse con Dios de una manera real.
           </h3>
         </div>
       </div>
     </section>
 
-    <!-- 3. Tema Anual a Pantalla Completa + Versículo Centrado -->
+    <!-- 3. Tema Anual Stack Vertical -->
     <section class="w-full bg-brave-dark-deep py-24 md:py-32 my-10 relative overflow-hidden">
       <!-- Decoración Minimalista -->
       <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(168,196,128,0.1),transparent_70%)]" aria-hidden="true"></div>
       
-      <div class="section-container max-w-4xl mx-auto text-center relative z-10">
-        <p class="font-body text-[1.2rem] md:text-[1.65rem] leading-[1.7] text-white/90 mb-20 font-light">
+      <div class="section-container max-w-4xl mx-auto relative z-10 px-8 md:px-6 space-y-20">
+        <!-- 1. Texto Introductorio -->
+        <p class="font-body text-[1.2rem] md:text-[1.5rem] leading-[1.7] text-white/90 font-light text-center">
           Cada año tenemos un tema distinto para profundizar en nuestros corazones y este es una invitación a 
           <strong class="text-white font-black tracking-wide">dejar el miedo</strong> y recordar que no caminamos solas, que Dios está presente en cada etapa, sosteniéndonos, guiándonos y dándonos fuerzas.
         </p>
 
-        <!-- Versículo Centrado -->
-        <div class="relative max-w-3xl mx-auto">
-          <svg class="absolute -top-10 left-1/2 -translate-x-1/2 w-14 h-14 text-[#a8c480]/20" fill="currentColor" viewBox="0 0 24 24"><path d="M14.017 21L14.017 18C14.017 16.8954 14.9124 16 16.017 16H19.017C19.5693 16 20.017 15.5523 20.017 15V9C20.017 8.44772 19.5693 8 19.017 8H15.017C14.4647 8 14.017 7.55228 14.017 7V5C14.017 4.44772 14.4647 4 15.017 4H19.017C21.2261 4 23.017 5.79086 23.017 8V15C23.017 18.3137 20.3307 21 17.017 21H14.017ZM1.017 21L1.017 18C1.017 16.8954 1.91243 16 3.017 16H6.017C6.56928 16 7.017 15.5523 7.017 15V9C7.017 8.44772 6.56928 8 6.017 8H2.017C1.46472 8 1.017 7.55228 1.017 7V5C1.017 4.44772 1.46472 4 2.017 4H6.017C8.22614 4 10.017 5.79086 10.017 8V15C10.017 18.3137 7.33072 21 4.017 21H1.017Z"/></svg>
+        <!-- 2. Imagen Central (Focal Point) -->
+        <div class="relative group">
+          <div class="relative overflow-hidden rounded-[2rem] md:rounded-[2.5rem] shadow-[0_30px_60px_rgba(0,0,0,0.4)] aspect-[4/3] md:aspect-[21/9] transition-transform duration-1000 group-hover:scale-[1.01]">
+            <img 
+              src={seccion2.src} 
+              alt="Encuentro con Dios" 
+              class="absolute inset-0 w-full h-full object-cover"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-brave-dark-deep/40 to-transparent"></div>
+          </div>
+        </div>
+
+        <!-- 3. Versículo y Promesa -->
+        <div class="relative max-w-2xl mx-auto">
+          <svg class="absolute -top-8 -left-2 md:-left-8 w-10 h-10 md:w-12 md:h-12 text-[#a8c480]/20" fill="currentColor" viewBox="0 0 24 24"><path d="M14.017 21L14.017 18C14.017 16.8954 14.9124 16 16.017 16H19.017C19.5693 16 20.017 15.5523 20.017 15V9C20.017 8.44772 19.5693 8 19.017 8H15.017C14.4647 8 14.017 7.55228 14.017 7V5C14.017 4.44772 14.4647 4 15.017 4H19.017C21.2261 4 23.017 5.79086 23.017 8V15C23.017 18.3137 20.3307 21 17.017 21H14.017ZM1.017 21L1.017 18C1.017 16.8954 1.91243 16 3.017 16H6.017C6.56928 16 7.017 15.5523 7.017 15V9C7.017 8.44772 6.56928 8 6.017 8H2.017C1.46472 8 1.017 7.55228 1.017 7V5C1.017 4.44772 1.46472 4 2.017 4H6.017C8.22614 4 10.017 5.79086 10.017 8V15C10.017 18.3137 7.33072 21 4.017 21H1.017Z"/></svg>
           
-          <blockquote class="pt-6">
-            <p class="font-display italic text-[1.25rem] md:text-[1.75rem] leading-[1.5] text-[#def2c1] mb-8 font-medium">
+          <blockquote class="text-center">
+            <p class="font-display italic text-[1.1rem] md:text-[1.6rem] leading-[1.6] text-[#def2c1] mb-8 font-medium px-4 md:px-0">
               “No tengas miedo, que yo estoy contigo; no te desanimes, que yo soy tu Dios. Yo soy quien te da fuerzas, y siempre te ayudaré; siempre te sostendré con mi justiciera mano derecha.”
             </p>
-            <footer class="font-body text-[0.75rem] font-bold uppercase tracking-[0.4em] text-[#a8c480]">
+            <footer class="font-body text-[0.7rem] md:text-[0.75rem] font-bold uppercase tracking-[0.4em] text-[#a8c480]">
               — Isaías 41:10
             </footer>
           </blockquote>
@@ -89,19 +104,26 @@ import avatarItzia from "@/assets/valiente-carousel-2.webp";
       </div>
     </section>
 
-    <!-- 4. Sección de Acompañamiento (Acceso Directo) -->
-    <section class="section-container py-20 md:py-32 text-center flex flex-col items-center">
-      <div class="max-w-4xl mx-auto">
-        <p class="font-display text-[1.5rem] md:text-[2.25rem] text-black leading-[1.4]">
-          La conferencia está pensada para <span class="text-neutral-400 font-medium italic">acompañarte</span> según la etapa en la que estás viviendo. No importa si estás comenzando a construir tu camino o si ya llevas años recorriéndolo… 
-          <span class="block mt-8 font-black uppercase tracking-[0.2em] text-lg md:text-2xl text-black">hay un espacio para ti.</span>
-        </p>
+    <!-- 4. Sección de Acompañamiento -->
+    <section class="section-container pb-24 md:pb-32 px-6">
+      <div class="grid md:grid-cols-2 gap-12 md:gap-20 items-center max-w-6xl mx-auto">
+        <div class="relative aspect-[4/5] md:aspect-square rounded-[2rem] md:rounded-[2.5rem] overflow-hidden bg-neutral-100 shadow-2xl">
+          <img 
+            src={seccion3.src} 
+            alt="Acompañamiento" 
+            class="absolute inset-0 w-full h-full object-cover" 
+          />
+          <div class="absolute inset-0 bg-black/5 mix-blend-overlay"></div>
+        </div>
+        <div class="space-y-8">
+          <p class="font-display text-[1.5rem] md:text-[2.25rem] text-black leading-[1.4] text-center md:text-left">
+            La conferencia está pensada para <span class="text-[#6A8654] font-medium italic">acompañarte</span> según la etapa en la que estás viviendo. No importa si estás comenzando a construir tu camino o si ya llevas años recorriéndolo… 
+          </p>
+          <span class="block font-black uppercase tracking-[0.2em] text-lg md:text-2xl text-black text-center md:text-left">
+            hay un espacio para ti.
+          </span>
+        </div>
       </div>
-      
-      <!-- Flecha de scroll animada hacia encuentros -->
-      <a href="#encuentros" class="mt-16 inline-flex items-center justify-center w-16 h-16 rounded-full border border-black/10 hover:border-black hover:bg-black hover:text-white transition-all duration-300 group shadow-sm hover:shadow-xl">
-        <svg class="w-6 h-6 text-black group-hover:text-white transform transition-transform group-hover:translate-y-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
-      </a>
     </section>
 
     <section id="encuentros" class="w-full scroll-mt-4 py-12 md:py-20">

@@ -1,19 +1,18 @@
 ---
 import { InscribeteButton } from "./InscribeteButton";
 import { AutoImageCarousel } from "./AutoImageCarousel";
-import valienteText from "@/assets/valiente.webp";
-import valienteCarousel1 from "@/assets/valiente-carousel-1.webp";
-import valienteCarousel2 from "@/assets/valiente-carousel-2.webp";
-import valienteCarousel3 from "@/assets/valiente-carousel-3.webp";
-import queesValienteImg from "@/assets/queesvaliente.webp";
+import valienteTextLogo from "@/assets/valiente.webp";
+import valienteContentPhoto from "@/assets/Val-1.webp";
+import queesValienteBanner from "@/assets/qv_photo.webp";
+import queesValienteLogo from "@/assets/queesvaliente.webp";
 
-const VALIENTE_SLIDES = [
-  { src: valienteCarousel1, alt: "Conferencia Valiente — comunidad y adoración" },
-  { src: valienteCarousel2, alt: "Conferencia Valiente — encuentro al aire libre" },
-  { src: valienteCarousel3, alt: "Conferencia Valiente — momento" },
+const VALIENTE_BANNER_SLIDES = [
+  { src: queesValienteBanner, alt: "Conferencia Valiente" },
 ];
 
-const VALIENTE_TEXT_SRC = valienteText.src;
+const VALIENTE_CONTENT_SRC = valienteContentPhoto.src;
+const VALIENTE_TEXT_LOGO_SRC = valienteTextLogo.src;
+const QUEES_VALIENTE_LOGO_SRC = queesValienteLogo.src;
 
 const copy = {
   date: "31 de mayo • 3:00 pm",
@@ -38,7 +37,7 @@ const copy = {
         aria-label="Descubre qué es Valiente"
       >
         <img 
-          src={queesValienteImg.src} 
+          src={QUEES_VALIENTE_LOGO_SRC} 
           alt="¿Qué es Valiente?" 
           class="h-[70px] md:h-[100px] w-auto opacity-[0.95] transition-transform duration-300 group-hover:scale-[1.05]" 
         />
@@ -54,11 +53,10 @@ const copy = {
           MADRES • CASADAS • MUJERES +40
         </span>
       </div>
-
     </div>
     <div class="relative order-1 aspect-[4/3] min-h-[240px] md:order-2 md:aspect-auto md:min-h-[420px]">
       <AutoImageCarousel
-        slides={VALIENTE_SLIDES}
+        slides={VALIENTE_BANNER_SLIDES}
         intervalMs={2000}
         className="absolute inset-0"
         sizes="(max-width: 768px) 100vw, 50vw"
@@ -75,7 +73,7 @@ const copy = {
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
     </button>
     
-    <img src={VALIENTE_TEXT_SRC} alt="Valiente" class="h-10 mb-8 opacity-[0.95] self-center" />
+    <img src={VALIENTE_TEXT_LOGO_SRC} alt="Valiente" class="h-10 mb-8 opacity-[0.95] self-center" />
     
     <div class="space-y-6 text-left w-full">
       <p class="font-body text-[1.1rem] leading-[1.6] text-valiente-dark/90">

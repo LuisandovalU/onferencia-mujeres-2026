@@ -2,21 +2,18 @@
 import { InscribeteButton } from "./InscribeteButton";
 import { AutoImageCarousel } from "./AutoImageCarousel";
 
-import braveText from "@/assets/brave.webp";
-import braveCarousel1 from "@/assets/brave-carousel-1.webp";
-import braveCarousel2 from "@/assets/brave-carousel-2.webp";
-import braveCarousel3 from "@/assets/brave-carousel-3.webp";
-import braveCarousel4 from "@/assets/brave-carousel-4.webp";
-import queesBraveImg from "@/assets/queesbrave.webp";
+import braveTextLogo from "@/assets/brave.webp";
+import braveContentPhoto from "@/assets/Brave-1.webp";
+import queesBraveBanner from "@/assets/qb_photo.webp";
+import queesBraveLogo from "@/assets/queesbrave.webp";
 
-const BRAVE_SLIDES = [
-  { src: braveCarousel1, alt: "Conferencia Brave — comunidad" },
-  { src: braveCarousel2, alt: "Conferencia Brave — encuentro" },
-  { src: braveCarousel3, alt: "Conferencia Brave — momento en el escenario" },
-  { src: braveCarousel4, alt: "Conferencia Brave — conversación" },
+const BRAVE_BANNER_SLIDES = [
+  { src: queesBraveBanner, alt: "Conferencia Brave" },
 ];
 
-const BRAVE_TEXT_SRC = braveText.src;
+const BRAVE_CONTENT_SRC = braveContentPhoto.src;
+const BRAVE_TEXT_LOGO_SRC = braveTextLogo.src;
+const QUEES_BRAVE_LOGO_SRC = queesBraveLogo.src;
 
 const copy = {
   date: "24 de mayo • 5:00 pm",
@@ -32,7 +29,7 @@ const copy = {
   <div class="grid gap-0 md:grid-cols-2">
     <div class="relative aspect-[4/3] min-h-[240px] md:aspect-auto md:min-h-[420px]">
       <AutoImageCarousel
-        slides={BRAVE_SLIDES}
+        slides={BRAVE_BANNER_SLIDES}
         intervalMs={2000}
         className="absolute inset-0"
         sizes="(max-width: 768px) 100vw, 50vw"
@@ -51,24 +48,19 @@ const copy = {
         aria-label="Descubre qué es Brave"
       >
         <img 
-          src={queesBraveImg.src} 
+          src={QUEES_BRAVE_LOGO_SRC} 
           alt="¿Qué es Brave?" 
           class="h-[70px] md:h-[100px] w-auto brightness-0 invert opacity-[0.85] transition-transform duration-300 group-hover:scale-[1.05]" 
         />
-        <!-- Subrayado estilizado -->
         <span class="absolute -bottom-1 left-0 h-[3px] rounded-full w-0 bg-white/40 transition-all duration-300 group-hover:w-[90%] md:group-hover:w-[80%]"></span>
       </button>
 
-      <!-- Bajada Textual Estática -->
-      <div class="mt-8 flex flex-col text-center md:text-left gap-3">
-        <p class="font-body text-base md:text-lg leading-[1.6] text-white/90 max-w-md">
-          Si estás formando tu identidad y tu dirección, este espacio es para ti.
-        </p>
-        <span class="font-body text-[0.65rem] md:text-xs font-extrabold tracking-[0.2em] uppercase text-[#a8c480]">
-          UNIVERSITARIAS • EMPRENDEDORAS • PROFESIONALES
-        </span>
-      </div>
-
+      <p class="font-body text-base md:text-lg leading-[1.6] text-white/90 max-w-md mt-6">
+        Si estás formando tu identidad y tu dirección, este espacio es para ti.
+      </p>
+      <span class="font-body text-[0.65rem] md:text-xs font-extrabold tracking-[0.2em] uppercase text-[#a8c480] mt-4">
+        UNIVERSITARIAS • EMPRENDEDORAS • PROFESIONALES
+      </span>
     </div>
   </div>
 </div>
@@ -80,7 +72,7 @@ const copy = {
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
     </button>
     
-    <img src={BRAVE_TEXT_SRC} alt="Brave" class="h-10 mb-8 brightness-0 invert opacity-[0.85] self-center" />
+    <img src={BRAVE_TEXT_LOGO_SRC} alt="Brave" class="h-10 mb-8 brightness-0 invert opacity-[0.85] self-center" />
     
     <div class="space-y-6 text-left w-full">
       <p class="font-body text-[1.1rem] leading-[1.6] text-white/90">
