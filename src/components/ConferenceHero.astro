@@ -1,8 +1,8 @@
 ---
-import heroBotanicalBg from "@/assets/hero-botanical-bg.webp";
+import heroBg from "@/assets/hero.webp";
 import { InscribeteButton } from "./InscribeteButton";
 
-const HERO_BOTANICAL_BG = heroBotanicalBg.src;
+const HERO_BG = heroBg.src;
 
 const inscribetePillClass =
   "rounded-full border-2 border-neutral-900 bg-white px-5 py-2.5 font-body text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-neutral-900 transition hover:bg-neutral-50 sm:px-7 sm:py-3 sm:text-sm sm:tracking-[0.18em]";
@@ -18,7 +18,7 @@ const inscribetePillClass =
   </h1>
 
   <img
-    src={HERO_BOTANICAL_BG}
+    src={HERO_BG}
     class="hero-image-silk absolute inset-0 z-0 h-full w-full object-cover"
     fetchpriority="high"
     loading="eager"
@@ -31,17 +31,17 @@ const inscribetePillClass =
     class="relative z-10 flex min-h-[calc(100svh-1.5rem)] flex-col items-center justify-center px-4 pb-28 pt-16 text-center sm:min-h-[calc(100svh-2.5rem)] sm:px-8 sm:pb-32 sm:pt-20 md:min-h-[calc(100svh-3rem)] md:px-12"
   >
     <p
-      class="font-hero text-[clamp(0.88rem,3.4vw,1.45rem)] font-bold uppercase leading-tight tracking-[0.28em] text-white [text-shadow:0_2px_18px_rgba(0,0,0,0.55)]"
+      class="font-hero text-[clamp(0.88rem,3.4vw,1.45rem)] font-bold uppercase leading-tight tracking-[0.28em] text-[#3B5E2C] [text-shadow:0_2px_18px_rgba(0,0,0,0.55)]"
     >
       CONFERENCIA DE
     </p>
     <p
-      class="font-hero mt-5 text-[clamp(3.1rem,13.5vw,8.25rem)] font-black uppercase leading-[0.88] tracking-[-0.04em] text-white [font-weight:900] [text-shadow:0_4px_32px_rgba(0,0,0,0.55),0_1px_0_rgba(0,0,0,0.35)] sm:mt-6 md:mt-7"
+      class="font-hero mt-5 text-[clamp(3.1rem,13.5vw,8.25rem)] font-black uppercase leading-[0.88] tracking-[-0.04em] text-[#3B5E2C] [font-weight:900] [text-shadow:0_4px_32px_rgba(0,0,0,0.55),0_1px_0_rgba(0,0,0,0.35)] sm:mt-6 md:mt-7"
     >
       MUJERES
     </p>
     <p
-      class="font-hero mt-6 text-[clamp(2.35rem,10.5vw,6rem)] font-black uppercase leading-none tracking-[-0.045em] text-white [font-weight:900] [text-shadow:0_3px_26px_rgba(0,0,0,0.5)] sm:mt-7"
+      class="font-hero mt-6 text-[clamp(2.35rem,10.5vw,6rem)] font-black uppercase leading-none tracking-[-0.045em] text-[#3B5E2C] [font-weight:900] [text-shadow:0_3px_26px_rgba(0,0,0,0.5)] sm:mt-7"
     >
       2026
     </p>
@@ -94,7 +94,7 @@ const inscribetePillClass =
   <div
     class="pointer-events-none absolute inset-x-0 top-0 z-20 h-[min(44vh,520px)] bg-cover bg-no-repeat opacity-[0.58] [mask-image:linear-gradient(to_bottom,black_0%,rgba(0,0,0,0.85)_45%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_0%,rgba(0,0,0,0.85)_45%,transparent_100%)]"
     style={{
-      backgroundImage: `url(${HERO_BOTANICAL_BG})`,
+      backgroundImage: `url(${HERO_BG})`,
       backgroundPosition: "center top",
       backgroundSize: "cover",
     }}

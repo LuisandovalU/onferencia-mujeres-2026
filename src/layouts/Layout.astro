@@ -12,7 +12,7 @@ const {
 } = Astro.props;
 
 import '../styles/globals.css';
-import heroBotanicalBg from '../assets/hero-botanical-bg.webp';
+import heroBg from '../assets/hero.webp';
 ---
 
 <!doctype html>
@@ -29,7 +29,7 @@ import heroBotanicalBg from '../assets/hero-botanical-bg.webp';
 		<!-- 1. Preconnects & High-Priority Assets -->
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link rel="preload" href={heroBotanicalBg.src} as="image" fetchpriority="high" />
+		<link rel="preload" href={heroBg.src} as="image" fetchpriority="high" />
 
 		<!-- 2. Critical Path Inline CSS (Antigravity Architecture) -->
 		<style is:inline>
@@ -49,12 +49,8 @@ import heroBotanicalBg from '../assets/hero-botanical-bg.webp';
 				overflow-x: hidden;
 				scroll-behavior: smooth;
 			}
-			/* Silk transition initial state */
+			/* Hero visibility - Immediate */
 			.hero-image-silk {
-				opacity: 0;
-				transition: opacity 1.2s cubic-bezier(0.23, 1, 0.32, 1);
-			}
-			.hero-image-silk.loaded {
 				opacity: 1;
 			}
 		</style>
