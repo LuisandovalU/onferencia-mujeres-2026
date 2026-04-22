@@ -6,17 +6,13 @@ process_hero.py
 """
 import sys
 from pathlib import Path
-try:
-    from rembg import remove
-except ImportError:
-    print("❌ Error: 'rembg' no está instalado. Ejecuta: pip install rembg")
-    sys.exit(1)
+
 from PIL import Image
 import io
 
 # Ajustar rutas
 BASE_DIR = Path(__file__).parent.parent
-INPUT    = Path("/Users/luisalbertosandovalramos/Downloads/Hero.png")
+INPUT    = Path("/Users/luisalbertosandovalramos/Desktop/H.jpeg")
 OUTPUT   = BASE_DIR / "src/assets/hero.webp"
 
 def main():

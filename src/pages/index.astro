@@ -8,6 +8,7 @@ import { InscriptionModal } from '../components/InscriptionModal';
 import TicketRecovery from '../components/TicketRecovery';
 import ConferenceMujeresSection from '../components/ConferenceMujeresSection.astro';
 import FloatingActionButton from '../components/FloatingActionButton';
+import midSectionImg from '../assets/mid-section-img.webp';
 ---
 
 <Layout title="Conferencia de Mujeres 2026">
@@ -15,6 +16,18 @@ import FloatingActionButton from '../components/FloatingActionButton';
     
     <main>
         <ConferenceMujeresSection />
+        
+        {/* Imagen de Transición con Bordes Sutiles */}
+        <section class="w-full px-2 md:px-8 pt-0 pb-12">
+            <div class="relative overflow-hidden h-[50vh] md:h-[70vh] w-full rounded-2xl md:rounded-[2.5rem] shadow-xl">
+                <img 
+                    src={midSectionImg.src} 
+                    alt="Conferencia de Mujeres" 
+                    class="absolute inset-0 w-full h-full object-cover"
+                />
+                <div class="absolute inset-0 bg-black/10 mix-blend-overlay"></div>
+            </div>
+        </section>
         
         {/* Sección de Recuperación de Boletos */}
         <section class="relative">

@@ -88,7 +88,7 @@ const ConferenceChoiceCard = memo(() => {
           <img 
             src={activeData.bg} 
             alt="Fondo estático"
-            className="absolute inset-0 w-full h-full object-cover opacity-50 md:opacity-60 mix-blend-screen grayscale transform-gpu"
+            className="absolute inset-0 w-full h-full object-cover opacity-80 md:opacity-90 transform-gpu"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/40 to-transparent pointer-events-none"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none"></div>
@@ -112,6 +112,34 @@ const ConferenceChoiceCard = memo(() => {
            style={{ willChange: 'transform' }}
            transition={{ layout: { duration: 0.35, ease: [0.32, 0.72, 0, 1] }, x: { duration: 0.25 }, opacity: { duration: 0.25 } }}
         >
+          {/* Progress Indicator (Solo en miniatura) */}
+          {!isExpanding && (
+            <div className="absolute inset-0 z-30 pointer-events-none">
+              <svg className="w-full h-full overflow-visible">
+                <motion.rect
+                  key={`timer-${activeItem}`}
+                  x="2"
+                  y="2"
+                  width="calc(100% - 4px)"
+                  height="calc(100% - 4px)"
+                  rx="20"
+                  fill="none"
+                  stroke={inactiveData.themeColor}
+                  strokeWidth="5"
+                  strokeLinecap="round"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={{ duration: 3.65, ease: "linear" }}
+                  style={{ 
+                    pathLength: 0,
+                    width: 'calc(100% - 4px)',
+                    height: 'calc(100% - 4px)'
+                  }}
+                />
+              </svg>
+            </div>
+          )}
+
           {/* La Imagen Voladora */}
           <motion.img 
             layout
@@ -119,7 +147,7 @@ const ConferenceChoiceCard = memo(() => {
             alt="Miniatura Voladora"
             className={cn(
               "absolute inset-0 w-full h-full object-cover transition-all duration-300 transform-gpu",
-              isExpanding ? "opacity-50 md:opacity-60 mix-blend-screen grayscale" : "grayscale brightness-75 md:brightness-100 group-hover/thumb:scale-110"
+              isExpanding ? "opacity-80 md:opacity-90" : "brightness-90 md:brightness-100 group-hover/thumb:scale-110"
             )}
             transition={{ layout: { duration: 0.35, ease: [0.32, 0.72, 0, 1] } }}
           />
@@ -144,13 +172,14 @@ const ConferenceChoiceCard = memo(() => {
             {!isExpanding && (
               <motion.div
                 key={`content-${activeItem}`}
-                initial={{ opacity: 0, filter: 'blur(5px)' }}
-                animate={{ opacity: 1, filter: 'blur(0px)' }}
+                initial={{ opacity: 0, filter: 'blur(5px)', y: activeItem === 'brave' ? 40 : -40 }}
+                animate={{ opacity: 1, filter: 'blur(0px)', y: activeItem === 'brave' ? 60 : -60 }}
                 exit={{ opacity: 0, filter: 'blur(5px)', transition: { duration: 0.1 } }}
-                transition={{ duration: 0.3, delay: 0.1, ease: 'easeOut' }}
+                transition={{ duration: 0.4, delay: 0.1, ease: 'easeOut' }}
                 className="max-w-xl pointer-events-auto transform-gpu"
                 style={{ willChange: 'transform, opacity' }}
               >
+
                 {/* Título Imagen */}
                 <img 
                   src={(activeData.titleSrc as any).src ?? activeData.titleSrc} 

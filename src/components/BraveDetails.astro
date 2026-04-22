@@ -66,53 +66,75 @@ const copy = {
 </div>
 
 <!-- Pequeña ventana emergente muy detallada y femenina -->
-<dialog id="brave-details-modal" class="backdrop:backdrop-blur-md backdrop:bg-black/50 rounded-[2.5rem] bg-brave-dark-deep border border-white/10 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] max-w-md w-[90vw] overflow-hidden text-white m-auto fixed inset-0 z-50">
-  <div class="relative p-8 md:p-12 flex flex-col items-start overflow-y-auto max-h-[90vh]">
-    <button onclick="document.getElementById('brave-details-modal').close(); event.stopPropagation();" class="absolute top-5 right-5 text-white/40 hover:text-white hover:bg-white/10 p-2 rounded-full transition-all outline-none" aria-label="Cerrar detalles">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+<dialog id="brave-details-modal" class="backdrop:backdrop-blur-md backdrop:bg-black/60 rounded-[2.5rem] bg-brave-dark-deep border border-white/10 shadow-2xl max-w-lg w-[92vw] overflow-hidden text-white m-auto fixed inset-0 z-[100]">
+  <div class="relative p-7 md:p-14 flex flex-col items-center overflow-y-auto max-h-[90vh]">
+    <!-- Close Button -->
+    <button 
+      onclick="document.getElementById('brave-details-modal').close(); event.stopPropagation();" 
+      class="absolute top-6 right-6 text-white/30 hover:text-white hover:bg-white/10 p-2.5 rounded-full transition-all outline-none border border-transparent hover:border-white/10"
+      aria-label="Cerrar detalles"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
     </button>
     
-    <img src={BRAVE_TEXT_LOGO_SRC} alt="Brave" class="h-10 mb-8 brightness-0 invert opacity-[0.85] self-center" />
+    <!-- Logo & Divider -->
+    <div class="mb-10 mt-4 flex flex-col items-center">
+      <img src={BRAVE_TEXT_LOGO_SRC} alt="Brave" class="h-9 md:h-12 w-auto brightness-0 invert opacity-90" />
+      <div class="h-1 w-12 bg-[#a8c480] rounded-full mt-4 opacity-50"></div>
+    </div>
     
-    <div class="space-y-6 text-left w-full">
-      <p class="font-body text-[1.1rem] leading-[1.6] text-white/90">
-        Un espacio para mujeres que están construyendo su camino.
-      </p>
+    <div class="space-y-8 text-center md:text-left w-full">
+      <h3 class="font-display text-2xl md:text-3xl font-black uppercase tracking-tight text-white leading-tight">
+        Un espacio para mujeres que están <span class="italic font-medium text-[#a8c480]">construyendo</span> su camino.
+      </h3>
       
-      <p class="font-body text-[1rem] leading-[1.6] text-white/70">
-        Entre la universidad, el inicio de la vida profesional, presión, relaciones, sueños, decisiones y cambios constantes, nacen muchas preguntas.
-      </p>
+      <div class="space-y-6">
+        <p class="font-body text-base md:text-lg leading-relaxed text-white/70 font-light">
+          Entre la universidad, el inicio de la vida profesional, presión, relaciones, sueños, decisiones y cambios constantes, nacen muchas preguntas.
+        </p>
 
-      <p class="font-body text-[1rem] leading-[1.6] text-white/90">
-        <strong class="text-white">BRAVE</strong> es un encuentro para hablar de la valentía que se necesita para enfrentar esta etapa y escuchar la voz de Dios en medio del ruido.
-      </p>
-
-      <p class="font-body text-[1rem] leading-[1.6] text-white/80 italic border-l-2 border-[#a8c480]/30 pl-4">
-        Si estás formando tu identidad y tu dirección, este espacio es para ti.
-      </p>
-    </div>
-
-    <!-- Sección de Logística con diseño de tarjeta -->
-    <div class="mt-10 w-full p-6 rounded-2xl bg-white/5 border border-white/10 flex flex-col gap-3">
-      <div class="flex items-center gap-3 text-white/60 font-body text-[0.7rem] uppercase tracking-[0.2em] font-black">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-[#a8c480]"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-        <span>Cuándo: 24 de mayo • 5:00 PM</span>
+        <p class="font-body text-base md:text-lg leading-relaxed text-white/90 font-medium">
+          <span class="text-[#a8c480] font-black uppercase tracking-widest text-sm mr-2">Brave</span> 
+          es un encuentro para hablar de la valentía que se necesita para enfrentar esta etapa y escuchar la voz de Dios en medio del ruido.
+        </p>
       </div>
-      <div class="flex items-center gap-3 text-white/60 font-body text-[0.7rem] uppercase tracking-[0.2em] font-black">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-[#a8c480]"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-        <span>Dónde: Gran Salón del Valle</span>
+
+      <div class="py-6 px-8 rounded-3xl bg-white/5 border border-white/10 relative overflow-hidden">
+        <div class="absolute -left-1 top-0 bottom-0 w-1.5 bg-[#a8c480]/40 rounded-full"></div>
+        <p class="font-body text-base md:text-lg leading-relaxed text-[#def2c1] italic font-medium">
+          "Si estás formando tu identidad y tu dirección, este espacio es para ti."
+        </p>
       </div>
     </div>
 
-    <div class="mt-8 mb-2 w-full flex flex-col gap-4">
+    <!-- Logistics Section -->
+    <div class="mt-12 w-full grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="p-5 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col gap-2 items-center md:items-start text-center md:text-left">
+        <span class="text-[0.6rem] font-black uppercase tracking-[0.3em] text-white/40">Cuándo</span>
+        <div class="flex items-center gap-3 text-white/90 font-body text-xs font-bold uppercase tracking-wider">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-[#a8c480]"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          <span>24 Mayo • 5:00 PM</span>
+        </div>
+      </div>
+      <div class="p-5 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col gap-2 items-center md:items-start text-center md:text-left">
+        <span class="text-[0.6rem] font-black uppercase tracking-[0.3em] text-white/40">Dónde</span>
+        <div class="flex items-center gap-3 text-white/90 font-body text-xs font-bold uppercase tracking-wider">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-[#a8c480]"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          <span>Gran Salón del Valle</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-10 mb-2 w-full">
       <InscribeteButton 
         client:load 
         conferencia="brave" 
         variant="light"
-        className="w-full py-4 text-base font-bold shadow-xl shadow-black/20"
+        className="w-full py-5 text-base font-black uppercase tracking-widest shadow-2xl shadow-black/40 hover:scale-[1.02] active:scale-95 transition-all"
       >
-        Aparta tu lugar por $130
+        Inscribirme ahora
       </InscribeteButton>
+      <p class="text-center mt-6 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-white/20">Cupo limitado por sesión</p>
     </div>
   </div>
 </dialog>

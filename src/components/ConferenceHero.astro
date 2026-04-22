@@ -1,15 +1,19 @@
 ---
 import heroBg from "@/assets/hero.webp";
+import heroForeground from "@/assets/hero-foreground.webp";
+import heroMobile from "@/assets/hero-mobile-new.png";
 import { InscribeteButton } from "./InscribeteButton";
 
 const HERO_BG = heroBg.src;
+const HERO_FG = heroForeground.src;
+const HERO_MB = heroMobile.src;
 
 const inscribetePillClass =
   "rounded-full border-2 border-neutral-900 bg-white px-5 py-2.5 font-body text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-neutral-900 transition hover:bg-neutral-50 sm:px-7 sm:py-3 sm:text-sm sm:tracking-[0.18em]";
 ---
 
 <section
-  class="relative isolate min-h-[calc(100svh-1.5rem)] w-full overflow-hidden rounded-b-[2.5rem] rounded-t-none shadow-[0_-16px_48px_-18px_rgba(0,0,0,0.14),14px_0_40px_-20px_rgba(0,0,0,0.1),-14px_0_40px_-20px_rgba(0,0,0,0.1)] sm:min-h-[calc(100svh-2.5rem)] sm:rounded-[2.25rem] md:min-h-[calc(100svh-3rem)] md:rounded-[2.75rem] lg:rounded-[3rem]"
+  class="relative isolate min-h-svh md:min-h-[calc(100svh-3rem)] w-full overflow-hidden rounded-none md:rounded-b-[2.75rem] lg:rounded-b-[3rem] shadow-[0_-16px_48px_-18px_rgba(0,0,0,0.14),14px_0_40px_-20px_rgba(0,0,0,0.1),-14px_0_40px_-20px_rgba(0,0,0,0.1)]"
   style="background: radial-gradient(circle at center, #2d4a24 0%, #0a0a0a 100%);"
   aria-labelledby="hero-heading"
 >
@@ -17,38 +21,64 @@ const inscribetePillClass =
     Conferencia de Mujeres 2026
   </h1>
 
-  <img
-    src={HERO_BG}
-    class="hero-image-silk absolute inset-0 z-0 h-full w-full object-cover"
-    fetchpriority="high"
-    loading="eager"
-    decoding="sync"
-    onload="this.classList.add('loaded')"
-    aria-hidden="true"
-  />
+  {/* VERSIÓN DESKTOP: Fondo y Personaje (Solo md+) */}
+  <div class="hidden md:block">
+    <img
+      src={HERO_BG}
+      class="hero-image-silk absolute inset-0 z-0 h-full w-full object-cover"
+      fetchpriority="high"
+      loading="eager"
+      decoding="sync"
+      onload="this.classList.add('loaded')"
+      aria-hidden="true"
+    />
+
+    <img
+      src={HERO_FG}
+      class="absolute inset-0 z-[15] h-full w-full object-contain object-bottom pointer-events-none drop-shadow-2xl"
+      aria-hidden="true"
+    />
+  </div>
+
+  {/* VERSIÓN MÓVIL: Imagen única (Hasta md) */}
+  <div class="block md:hidden">
+    <img
+      src={HERO_MB}
+      class="absolute inset-0 z-0 h-full w-full object-cover"
+      fetchpriority="high"
+      loading="eager"
+      decoding="sync"
+      aria-hidden="true"
+    />
+  </div>
+
+
 
   <div
-    class="relative z-10 flex min-h-[calc(100svh-1.5rem)] flex-col items-center justify-center px-4 pb-28 pt-16 text-center sm:min-h-[calc(100svh-2.5rem)] sm:px-8 sm:pb-32 sm:pt-20 md:min-h-[calc(100svh-3rem)] md:px-12"
+    class="relative z-10 hidden md:flex min-h-[calc(100svh-3rem)] flex-col items-center justify-center px-12 pb-28 pt-16 text-center"
   >
-    <p
-      class="font-hero text-[clamp(0.88rem,3.4vw,1.45rem)] font-bold uppercase leading-tight tracking-[0.28em] text-[#3B5E2C]"
-    >
-      CONFERENCIA DE
-    </p>
-    <p
-      class="font-hero mt-5 text-[clamp(3.1rem,13.5vw,8.25rem)] font-black uppercase leading-[0.88] tracking-[-0.04em] text-[#3B5E2C] [font-weight:900]"
-    >
-      MUJERES
-    </p>
-    <p
-      class="font-hero mt-6 text-[clamp(2.35rem,10.5vw,6rem)] font-black uppercase leading-none tracking-[-0.045em] text-[#3B5E2C] [font-weight:900]"
-    >
-      2026
-    </p>
+    <div class="flex flex-col items-center -translate-y-8 md:-translate-y-16">
+      <p
+        class="font-hero text-[clamp(2rem,8vw,5.5rem)] font-black uppercase leading-[0.9] tracking-[-0.02em] text-[#3B5E2C]"
+      >
+        CONFERENCIA
+      </p>
+      <p
+        class="font-hero my-2 text-[clamp(0.8rem,2.5vw,1.8rem)] font-bold uppercase tracking-[0.3em] text-[#D4C385]"
+      >
+        2026
+      </p>
+      <p
+        class="font-hero text-[clamp(2.2rem,9vw,6.5rem)] font-black uppercase leading-[0.9] tracking-[-0.03em] text-[#3B5E2C]"
+      >
+        DE MUJERES
+      </p>
+    </div>
+
   </div>
 
   <div
-    class="pointer-events-none absolute inset-x-0 bottom-0 z-[25] h-[clamp(5.75rem,20vmin,9.5rem)]"
+    class="pointer-events-none absolute inset-x-0 bottom-0 z-[25] hidden md:block h-[clamp(5.75rem,20vmin,9.5rem)]"
     aria-hidden="true"
   >
     <svg
@@ -71,7 +101,7 @@ const inscribetePillClass =
 
   <a
     href="#contenido"
-    class="absolute bottom-[max(7.25rem,env(safe-area-inset-bottom))] left-1/2 z-30 flex -translate-x-1/2 flex-col items-center gap-1 text-white/90 outline-none ring-offset-2 ring-offset-transparent transition-opacity hover:text-white focus-visible:ring-2 focus-visible:ring-white/70 sm:bottom-[max(6.25rem,env(safe-area-inset-bottom))] md:bottom-[max(6.75rem,env(safe-area-inset-bottom))]"
+    class="absolute bottom-[max(7.25rem,env(safe-area-inset-bottom))] left-1/2 z-30 hidden md:flex -translate-x-1/2 flex-col items-center gap-1 text-white/90 outline-none ring-offset-2 ring-offset-transparent transition-opacity hover:text-white focus-visible:ring-2 focus-visible:ring-white/70 sm:bottom-[max(6.25rem,env(safe-area-inset-bottom))] md:bottom-[max(6.75rem,env(safe-area-inset-bottom))]"
     aria-label="Desplazarse hacia el contenido siguiente"
   >
     <span class="animate-hero-scroll-arrow drop-shadow-[0_2px_12px_rgba(0,0,0,0.45)]">
