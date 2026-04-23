@@ -81,17 +81,17 @@ const ConferenceChoiceCard = memo(() => {
   return (
     <div className="w-full max-w-6xl mx-auto px-0 md:px-8">
       {/* Contenedor Principal (Marco) */}
-      <div className="relative w-full h-[550px] md:h-[750px] overflow-hidden group shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] md:shadow-2xl rounded-none md:rounded-[3rem] bg-[#0d140e]">
+      <div className="relative w-full h-[600px] md:h-[750px] overflow-hidden group shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] md:shadow-2xl rounded-none md:rounded-[3rem] bg-black">
         
         {/* 1. FONDO ESTÁTICO CONSTANTE (La tarjeta antigua que será cubierta) */}
         <div className="absolute inset-0 z-0">
           <img 
             src={activeData.bg} 
             alt="Fondo estático"
-            className="absolute inset-0 w-full h-full object-cover opacity-80 md:opacity-90 transform-gpu"
+            className="absolute inset-0 w-full h-full object-cover opacity-100 transform-gpu"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/40 to-transparent pointer-events-none"></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/40 to-transparent pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent pointer-events-none"></div>
         </div>
 
         {/* 2. EL OBJETO VOLADOR (La miniatura que se expande, vuela SOBRE el fondo antiguo) */}
@@ -107,7 +107,10 @@ const ConferenceChoiceCard = memo(() => {
              "absolute z-20 overflow-hidden cursor-pointer transform-gpu",
              isExpanding 
                ? "inset-0 rounded-none md:rounded-[3rem]" 
-               : "bottom-6 right-4 md:bottom-12 md:right-12 w-[90px] h-[130px] md:w-[160px] md:h-[220px] rounded-2xl md:rounded-3xl shadow-2xl ring-1 md:ring-2 ring-white/30 hover:ring-white group/thumb"
+               : cn(
+                   "right-4 md:right-12 w-[100px] h-[140px] md:w-[160px] md:h-[220px] rounded-2xl md:rounded-3xl shadow-2xl ring-1 md:ring-2 ring-white/30 hover:ring-white group/thumb",
+                   activeItem === 'brave' ? "bottom-6 md:bottom-12" : "top-6 md:top-12"
+                 )
            )}
            style={{ willChange: 'transform' }}
            transition={{ layout: { duration: 0.35, ease: [0.32, 0.72, 0, 1] }, x: { duration: 0.25 }, opacity: { duration: 0.25 } }}
@@ -147,7 +150,7 @@ const ConferenceChoiceCard = memo(() => {
             alt="Miniatura Voladora"
             className={cn(
               "absolute inset-0 w-full h-full object-cover transition-all duration-300 transform-gpu",
-              isExpanding ? "opacity-80 md:opacity-90" : "brightness-90 md:brightness-100 group-hover/thumb:scale-110"
+              isExpanding ? "opacity-100" : "brightness-100 group-hover/thumb:scale-110"
             )}
             transition={{ layout: { duration: 0.35, ease: [0.32, 0.72, 0, 1] } }}
           />
@@ -160,20 +163,24 @@ const ConferenceChoiceCard = memo(() => {
              transition={{ duration: 0.15 }}
              className="absolute bottom-3 md:bottom-5 left-0 w-full flex justify-center pointer-events-none z-10"
           >
-             <img src={(inactiveData.titleSrc as any).src ?? inactiveData.titleSrc} className="h-4 md:h-9 w-auto brightness-0 invert opacity-80" />
+             <img src={(inactiveData.titleSrc as any).src ?? inactiveData.titleSrc} className="h-5 md:h-9 w-auto brightness-0 invert opacity-100" />
           </motion.div>
         </motion.div>
 
 
 
         {/* 3. CONTENIDO DEL FONDO ACTIVO — Usa CSS Grid 0fr→1fr para expansión fluida sin reflow */}
-        <div className="absolute inset-0 p-8 md:p-16 flex flex-col justify-center pointer-events-none z-30">
+        <div className={cn(
+          "absolute inset-0 p-6 md:p-16 flex flex-col pointer-events-none z-30",
+          activeItem === 'brave' ? "justify-end pb-10" : "justify-start pt-10",
+          "md:justify-center md:pb-0 md:pt-0"
+        )}>
           <AnimatePresence mode="wait">
             {!isExpanding && (
               <motion.div
                 key={`content-${activeItem}`}
-                initial={{ opacity: 0, filter: 'blur(5px)', y: activeItem === 'brave' ? 40 : -40 }}
-                animate={{ opacity: 1, filter: 'blur(0px)', y: activeItem === 'brave' ? 60 : -60 }}
+                initial={{ opacity: 0, filter: 'blur(5px)', y: activeItem === 'brave' ? 10 : -10 }}
+                animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
                 exit={{ opacity: 0, filter: 'blur(5px)', transition: { duration: 0.1 } }}
                 transition={{ duration: 0.4, delay: 0.1, ease: 'easeOut' }}
                 className="max-w-xl pointer-events-auto transform-gpu"
@@ -183,7 +190,7 @@ const ConferenceChoiceCard = memo(() => {
                 {/* Título Imagen */}
                 <img 
                   src={(activeData.titleSrc as any).src ?? activeData.titleSrc} 
-                  className="h-16 md:h-24 w-auto mb-8 brightness-0 invert drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)]" 
+                  className="h-14 md:h-24 w-auto mb-5 brightness-0 invert drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)]" 
                   alt={activeData.id}
                 />
                 
@@ -195,30 +202,33 @@ const ConferenceChoiceCard = memo(() => {
                   )}
                 >
                   <div className="overflow-hidden">
-                    <div className="space-y-3 mb-10">
-                      <p className="font-body text-2xl md:text-3xl font-black text-white tracking-[0.25em] drop-shadow-md">
-                        {activeData.date}
-                      </p>
+                    <div className="space-y-1.5 mb-6">
+                      <div className="space-y-0 mt-1">
+                        <p className="font-body text-xl md:text-3xl font-black text-white tracking-[0.1em] drop-shadow-lg leading-tight">
+                          {activeData.date.split('•')[0]}
+                        </p>
+                        <p className="font-body text-sm md:text-xl font-bold text-white/60 tracking-[0.02em] drop-shadow-md">
+                          {activeData.date.split('•')[1]}
+                        </p>
+                      </div>
                       <p 
                         style={{ color: activeData.themeColor }}
-                        className="font-body text-xs md:text-base font-bold tracking-widest uppercase items-center flex gap-2 transition-colors duration-500"
+                        className="font-body text-[0.5rem] md:text-sm font-bold tracking-widest uppercase items-center flex gap-2 transition-colors duration-500 mt-0.5"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        <svg className="w-4 h-4 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         {activeData.location}
                       </p>
-                      {/* Público Objetivo (Minimalista y Simple) */}
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 opacity-60">
-                        {activeData.target.split('•').map((part, i, arr) => (
+                      {/* Público Objetivo (Lista Vertical) */}
+                      <div className="flex flex-col gap-y-1 mt-2 opacity-80">
+                        {activeData.target.split('•').map((part, i) => (
                           <div key={i} className="flex items-center gap-2">
-                            <span className="font-body text-[0.6rem] md:text-[0.7rem] font-bold uppercase tracking-[0.15em] text-white">
+                            <div 
+                              style={{ backgroundColor: activeData.themeColor }} 
+                              className="w-1 h-1 rounded-full opacity-50" 
+                            />
+                            <span className="font-body text-[0.55rem] md:text-[0.7rem] font-bold uppercase tracking-[0.1em] text-white/70">
                               {part.trim()}
                             </span>
-                            {i < arr.length - 1 && (
-                              <div 
-                                style={{ backgroundColor: activeData.themeColor }} 
-                                className="w-1 h-1 rounded-full opacity-50" 
-                              />
-                            )}
                           </div>
                         ))}
                       </div>
@@ -228,7 +238,7 @@ const ConferenceChoiceCard = memo(() => {
                 
                 <button 
                   onClick={() => openModal(activeItem)}
-                  className="hidden md:inline-flex group relative overflow-hidden bg-white text-black px-10 py-5 rounded-full font-black uppercase tracking-widest text-sm hover:scale-105 transition-all duration-500 shadow-[0_0_40px_-10px_rgba(255,255,255,0.4)] w-max transform-gpu"
+                  className="hidden md:inline-flex group relative overflow-hidden bg-white text-black px-12 py-5 rounded-full font-black uppercase tracking-widest text-sm hover:scale-105 transition-all duration-500 shadow-[0_20px_50px_-10px_rgba(255,255,255,0.3)] w-max transform-gpu"
                 >
                   <span className="relative z-10 transition-colors duration-500 group-hover:text-black">Apartar mi lugar</span>
                   <div style={{ backgroundColor: activeData.themeColor }} className="absolute inset-0 transform scale-x-0 origin-left group-hover:scale-x-100 transition-all duration-500 ease-[0.16,1,0.3,1] z-0"></div>
