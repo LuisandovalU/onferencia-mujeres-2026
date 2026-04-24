@@ -1,11 +1,9 @@
 ---
-import heroBg from "@/assets/hero.webp";
-import heroForeground from "@/assets/hero-foreground.webp";
+import heroDesktop from "@/assets/hero-desktop.webp";
 import heroMobile from "@/assets/hero-mobile-new.png";
 import { InscribeteButton } from "./InscribeteButton";
 
-const HERO_BG = heroBg.src;
-const HERO_FG = heroForeground.src;
+const HERO_DESKTOP = heroDesktop.src;
 const HERO_MB = heroMobile.src;
 
 const inscribetePillClass =
@@ -21,21 +19,15 @@ const inscribetePillClass =
     Conferencia de Mujeres 2026
   </h1>
 
-  {/* VERSIÓN DESKTOP: Fondo y Personaje (Solo md+) */}
+  {/* VERSIÓN DESKTOP: Imagen única (Solo md+) */}
   <div class="hidden md:block">
     <img
-      src={HERO_BG}
+      src={HERO_DESKTOP}
       class="hero-image-silk absolute inset-0 z-0 h-full w-full object-cover"
       fetchpriority="high"
       loading="eager"
       decoding="sync"
       onload="this.classList.add('loaded')"
-      aria-hidden="true"
-    />
-
-    <img
-      src={HERO_FG}
-      class="absolute inset-0 z-[15] h-full w-full object-contain object-bottom pointer-events-none drop-shadow-2xl"
       aria-hidden="true"
     />
   </div>
