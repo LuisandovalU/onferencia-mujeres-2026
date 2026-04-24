@@ -25,7 +25,7 @@ const DATA = {
     titleSrc: valienteTextSrc,
     date: '31 DE MAYO • 3:00 PM',
     location: 'Gran Salón del Valle',
-    target: 'Madres • Casadas • Mujeres +40',
+    target: 'Madres • Casadas • Mujeres +35',
     color: '#e6dfd3',
     themeColor: '#D89982'
   }

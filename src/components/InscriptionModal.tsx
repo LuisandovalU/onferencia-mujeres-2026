@@ -268,7 +268,7 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
                   >
                     <option value="">Selecciona una opción</option>
                     <option value="brave">Universitaria / Joven Profesional (Brave)</option>
-                    <option value="valiente">Madre / Casada / +40 (Valiente)</option>
+                    <option value="valiente">Madre / Casada / +35 (Valiente)</option>
                   </select>
                 </div>
                 <div>

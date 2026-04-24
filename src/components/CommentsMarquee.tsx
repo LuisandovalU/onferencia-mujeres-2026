@@ -25,7 +25,7 @@ const TESTIMONIALS: Testimonial[] = [
   },
   {
     name: "María Elena",
-    tag: "Mujeres +40",
+    tag: "Mujeres +35",
     tagBg: "bg-amber-200",
     accentColor: "#b9cf63",
     hoverShadowColor: "#b9cf63",
@@ -70,7 +70,7 @@ const TESTIMONIALS: Testimonial[] = [
   },
   {
     name: "Patricia V.",
-    tag: "Mujeres +40",
+    tag: "Mujeres +35",
     tagBg: "bg-amber-200",
     accentColor: "#b9cf63",
     hoverShadowColor: "#b9cf63",
