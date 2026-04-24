@@ -4,7 +4,7 @@ import tailwind from '@astrojs/tailwind';
 import vercel from '@astrojs/vercel';
 
 export default defineConfig({
-  site: 'https://conferencia-mujeres-2026.vercel.app',
+  site: 'https://conferencia.icimexico.org',
   output: 'server',
   adapter: vercel({
     webAnalytics: { enabled: true },
