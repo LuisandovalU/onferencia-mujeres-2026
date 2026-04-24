@@ -63,6 +63,25 @@ export const GET: APIRoute = async ({ request }) => {
            updates.status_pago = 'completado';
            updates.monto_pagado = (session.amount_total || 13000) / 100;
            results.push(`🚨 ¡RESCATADO DEL PASADO! -> Pago recuperado: ${a.nombre_completo} (Monto: $${updates.monto_pagado})`);
+           
+           // Generar el boleto para el pago rescatado
+           try {
+             const { generateAndUploadTicket } = await import('../../../lib/ticket-generator');
+             await generateAndUploadTicket({
+               asistenteId: a.id,
+               nombre_completo: a.nombre_completo,
+               folio: a.folio,
+               es_brave: a.es_brave,
+               fileName: a.id
+             });
+             
+             // Guardar URL
+             const ticketUrl = `https://fkifwxauqdjmfjbceypa.supabase.co/storage/v1/object/public/tickets/${a.id}.jpg`;
+             updates.ticket_url = ticketUrl;
+             results.push(`🎟️ Boleto generado exitosamente para ${a.nombre_completo}`);
+           } catch (ticketErr: any) {
+             results.push(`❌ Error al generar boleto para ${a.nombre_completo}: ${ticketErr.message}`);
+           }
         }
 
         if (Object.keys(updates).length > 0) {
