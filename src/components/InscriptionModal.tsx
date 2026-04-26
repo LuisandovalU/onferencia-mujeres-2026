@@ -251,7 +251,7 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
                 Inscripción
               </h2>
               <p className="mt-2 font-body text-sm text-neutral-600">
-                Completa tus datos para proceder al pago de tu lugar por $130 MXN (vía Stripe).
+                Completa tus datos para proceder al pago de tu lugar por $150 MXN (vía Stripe).
               </p>
 
               <form onSubmit={fetchClientSecret} className="mt-6 space-y-5">
@@ -335,7 +335,7 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
                   type="submit"
                   className="mt-2 w-full rounded-full bg-[#2F4A2C] py-3.5 font-body text-sm font-semibold uppercase tracking-[0.15em] text-white transition hover:bg-[#2F4A2C]/90 shadow-[0_4px_14px_rgba(47,74,44,0.3)]"
                 >
-                  Aparta tu lugar por $130
+                  Aparta tu lugar por $150
                 </button>
                 <p className="text-[10px] text-neutral-400 text-center mt-4 !leading-relaxed px-4">
                   Al inscribirte, aceptas recibir información vía WhatsApp y confirmas haber leído nuestro Aviso de Privacidad y Términos de Servicio del Evento.
