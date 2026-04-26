@@ -13,7 +13,7 @@ const INITIAL_FORM: FormData = {
   es_brave: true,
   es_casa: true,
   referido_por: '',
-  monto_pagado: '130',
+  monto_pagado: '150',
   metodo_pago: 'efectivo',
 };
 
@@ -224,7 +224,7 @@ export default function NewRegistrationForm({ password, onSuccess }: NewRegistra
         {/* Amount */}
         <div className="text-center">
           <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3 font-montserrat">
-            Monto a Recibir <span className="text-gray-300">(Total: $130)</span>
+            Monto a Recibir <span className="text-gray-300">(Total: $150)</span>
           </label>
           <div className="flex items-center justify-center gap-2">
             <span className="text-3xl font-black text-gray-300">$</span>

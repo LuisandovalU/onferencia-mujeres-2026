@@ -47,7 +47,7 @@ export const GET: APIRoute = async ({ request }) => {
                             es_brave: session.metadata?.es_brave === 'true',
                             es_casa: session.metadata?.es_casa === 'true',
                             referido_por: session.metadata?.quien_invito || 'N/A',
-                            monto_total: (session.amount_total || 13000) / 100,
+                            monto_total: (session.amount_total || 15000) / 100,
                             status_pago: 'completado',
                             monto_pagado: (session.amount_total || 0) / 100,
                             stripe_session_id: sessionId,

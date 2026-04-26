@@ -61,7 +61,7 @@ export const GET: APIRoute = async ({ request }) => {
         
         if (isPaid && a.status_pago !== 'completado') {
            updates.status_pago = 'completado';
-           updates.monto_pagado = (session.amount_total || 13000) / 100;
+           updates.monto_pagado = (session.amount_total || 15000) / 100;
            results.push(`🚨 ¡RESCATADO DEL PASADO! -> Pago recuperado: ${a.nombre_completo} (Monto: $${updates.monto_pagado})`);
            
            // Generar el boleto para el pago rescatado

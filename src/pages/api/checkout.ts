@@ -62,6 +62,42 @@ export const POST: APIRoute = async ({ request, url }) => {
             console.warn('⚠️ ATENCIÓN: Se está usando una llave de PRUEBA (test) en lugar de la REAL (live).');
         }
 
+        // ── PREVENTA: Verificar si ya tiene una sesión pendiente en la BD ──
+        // Si ya inició el proceso antes de que terminara la preventa, 
+        // reutilizamos su sesión original para respetar el precio que le fue ofrecido ($130).
+        if (whatsapp) {
+            const { data: registroPrevio } = await supabase
+                .from('asistentes')
+                .select('stripe_session_id, monto_total, status_pago')
+                .eq('whatsapp', whatsapp)
+                .eq('status_pago', 'pendiente')
+                .not('stripe_session_id', 'is', null)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+            if (registroPrevio?.stripe_session_id) {
+                try {
+                    const sessionExistente = await stripe.checkout.sessions.retrieve(registroPrevio.stripe_session_id);
+                    // Solo reutilizar si aún está abierta (no expirada/completada)
+                    if (sessionExistente.status === 'open' && sessionExistente.client_secret) {
+                        console.log(`[Checkout] ✅ Sesión de preventa reutilizada para ${whatsapp} — precio original: $${(sessionExistente.amount_total || 0)/100}`);
+                        return new Response(JSON.stringify({
+                            clientSecret: sessionExistente.client_secret,
+                            sessionId: sessionExistente.id,
+                            precioEspecial: true,
+                        }), {
+                            status: 200,
+                            headers: { 'Content-Type': 'application/json' }
+                        });
+                    }
+                } catch (e) {
+                    // Si la sesión no existe en Stripe, continuamos y creamos una nueva
+                    console.warn('[Checkout] Sesión anterior no recuperable, creando nueva:', e);
+                }
+            }
+        }
+
         // 1. Crear un Cliente en Stripe (necesario para 'customer_balance' / SPEI)
         const customer = await stripe.customers.create({
             name: nombre,
@@ -71,7 +107,7 @@ export const POST: APIRoute = async ({ request, url }) => {
             }
         });
 
-        // 2. Crear la sesión de Checkout asociada al cliente
+        // 2. Crear la sesión de Checkout asociada al cliente (precio post-preventa: $150)
         const session = await stripe.checkout.sessions.create({
             ui_mode: 'embedded_page',
             customer: customer.id,
@@ -86,11 +122,11 @@ export const POST: APIRoute = async ({ request, url }) => {
             },
             line_items: [{
                 price_data: {
-                    currency: 'mxn', // Forzamos minúsculas
+                    currency: 'mxn',
                     product_data: {
                         name: esBrave ? 'Conferencia BRAVE 2026' : 'Conferencia VALIENTE 2026'
                     },
-                    unit_amount: 13000, 
+                    unit_amount: 15000, // $150 MXN — precio normal (post-preventa)
                 },
                 quantity: 1,
             }],

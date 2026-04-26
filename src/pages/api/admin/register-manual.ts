@@ -17,7 +17,7 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(JSON.stringify({ error: 'Nombre y WhatsApp son obligatorios' }), { status: 400 });
     }
 
-    const totalACobrar = 130;
+    const totalACobrar = 150;
     const pagado = Number(monto_pagado) || 0;
     const estaPagadoCompletamente = pagado >= totalACobrar;
 
