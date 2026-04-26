@@ -104,11 +104,11 @@ export default function CheckinScanner() {
 
         {/* Entrada Manual de Respaldo */}
         <div className="mt-12 w-full max-w-sm bg-black/60 backdrop-blur-3xl border border-emerald-400/10 p-6 rounded-[2.5rem] shadow-2xl">
-          <p className="text-[10px] text-emerald-400/40 mb-4 font-black uppercase tracking-[0.4em] text-center">Entrada Manual (Folio)</p>
+          <p className="text-[10px] text-emerald-400/40 mb-4 font-black uppercase tracking-[0.4em] text-center">Entrada Manual (Folio, Teléfono o Nombre)</p>
           <input 
-            type="number" 
-            placeholder="Ej: 14"
-            className="w-full bg-transparent text-white border-b-4 border-emerald-500/20 rounded-none p-4 text-center text-4xl font-black focus:outline-none focus:border-emerald-500 transition-all placeholder:text-emerald-900"
+            type="text" 
+            placeholder="Ej: 14 o 5512345678"
+            className="w-full bg-transparent text-white border-b-4 border-emerald-500/20 rounded-none p-4 text-center text-3xl font-black focus:outline-none focus:border-emerald-500 transition-all placeholder:text-emerald-900"
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 const target = e.currentTarget;

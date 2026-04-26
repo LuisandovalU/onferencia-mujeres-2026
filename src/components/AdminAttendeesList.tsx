@@ -14,6 +14,7 @@ interface Asistente {
   monto_total: number;
   status_pago: string;
   es_brave: boolean;
+  folio?: number | string;
   metodo_pago?: string;
   stripe_session_id?: string;
   created_at: string;
@@ -195,7 +196,9 @@ export default function AdminAttendeesList() {
                   </div>
                 </div>
 
-                <h4 className="text-xl font-black text-white uppercase tracking-tight mb-4 group-hover:text-glow transition-all">{a.nombre}</h4>
+                <h4 className="text-xl font-black text-white uppercase tracking-tight mb-4 group-hover:text-glow transition-all">
+                  {a.nombre} <span className="text-brave-light-soft/50 text-sm ml-2">#{a.folio}</span>
+                </h4>
                 
                 <div className="space-y-4 mb-8">
                   <div className="flex items-center gap-3 text-zinc-400 hover:text-white transition-colors">

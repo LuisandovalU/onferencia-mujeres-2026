@@ -12,7 +12,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // 2. Construir Query de Supabase con filtros dinámicos
-    let query = supabase.from('asistentes').select('id, created_at, monto_pagado, monto_total, es_brave, nombre_completo, whatsapp, status_pago, metodo_pago, es_casa, stripe_session_id');
+    let query = supabase.from('asistentes').select('id, created_at, monto_pagado, monto_total, es_brave, nombre_completo, whatsapp, status_pago, metodo_pago, es_casa, stripe_session_id, folio');
 
     if (startDate) {
       query = query.gte('created_at', startDate);
@@ -136,6 +136,7 @@ export const POST: APIRoute = async ({ request }) => {
         es_brave: a.es_brave,
         metodo_pago: a.metodo_pago,
         stripe_session_id: a.stripe_session_id,
+        folio: a.folio,
         created_at: a.created_at
       }))
     }), { status: 200 });

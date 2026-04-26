@@ -27,6 +27,7 @@ export const POST: APIRoute = async ({ request }) => {
     // Detectar UUID
     const uuidRegex = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
     const stripeRegex = /cs_(test|live)_[a-zA-Z0-9]+/;
+    const phoneRegex = /^\d{10}$/; // 10 digitos
 
     const uuidMatch = cleanText.match(uuidRegex);
     const stripeMatch = cleanText.match(stripeRegex);
@@ -37,9 +38,16 @@ export const POST: APIRoute = async ({ request }) => {
     } else if (stripeMatch) {
       queryField = 'stripe_session_id';
       queryValue = stripeMatch[0];
+    } else if (phoneRegex.test(cleanText)) {
+      queryField = 'whatsapp';
+      queryValue = cleanText;
     } else if (/^\d+$/.test(cleanText)) {
       queryField = 'folio';
       queryValue = Number(cleanText);
+    } else if (cleanText.length > 3 && !cleanText.includes('http')) {
+      // Buscar por nombre
+      queryField = 'nombre_completo';
+      queryValue = cleanText;
     } else {
       // Intentar extraer de URL si nada de lo anterior funcionó
       try {
@@ -61,14 +69,19 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // 3. Consultar DB (Usando Service Role Key vía supabase.ts)
-    const { data: asistente, error: selectError } = await supabase
-      .from('asistentes')
-      .select('*')
-      .eq(queryField, queryValue)
-      .single();
+    let query = supabase.from('asistentes').select('*');
+    
+    if (queryField === 'nombre_completo') {
+       query = query.ilike('nombre_completo', `%${queryValue}%`).order('created_at', { ascending: false }).limit(1);
+    } else {
+       query = query.eq(queryField, queryValue).order('created_at', { ascending: false }).limit(1);
+    }
+
+    const { data: results, error: selectError } = await query;
+    const asistente = results?.[0];
 
     if (selectError || !asistente) {
-      return new Response(JSON.stringify({ error: `No encontrado: ${queryField} ${queryValue}` }), { status: 404 });
+      return new Response(JSON.stringify({ error: `No encontrado: ${queryValue}` }), { status: 404 });
     }
 
     // 4. Validar Estados
