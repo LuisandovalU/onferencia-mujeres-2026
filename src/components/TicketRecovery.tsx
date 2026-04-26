@@ -82,7 +82,7 @@ export default function TicketRecovery() {
                                         target="_blank"
                                         className="inline-block bg-[#a8c480] hover:bg-[#c8de9e] text-black font-black py-3 px-8 rounded-xl transition-all shadow-xl shadow-emerald-500/20 uppercase tracking-[0.1em] text-sm whitespace-nowrap"
                                     >
-                                        📥 Descargar
+                                        Descargar
                                     </a>
                                 </div>
                             ))}
