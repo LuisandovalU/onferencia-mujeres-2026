@@ -251,7 +251,7 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
                 Inscripción
               </h2>
               <p className="mt-2 font-body text-sm text-neutral-600">
-                Completa tus datos para proceder al pago de tu lugar por $150 MXN (vía Stripe).
+                Completa tus datos para proceder al pago de tu lugar por $150 MXN (este pago es válido por UNA sola entrada).
               </p>
 
               <form onSubmit={fetchClientSecret} className="mt-6 space-y-5">

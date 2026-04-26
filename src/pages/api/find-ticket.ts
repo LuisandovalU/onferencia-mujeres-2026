@@ -16,7 +16,7 @@ export const POST: APIRoute = async ({ request }) => {
       .select('id, nombre_completo, status_pago, folio, stripe_session_id')
       .or(`email.eq.${emailOrWhatsapp},whatsapp.eq.${emailOrWhatsapp}`)
       .eq('status_pago', 'completado')
-      .limit(1);
+      .order('created_at', { ascending: false });
 
     const { data: results, error } = await query;
 
@@ -24,13 +24,15 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(JSON.stringify({ error: 'Boleto no encontrado o aún pendiente de pago' }), { status: 404 });
     }
 
-    const asistente = results[0];
-    const ticketUrl = `/api/download-ticket?id=${asistente.id}`;
+    const tickets = results.map(asistente => ({
+      id: asistente.id,
+      nombre: asistente.nombre_completo,
+      ticketUrl: `/api/download-ticket?id=${asistente.id}`
+    }));
 
     return new Response(JSON.stringify({ 
       success: true, 
-      nombre: asistente.nombre_completo,
-      ticketUrl 
+      tickets
     }), { status: 200 });
 
   } catch (err: any) {

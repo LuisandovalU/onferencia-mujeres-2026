@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 export default function TicketRecovery() {
     const [emailOrWhatsapp, setEmailOrWhatsapp] = useState('');
     const [loading, setLoading] = useState(false);
-    const [result, setResult] = useState<{ success?: boolean; error?: string; ticketUrl?: string; nombre?: string } | null>(null);
+    const [result, setResult] = useState<{ success?: boolean; error?: string; tickets?: Array<{id: string, nombre: string, ticketUrl: string}> } | null>(null);
 
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -70,16 +70,23 @@ export default function TicketRecovery() {
                     </div>
                 )}
 
-                {result?.success && (
+                {result?.success && result.tickets && (
                     <div className="mt-12 p-8 bg-white/5 border border-white/10 rounded-[2.5rem] animate-in slide-in-from-bottom duration-700">
-                        <p className="text-[#def2c1] text-xl font-black mb-8 uppercase tracking-tight">¡Encontrado! Hola, {result.nombre.split(' ')[0]}</p>
-                        <a
-                            href={result.ticketUrl}
-                            target="_blank"
-                            className="inline-block bg-[#a8c480] hover:bg-[#c8de9e] text-black font-black py-5 px-14 rounded-2xl transition-all shadow-2xl shadow-emerald-500/20 uppercase tracking-[0.1em] text-sm"
-                        >
-                            📥 Descargar Mi Boleto
-                        </a>
+                        <p className="text-[#def2c1] text-xl font-black mb-8 uppercase tracking-tight">¡Encontramos {result.tickets.length} boleto{result.tickets.length > 1 ? 's' : ''}!</p>
+                        <div className="flex flex-col gap-4">
+                            {result.tickets.map((t) => (
+                                <div key={t.id} className="flex flex-col md:flex-row items-center justify-between bg-white/5 p-4 rounded-xl gap-4 border border-white/5">
+                                    <span className="text-white font-medium text-lg text-left">{t.nombre}</span>
+                                    <a
+                                        href={t.ticketUrl}
+                                        target="_blank"
+                                        className="inline-block bg-[#a8c480] hover:bg-[#c8de9e] text-black font-black py-3 px-8 rounded-xl transition-all shadow-xl shadow-emerald-500/20 uppercase tracking-[0.1em] text-sm whitespace-nowrap"
+                                    >
+                                        📥 Descargar
+                                    </a>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 )}
             </div>
