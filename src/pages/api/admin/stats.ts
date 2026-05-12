@@ -53,12 +53,12 @@ export const POST: APIRoute = async ({ request }) => {
     const totalFaltaPago = asistentesUnicos.filter(a => Number(a.monto_pagado) === 0).length;
     const totalInscritas = totalConfirmadas + totalFaltaPago;
 
-    const totalCompletadas = asistentesUnicos.filter(a => Number(a.monto_pagado) >= (Number(a.monto_total) || 130) || a.status_pago === 'completado').length;
-    const totalParciales = asistentesUnicos.filter(a => Number(a.monto_pagado) > 0 && Number(a.monto_pagado) < (Number(a.monto_total) || 130) && a.status_pago !== 'completado').length;
+    const totalCompletadas = asistentesUnicos.filter(a => Number(a.monto_pagado) >= (Number(a.monto_total) || 150) || a.status_pago === 'completado').length;
+    const totalParciales = asistentesUnicos.filter(a => Number(a.monto_pagado) > 0 && Number(a.monto_pagado) < (Number(a.monto_total) || 150) && a.status_pago !== 'completado').length;
 
     // Calcular en base a únicos
     const totalVentas = asistentesUnicos.reduce((sum, a) => sum + (Number(a.monto_pagado) || 0), 0);
-    const totalEsperado = asistentesUnicos.reduce((sum, a) => sum + (Number(a.monto_total) || 130), 0);
+    const totalEsperado = asistentesUnicos.reduce((sum, a) => sum + (Number(a.monto_total) || 150), 0);
     const totalPendiente = totalEsperado - totalVentas;
     
     // Devolvemos todos (sin duplicados irrelevantes) para el array general
@@ -131,7 +131,7 @@ export const POST: APIRoute = async ({ request }) => {
         nombre: a.nombre_completo,
         whatsapp: a.whatsapp,
         monto_pagado: Number(a.monto_pagado) || 0,
-        monto_total: Number(a.monto_total) || 130,
+        monto_total: Number(a.monto_total) || 150,
         status_pago: a.status_pago,
         es_brave: a.es_brave,
         metodo_pago: a.metodo_pago,

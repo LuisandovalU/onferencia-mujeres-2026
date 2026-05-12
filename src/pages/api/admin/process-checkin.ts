@@ -94,7 +94,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     if (asistente.status_pago !== 'completado') {
-      const deuda = (asistente.monto_total || 130) - (asistente.monto_pagado || 0);
+      const deuda = (asistente.monto_total || 150) - (asistente.monto_pagado || 0);
       return new Response(JSON.stringify({ 
         message: `PAGO PENDIENTE - ${asistente.nombre_completo} debe $${deuda}`,
         type: 'error',
