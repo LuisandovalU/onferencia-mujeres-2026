@@ -11,10 +11,13 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(JSON.stringify({ error: 'Ingresa un dato para buscar' }), { status: 400 });
     }
 
+    // Normalizar: quitar espacios y convertir a minúsculas para búsqueda case-insensitive
+    const searchValue = emailOrWhatsapp.trim().toLowerCase();
+
     const query = supabase
       .from('asistentes')
       .select('id, nombre_completo, status_pago, folio, stripe_session_id')
-      .or(`email.eq.${emailOrWhatsapp},whatsapp.eq.${emailOrWhatsapp}`)
+      .or(`email.ilike.${searchValue},whatsapp.ilike.${searchValue}`)
       .eq('status_pago', 'completado')
       .order('created_at', { ascending: false });
 

@@ -14,7 +14,7 @@ export default function TicketRecovery() {
             const resp = await fetch('/api/find-ticket', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ emailOrWhatsapp })
+                body: JSON.stringify({ emailOrWhatsapp: emailOrWhatsapp.trim() })
             });
             const data = await resp.json();
             if (resp.ok) {
