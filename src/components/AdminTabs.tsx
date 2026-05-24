@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BarChart3, QrCode, ClipboardList, LogOut, Users } from 'lucide-react';
+import { BarChart3, QrCode, ClipboardList, LogOut, Users, Activity } from 'lucide-react';
 
 interface Tab {
   id: string;
@@ -20,6 +20,7 @@ export default function AdminTabs() {
     { id: 'attendees', label: 'Asistentes', href: '/admin/asistentes', icon: <Users size={18} /> },
     { id: 'checkin', label: 'Escáner QR', href: '/admin/checkin', icon: <QrCode size={18} /> },
     { id: 'manual', label: 'Registro Manual', href: '/admin/registro-manual', icon: <ClipboardList size={18} /> },
+    { id: 'monitor', label: 'Monitor Brave', href: '/admin/monitor-brave', icon: <Activity size={18} /> },
   ];
 
   const handleLogout = () => {

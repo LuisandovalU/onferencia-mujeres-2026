@@ -34,7 +34,7 @@ const handleRequest = async (request: Request) => {
     // 2. Consulta a Supabase pidiendo SOLO los campos requeridos
     const { data, error } = await supabase
       .from('asistentes')
-      .select('id, nombre_completo, folio, whatsapp, stripe_session_id, asistio, status_pago, monto_total, monto_pagado, es_brave')
+      .select('id, nombre_completo, folio, whatsapp, stripe_session_id, asistio, status_pago, monto_total, monto_pagado, es_brave, fecha_checkin')
       .order('folio', { ascending: true });
 
     if (error) {
