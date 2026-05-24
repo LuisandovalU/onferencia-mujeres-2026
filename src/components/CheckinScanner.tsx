@@ -88,8 +88,53 @@ export default function CheckinScanner() {
     const foundAttendee = attendeeIndex !== -1 ? localAttendees[attendeeIndex] : null;
 
     if (!foundAttendee) {
-      setStatusText('Boleto NO encontrado en caché');
-      setColorState('red');
+      // 🔄 No está en caché → intentar directamente contra la API/Supabase
+      if (!password) {
+        setStatusText('Sin caché y sin sesión admin');
+        setColorState('red');
+        setTimeout(() => { setScanResult(null); setStatusText('Esperando Boleto...'); setColorState('gray'); setScanning(true); }, 3000);
+        return;
+      }
+
+      setStatusText('Buscando en base de datos...');
+      setColorState('gray');
+
+      fetch('/api/admin/process-checkin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rawText: searchText, password })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setStatusText('¡BIENVENIDA!');
+            setColorState('green');
+            // Agregar al caché local para futuros escaneos
+            if (data.asistente) {
+              const updated = [...localAttendees, { ...data.asistente, asistio: true }];
+              setLocalAttendees(updated);
+              localStorage.setItem('offline_attendees', JSON.stringify(updated));
+            }
+          } else if (data.type === 'warning') {
+            setStatusText('YA ESCANEADO');
+            setColorState('orange');
+          } else if (data.type === 'error') {
+            setStatusText('DEUDA PENDIENTE');
+            setColorState('red');
+          } else {
+            setStatusText('NO ENCONTRADO EN DB');
+            setColorState('red');
+          }
+        })
+        .catch(() => {
+          setStatusText('Sin conexión y sin caché');
+          setColorState('red');
+        })
+        .finally(() => {
+          setTimeout(() => { setScanResult(null); setStatusText('Esperando Boleto...'); setColorState('gray'); setScanning(true); }, 3000);
+        });
+
+      return; // Salir aquí, el timeout lo maneja el .finally()
     } else if (foundAttendee.status_pago !== 'completado') {
       setStatusText('DEUDA PENDIENTE');
       setColorState('red');
