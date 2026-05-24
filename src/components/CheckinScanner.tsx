@@ -60,12 +60,28 @@ export default function CheckinScanner() {
     setColorState('gray');
 
     const password = sessionStorage.getItem('admin_password');
-    const lowercaseQuery = rawText.toLowerCase();
+
+    // 🔑 Extraer el ID real si el QR contiene una URL completa
+    // Los boletos generados codifican: https://conferencia.icimexico.org/admin/checkin?id=<UUID>
+    let searchText = rawText;
+    try {
+      if (rawText.startsWith('http://') || rawText.startsWith('https://')) {
+        const url = new URL(rawText);
+        const idParam = url.searchParams.get('id');
+        if (idParam) {
+          searchText = idParam; // Usar solo el UUID/ID extraído
+        }
+      }
+    } catch (_) {
+      // No es una URL válida, usar rawText tal cual
+    }
+
+    const lowercaseQuery = searchText.toLowerCase();
     const attendeeIndex = localAttendees.findIndex(a =>
-      a.id === rawText ||
-      String(a.folio) === rawText ||
-      a.whatsapp === rawText ||
-      a.stripe_session_id === rawText ||
+      a.id === searchText ||
+      String(a.folio) === searchText ||
+      a.whatsapp === searchText ||
+      a.stripe_session_id === searchText ||
       (a.nombre_completo && a.nombre_completo.toLowerCase().includes(lowercaseQuery))
     );
 
@@ -93,7 +109,7 @@ export default function CheckinScanner() {
       fetch('/api/admin/process-checkin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rawText, password })
+        body: JSON.stringify({ rawText: searchText, password })
       }).catch(err => {
         console.warn('Fallo de red en process-checkin (segundo plano).', err);
       });
