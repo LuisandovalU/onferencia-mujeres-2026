@@ -6,56 +6,111 @@ export default function CheckinScanner() {
   const [statusText, setStatusText] = useState('Apuntando cámara...');
   const [colorState, setColorState] = useState<'gray' | 'green' | 'orange' | 'red'>('gray');
   const [scanning, setScanning] = useState(true);
+  
+  const [localAttendees, setLocalAttendees] = useState<any[]>([]);
+  const [syncing, setSyncing] = useState(false);
 
-  const procesarBoleto = async (scannedText: string) => {
+  useEffect(() => {
+    const stored = localStorage.getItem('offline_attendees');
+    if (stored) {
+      try {
+        setLocalAttendees(JSON.parse(stored));
+      } catch (e) {
+        console.error('Error parsing offline_attendees', e);
+      }
+    }
+  }, []);
+
+  const syncDatabase = async () => {
+    const password = sessionStorage.getItem('admin_password');
+    if (!password) {
+      alert('No hay contraseña de administrador guardada en sesión.');
+      return;
+    }
+
+    setSyncing(true);
+    try {
+      const res = await fetch('/api/admin/get-all-attendees', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || 'Error al descargar datos');
+      }
+
+      setLocalAttendees(data);
+      localStorage.setItem('offline_attendees', JSON.stringify(data));
+      alert(`¡Sincronización exitosa! Se cargaron ${data.length} asistentes.`);
+    } catch (err: any) {
+      alert('Error sincronizando: ' + err.message);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const procesarBoleto = (scannedText: string) => {
     const rawText = scannedText.trim();
     if (!rawText) return;
 
-    const password = sessionStorage.getItem('admin_password'); // Necesario para el API de check-in
-
     setScanning(false);
     setScanResult(rawText);
-    setStatusText('Verificando con el Servidor...');
+    setStatusText('Verificando...');
     setColorState('gray');
 
-    try {
-      // Llamamos al nuevo API seguro en lugar de consultar Supabase directamente
-      const resp = await fetch('/api/admin/process-checkin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rawText, password }) // Enviamos password para autorizar
-      });
+    const password = sessionStorage.getItem('admin_password');
 
-      const data = await resp.json();
+    // Buscar en datos locales
+    const lowercaseQuery = rawText.toLowerCase();
+    const attendeeIndex = localAttendees.findIndex(a => 
+      a.id === rawText || 
+      String(a.folio) === rawText || 
+      a.whatsapp === rawText || 
+      a.stripe_session_id === rawText ||
+      (a.nombre_completo && a.nombre_completo.toLowerCase().includes(lowercaseQuery))
+    );
 
-      if (!resp.ok) {
-        throw new Error(data.error || 'Error desconocido');
-      }
+    const foundAttendee = attendeeIndex !== -1 ? localAttendees[attendeeIndex] : null;
 
-      // 3. Manejar Respuestas de Éxito o Advertencia
-      if (data.success) {
-        setStatusText(data.message);
-        setColorState('green');
-      } else if (data.type === 'warning') {
-        setStatusText(data.message);
-        setColorState('red');
-      } else if (data.type === 'error') {
-        setStatusText(data.message);
-        setColorState('orange');
-      }
-
-    } catch (err: any) {
-      console.error('❌ Error escaneo:', err.message);
-      setStatusText(err.message);
+    if (!foundAttendee) {
+      setStatusText('Boleto NO encontrado en caché');
       setColorState('red');
-    } finally {
-      setTimeout(() => {
-        setScanResult(null);
-        setStatusText('Esperando Boleto...');
-        setColorState('gray');
-        setScanning(true);
-      }, 4000);
+    } else {
+      if (foundAttendee.status_pago !== 'completado') {
+        setStatusText('DEUDA PENDIENTE');
+        setColorState('red');
+      } else if (foundAttendee.asistio) {
+        setStatusText('YA ESCANEADO');
+        setColorState('orange');
+      } else {
+        setStatusText('¡BIENVENIDA!');
+        setColorState('green');
+
+        // Actualizar estado local y localStorage inmediatamente
+        const updatedAttendees = [...localAttendees];
+        updatedAttendees[attendeeIndex] = { ...foundAttendee, asistio: true };
+        setLocalAttendees(updatedAttendees);
+        localStorage.setItem('offline_attendees', JSON.stringify(updatedAttendees));
+
+        // Lanzar fetch en segundo plano
+        fetch('/api/admin/process-checkin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rawText, password })
+        }).catch(err => {
+          console.warn('Fallo de red en process-checkin (segundo plano).', err);
+        });
+      }
     }
+
+    setTimeout(() => {
+      setScanResult(null);
+      setStatusText('Esperando Boleto...');
+      setColorState('gray');
+      setScanning(true);
+    }, 3000);
   };
 
   const colorClasses = {
@@ -74,8 +129,17 @@ export default function CheckinScanner() {
 
   return (
       <div className={`w-full transition-all duration-700 flex flex-col items-center justify-start min-h-[60vh] pb-20`}>
-      {/* Indicador de Estado Flotante Refinado */}
       <div className="w-full max-w-lg mx-auto p-4 flex flex-col items-center relative z-10">
+        
+        {/* Botón de Sincronización Discreto */}
+        <button 
+          onClick={syncDatabase}
+          disabled={syncing}
+          className="mb-4 text-[10px] text-emerald-500/50 hover:text-emerald-400 font-bold uppercase tracking-[0.2em] border border-emerald-500/20 px-4 py-2 rounded-full transition-all disabled:opacity-50"
+        >
+          {syncing ? 'Sincronizando...' : 'Sincronizar Base de Datos (Requiere Internet)'}
+        </button>
+
         <div className={`w-full p-4 md:p-6 rounded-2xl mb-8 text-center font-black text-lg md:text-xl transition-all duration-500 border-2 uppercase tracking-tight leading-none ${colorClasses[colorState]}`}>
           {statusText}
         </div>

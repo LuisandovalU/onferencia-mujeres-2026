@@ -1,0 +1,10 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import LiveCheckinFeed from '../../components/admin/LiveCheckinFeed.tsx';
+---
+
+<AdminLayout title="Monitor Brave — Ingreso en Tiempo Real">
+  <div class="flex-1 flex flex-col items-center pt-8">
+    <LiveCheckinFeed client:only="react" />
+  </div>
+</AdminLayout>
