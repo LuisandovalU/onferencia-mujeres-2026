@@ -25,7 +25,7 @@ export default function FloatingActionButton() {
 
   const handleClick = useCallback(() => {
     window.dispatchEvent(
-      new CustomEvent('open-inscription-modal', { detail: { conferencia: null } })
+      new CustomEvent('open-inscription-modal', { detail: { conferencia: 'valiente' } })
     );
   }, []);
 

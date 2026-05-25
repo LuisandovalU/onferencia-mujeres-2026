@@ -17,7 +17,8 @@ const DATA = {
     location: 'Gran Salón del Valle',
     target: 'Universitarias • Emprendedoras • Profesionales',
     color: '#ebf2d5',
-    themeColor: '#A8C480'
+    themeColor: '#A8C480',
+    ended: true
   },
   valiente: {
     id: 'valiente',
@@ -27,7 +28,8 @@ const DATA = {
     location: 'Gran Salón del Valle',
     target: 'Madres • Casadas • Mujeres +35',
     color: '#e6dfd3',
-    themeColor: '#D89982'
+    themeColor: '#D89982',
+    ended: false
   }
 };
 
@@ -73,6 +75,8 @@ const ConferenceChoiceCard = memo(() => {
   }, []);
 
   const openModal = useCallback((conf: 'brave' | 'valiente') => {
+    // Solo permitir inscripción a Valiente (Brave ya pasó)
+    if (conf === 'brave') return;
     window.dispatchEvent(
       new CustomEvent('open-inscription-modal', { detail: { conferencia: conf } })
     );
@@ -236,13 +240,21 @@ const ConferenceChoiceCard = memo(() => {
                   </div>
                 </div>
                 
-                <button 
-                  onClick={() => openModal(activeItem)}
-                  className="hidden md:inline-flex group relative overflow-hidden bg-white text-black px-12 py-5 rounded-full font-black uppercase tracking-widest text-sm hover:scale-105 transition-all duration-500 shadow-[0_20px_50px_-10px_rgba(255,255,255,0.3)] w-max transform-gpu"
-                >
-                  <span className="relative z-10 transition-colors duration-500 group-hover:text-black">Apartar mi lugar</span>
-                  <div style={{ backgroundColor: activeData.themeColor }} className="absolute inset-0 transform scale-x-0 origin-left group-hover:scale-x-100 transition-all duration-500 ease-[0.16,1,0.3,1] z-0"></div>
-                </button>
+                {/* Botón: Solo visible para Valiente. Para Brave muestra badge "Ya pasó" */}
+                {activeData.ended ? (
+                  <div className="hidden md:inline-flex items-center gap-2 bg-white/10 text-white/60 px-8 py-4 rounded-full font-black uppercase tracking-widest text-sm w-max border border-white/10">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                    <span>Este evento ya pasó</span>
+                  </div>
+                ) : (
+                  <button 
+                    onClick={() => openModal(activeItem)}
+                    className="hidden md:inline-flex group relative overflow-hidden bg-white text-black px-12 py-5 rounded-full font-black uppercase tracking-widest text-sm hover:scale-105 transition-all duration-500 shadow-[0_20px_50px_-10px_rgba(255,255,255,0.3)] w-max transform-gpu"
+                  >
+                    <span className="relative z-10 transition-colors duration-500 group-hover:text-black">Apartar mi lugar</span>
+                    <div style={{ backgroundColor: activeData.themeColor }} className="absolute inset-0 transform scale-x-0 origin-left group-hover:scale-x-100 transition-all duration-500 ease-[0.16,1,0.3,1] z-0"></div>
+                  </button>
+                )}
               </motion.div>
             )}
           </AnimatePresence>

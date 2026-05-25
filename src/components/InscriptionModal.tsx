@@ -39,7 +39,7 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
   
   // Estados del Formulario
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
-  const [etapa, setEtapa] = useState("");
+  const [etapa, setEtapa] = useState("valiente");
   const [nombre, setNombre] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [esCasa, setEsCasa] = useState("no");
@@ -56,7 +56,7 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
   const open = propOpen !== undefined ? propOpen : internalOpen;
 
   const resetToForm = useCallback(() => {
-    setEtapa("");
+    setEtapa("valiente");
     setNombre("");
     setWhatsapp("");
     setStep(1);
@@ -259,17 +259,10 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
                   <label htmlFor="etapa" className="block font-body text-sm font-medium text-neutral-800">
                     ¿En qué etapa te encuentras?
                   </label>
-                  <select
-                    id="etapa"
-                    required
-                    value={etapa}
-                    onChange={(e) => setEtapa(e.target.value)}
-                    className="mt-2 w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 font-body text-neutral-900 outline-none focus:border-forest focus:ring-2 focus:ring-forest/25"
-                  >
-                    <option value="">Selecciona una opción</option>
-                    <option value="brave">Universitaria / Joven Profesional (Brave)</option>
-                    <option value="valiente">Madre / Casada / +35 (Valiente)</option>
-                  </select>
+                  <div className="mt-2 w-full rounded-xl border border-neutral-300 bg-neutral-50 px-4 py-3 font-body text-neutral-900">
+                    Madre / Casada / +35 (Valiente)
+                  </div>
+                  <input type="hidden" name="etapa" value="valiente" />
                 </div>
                 <div>
                   <label htmlFor="nombre" className="block font-body text-sm font-medium text-neutral-800">
