@@ -195,6 +195,8 @@ export default function AdminDashboard() {
   const [selectedEvent, setSelectedEvent] = useState<'Brave' | 'Valiente' | null>(null);
   const [searchAttended, setSearchAttended] = useState('');
   const [searchPending, setSearchPending] = useState('');
+  const [filterAttended, setFilterAttended] = useState<'all' | 'casa' | 'visita'>('all');
+  const [filterPending, setFilterPending] = useState<'all' | 'casa' | 'visita'>('all');
 
   // Helper para el Flujo de Entrada (Bloques de 30 mins)
   const calculateFlowChart = (attendees: AsistenteRaw[]) => {
@@ -253,8 +255,16 @@ export default function AdminDashboard() {
       casaCount: casaCount,
       visitaCount: visitaCount,
       flowData,
-      attendedList: attended.filter(a => a.nombre.toLowerCase().includes(searchAttended.toLowerCase()) || a.whatsapp.includes(searchAttended)),
-      pendingList: pending.filter(a => a.nombre.toLowerCase().includes(searchPending.toLowerCase()) || a.whatsapp.includes(searchPending))
+      attendedList: attended.filter(a => {
+        const matchesSearch = a.nombre.toLowerCase().includes(searchAttended.toLowerCase()) || a.whatsapp.includes(searchAttended);
+        const matchesFilter = filterAttended === 'all' || (filterAttended === 'casa' && a.es_casa) || (filterAttended === 'visita' && !a.es_casa);
+        return matchesSearch && matchesFilter;
+      }),
+      pendingList: pending.filter(a => {
+        const matchesSearch = a.nombre.toLowerCase().includes(searchPending.toLowerCase()) || a.whatsapp.includes(searchPending);
+        const matchesFilter = filterPending === 'all' || (filterPending === 'casa' && a.es_casa) || (filterPending === 'visita' && !a.es_casa);
+        return matchesSearch && matchesFilter;
+      })
     };
   };
 
@@ -508,12 +518,29 @@ export default function AdminDashboard() {
                               <h4 className="text-xs font-black uppercase tracking-widest text-white">Asistencia Confirmada</h4>
                               <p className="text-[10px] text-brave-light-soft/50 font-bold uppercase mt-1">Registradas con Check-in ({attendedList.length})</p>
                             </div>
+                            
+                            {/* Filtros Casa/Visita */}
+                            <div className="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/5 mx-auto lg:mx-0">
+                              <button 
+                                onClick={() => setFilterAttended('all')}
+                                className={`text-[9px] px-3 py-1.5 rounded-lg font-black uppercase tracking-widest transition-all ${filterAttended === 'all' ? 'bg-white/10 text-white' : 'text-brave-light-soft/50 hover:text-white'}`}
+                              >Todos</button>
+                              <button 
+                                onClick={() => setFilterAttended('casa')}
+                                className={`text-[9px] px-3 py-1.5 rounded-lg font-black uppercase tracking-widest transition-all ${filterAttended === 'casa' ? 'bg-emerald-500/20 text-emerald-400' : 'text-brave-light-soft/50 hover:text-white'}`}
+                              >Casa</button>
+                              <button 
+                                onClick={() => setFilterAttended('visita')}
+                                className={`text-[9px] px-3 py-1.5 rounded-lg font-black uppercase tracking-widest transition-all ${filterAttended === 'visita' ? 'bg-white/10 text-white' : 'text-brave-light-soft/50 hover:text-white'}`}
+                              >Visita</button>
+                            </div>
+
                             <input
                               type="text"
-                              placeholder="Buscar por nombre..."
+                              placeholder="Buscar..."
                               value={searchAttended}
                               onChange={(e) => setSearchAttended(e.target.value)}
-                              className="bg-white/5 border border-white/10 text-xs rounded-xl px-3 py-1.5 text-white placeholder-brave-light-soft/30 focus:outline-none focus:border-brave-light-soft/30 transition-all max-w-[200px]"
+                              className="bg-white/5 border border-white/10 text-xs rounded-xl px-3 py-1.5 text-white placeholder-brave-light-soft/30 focus:outline-none focus:border-brave-light-soft/30 transition-all w-full sm:w-[150px]"
                             />
                           </div>
                           
@@ -553,14 +580,31 @@ export default function AdminDashboard() {
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                             <div>
                               <h4 className="text-xs font-black uppercase tracking-widest text-white">Seguimiento Pendiente</h4>
-                              <p className="text-[10px] text-brave-light-soft/50 font-bold uppercase mt-1">Registradas que no realizaron check-in ({pendingList.length})</p>
+                              <p className="text-[10px] text-brave-light-soft/50 font-bold uppercase mt-1">Sin check-in ({pendingList.length})</p>
                             </div>
+                            
+                            {/* Filtros Casa/Visita */}
+                            <div className="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/5 mx-auto lg:mx-0">
+                              <button 
+                                onClick={() => setFilterPending('all')}
+                                className={`text-[9px] px-3 py-1.5 rounded-lg font-black uppercase tracking-widest transition-all ${filterPending === 'all' ? 'bg-white/10 text-white' : 'text-brave-light-soft/50 hover:text-white'}`}
+                              >Todos</button>
+                              <button 
+                                onClick={() => setFilterPending('casa')}
+                                className={`text-[9px] px-3 py-1.5 rounded-lg font-black uppercase tracking-widest transition-all ${filterPending === 'casa' ? 'bg-emerald-500/20 text-emerald-400' : 'text-brave-light-soft/50 hover:text-white'}`}
+                              >Casa</button>
+                              <button 
+                                onClick={() => setFilterPending('visita')}
+                                className={`text-[9px] px-3 py-1.5 rounded-lg font-black uppercase tracking-widest transition-all ${filterPending === 'visita' ? 'bg-white/10 text-white' : 'text-brave-light-soft/50 hover:text-white'}`}
+                              >Visita</button>
+                            </div>
+
                             <input
                               type="text"
-                              placeholder="Buscar por nombre..."
+                              placeholder="Buscar..."
                               value={searchPending}
                               onChange={(e) => setSearchPending(e.target.value)}
-                              className="bg-white/5 border border-white/10 text-xs rounded-xl px-3 py-1.5 text-white placeholder-brave-light-soft/30 focus:outline-none focus:border-brave-light-soft/30 transition-all max-w-[200px]"
+                              className="bg-white/5 border border-white/10 text-xs rounded-xl px-3 py-1.5 text-white placeholder-brave-light-soft/30 focus:outline-none focus:border-brave-light-soft/30 transition-all w-full sm:w-[150px]"
                             />
                           </div>
 
