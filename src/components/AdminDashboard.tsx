@@ -328,7 +328,7 @@ export default function AdminDashboard() {
 
   return (
     <AdminMasterGuard>
-      <div className="w-full max-w-7xl mx-auto pb-32">
+      <div className="w-full max-w-7xl mx-auto pb-48 md:pb-32">
         {svgFilters}
         <DashboardFilters filters={filters} setFilters={setFilters} />
 
@@ -656,23 +656,25 @@ export default function AdminDashboard() {
                       <p className="text-[10px] text-brave-light-soft/50 font-bold uppercase">Efectivo vs. Stripe</p>
                     </div>
                   </div>
-                  <div className="h-64 flex flex-col md:flex-row items-center">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={stats.paymentMethods}
-                          innerRadius={60}
-                          outerRadius={80}
-                          paddingAngle={10}
-                          dataKey="value"
-                          animationDuration={1500}
-                        >
-                          <Cell fill="#C4CF9A" />
-                          <Cell fill="#d4af37" />
-                        </Pie>
-                        <Tooltip content={<CustomTooltip />} />
-                      </PieChart>
-                    </ResponsiveContainer>
+                  <div className="h-auto flex flex-col md:flex-row items-center gap-6 md:gap-0">
+                    <div className="w-full h-48 md:h-64 flex-1">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={stats.paymentMethods}
+                            innerRadius={60}
+                            outerRadius={80}
+                            paddingAngle={10}
+                            dataKey="value"
+                            animationDuration={1500}
+                          >
+                            <Cell fill="#C4CF9A" />
+                            <Cell fill="#d4af37" />
+                          </Pie>
+                          <Tooltip content={<CustomTooltip />} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
                     <div className="w-full md:w-48 space-y-4">
                       {stats.paymentMethods.map((item, idx) => (
                         <div key={item.name} className="flex justify-between items-center p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
@@ -697,23 +699,25 @@ export default function AdminDashboard() {
                       <p className="text-[10px] text-brave-light-soft/50 font-bold uppercase tracking-widest">Casa vs Visitas</p>
                     </div>
                   </div>
-                  <div className="h-64 flex flex-col md:flex-row items-center">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={stats.originStats}
-                          innerRadius={60}
-                          outerRadius={80}
-                          paddingAngle={10}
-                          dataKey="value"
-                          animationDuration={1500}
-                        >
-                          <Cell fill="#10b981" />
-                          <Cell fill="#ffffff20" />
-                        </Pie>
-                        <Tooltip content={<CustomTooltip />} />
-                      </PieChart>
-                    </ResponsiveContainer>
+                  <div className="h-auto flex flex-col md:flex-row items-center gap-6 md:gap-0">
+                    <div className="w-full h-48 md:h-64 flex-1">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={stats.originStats}
+                            innerRadius={60}
+                            outerRadius={80}
+                            paddingAngle={10}
+                            dataKey="value"
+                            animationDuration={1500}
+                          >
+                            <Cell fill="#10b981" />
+                            <Cell fill="#ffffff20" />
+                          </Pie>
+                          <Tooltip content={<CustomTooltip />} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
                     <div className="w-full md:w-48 space-y-4">
                       {stats.originStats.map((item, idx) => (
                         <div key={item.name} className="flex justify-between items-center p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
