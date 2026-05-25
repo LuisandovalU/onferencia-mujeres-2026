@@ -196,34 +196,37 @@ export default function AdminDashboard() {
   const [searchAttended, setSearchAttended] = useState('');
   const [searchPending, setSearchPending] = useState('');
 
-  // Helper para la Hora Pico
-  const calculatePeakTime = (attendees: AsistenteRaw[]) => {
-    const blocks: Record<string, number> = {};
+  // Helper para el Flujo de Entrada (Bloques de 30 mins)
+  const calculateFlowChart = (attendees: AsistenteRaw[]) => {
+    let beforeFive = 0; // "4:30 PM" (Todo antes de las 17:00)
+    let fiveToFiveThirty = 0; // "5:00 PM" (17:00 a 17:29)
+    let afterFiveThirty = 0; // "Después de 5:30" (17:30 en adelante)
+
     attendees.forEach(a => {
       if (a.asistio && a.fecha_checkin) {
         try {
           const date = new Date(a.fecha_checkin);
           let hours = date.getHours();
           let minutes = date.getMinutes();
-          // Redondear a bloques de 30 mins
-          const blockMin = minutes >= 30 ? '30' : '00';
-          const blockStr = `${hours.toString().padStart(2, '0')}:${blockMin}`;
-          blocks[blockStr] = (blocks[blockStr] || 0) + 1;
+          
+          if (hours < 17) {
+            beforeFive++;
+          } else if (hours === 17 && minutes < 30) {
+            fiveToFiveThirty++;
+          } else {
+            afterFiveThirty++;
+          }
         } catch (e) {
           // ignore invalid dates
         }
       }
     });
     
-    let peakBlock = '--:--';
-    let maxCount = 0;
-    Object.entries(blocks).forEach(([block, count]) => {
-      if (count > maxCount) {
-        maxCount = count;
-        peakBlock = block;
-      }
-    });
-    return peakBlock !== '--:--' ? peakBlock : 'N/A';
+    return [
+      { time: '4:30 PM', count: beforeFive },
+      { time: '5:00 PM', count: fiveToFiveThirty },
+      { time: 'Después de 5:30', count: afterFiveThirty }
+    ];
   };
 
   const getEventSpecificStats = (eventName: 'Brave' | 'Valiente') => {
@@ -240,7 +243,7 @@ export default function AdminDashboard() {
     const casaCount = eventAttendees.filter(a => a.es_casa).length;
     const visitaCount = eventAttendees.length - casaCount;
 
-    const peakTime = calculatePeakTime(eventAttendees);
+    const flowData = calculateFlowChart(eventAttendees);
 
     return {
       attendedCount: attended.length,
@@ -249,7 +252,7 @@ export default function AdminDashboard() {
       efectivoCount: efectivo,
       casaCount: casaCount,
       visitaCount: visitaCount,
-      peakTime,
+      flowData,
       attendedList: attended.filter(a => a.nombre.toLowerCase().includes(searchAttended.toLowerCase()) || a.whatsapp.includes(searchAttended)),
       pendingList: pending.filter(a => a.nombre.toLowerCase().includes(searchPending.toLowerCase()) || a.whatsapp.includes(searchPending))
     };
@@ -415,7 +418,7 @@ export default function AdminDashboard() {
                 {selectedEvent === 'Brave' && (() => {
                   const data = getEventSpecificStats('Brave');
                   if (!data) return null;
-                  const { attendedCount, pendingCount, digitalCount, efectivoCount, casaCount, visitaCount, peakTime, attendedList, pendingList } = data;
+                  const { attendedCount, pendingCount, digitalCount, efectivoCount, casaCount, visitaCount, flowData, attendedList, pendingList } = data;
 
                   return (
                     <motion.div
@@ -426,7 +429,7 @@ export default function AdminDashboard() {
                       className="space-y-8 mb-12 overflow-hidden"
                     >
                       {/* Metricas Brave */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div className="glass-card p-6 rounded-[2rem] border border-white/10 bg-white/5 relative overflow-hidden group hover:bg-white/10 transition-colors">
                           <div className="flex items-center gap-3 mb-2">
                             <UserCheck className="text-[#d4af37]" size={20} />
@@ -459,16 +462,40 @@ export default function AdminDashboard() {
                             <span className="text-[10px] text-brave-light-soft/50 font-bold uppercase">vs {visitaCount} Visitas</span>
                           </div>
                         </div>
+                      </div>
 
-                        <div className="glass-card p-6 rounded-[2rem] border border-white/10 bg-white/5 relative overflow-hidden group hover:bg-white/10 transition-colors">
-                          <div className="flex items-center gap-3 mb-2">
-                            <Activity className="text-rose-400" size={20} />
-                            <h4 className="text-[10px] font-black uppercase tracking-widest text-brave-light-soft/70">Hora Pico</h4>
+                      {/* Flujo de Asistencia Chart */}
+                      <div className="glass-card p-8 rounded-[3rem] border border-white/10 bg-white/5">
+                        <div className="flex items-center gap-3 mb-6">
+                          <Activity className="text-rose-400" size={20} />
+                          <div>
+                            <h4 className="text-xs font-black uppercase tracking-widest text-white">Afluencia de Asistencia</h4>
+                            <p className="text-[10px] text-brave-light-soft/50 font-bold uppercase">Frecuencia de Check-ins en horarios clave</p>
                           </div>
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-3xl font-black text-white">{peakTime}</span>
-                            <span className="text-[10px] text-brave-light-soft/50 font-bold uppercase">Mayor flujo</span>
-                          </div>
+                        </div>
+                        <div className="h-48 w-full">
+                          {flowData && flowData.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                              <BarChart data={flowData}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                                <XAxis 
+                                  dataKey="time" 
+                                  stroke="#ffffff20" 
+                                  fontSize={10} 
+                                  tickLine={false} 
+                                  axisLine={false}
+                                  tick={{ fill: '#71717a' }}
+                                />
+                                <YAxis hide />
+                                <Tooltip content={<CustomTooltip />} cursor={{ fill: '#ffffff05' }} />
+                                <Bar dataKey="count" fill="#d4af37" radius={[10, 10, 0, 0]} barSize={40} animationDuration={1500} />
+                              </BarChart>
+                            </ResponsiveContainer>
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <p className="text-xs text-brave-light-soft/30 font-black uppercase tracking-widest">Aún no hay datos de Check-in</p>
+                            </div>
+                          )}
                         </div>
                       </div>
 
