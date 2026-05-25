@@ -7,7 +7,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   TrendingUp, Users, DollarSign, Target, 
   ArrowUpRight, Activity, PieChart as PieIcon,
-  CreditCard, Home, UserPlus, UserCheck, UserMinus
+  CreditCard, Home, UserPlus, UserCheck, UserMinus,
+  MessageCircle, UserX, Banknote, Clock
 } from 'lucide-react';
 import DashboardFilters from './DashboardFilters';
 import AnimatedCounter from './AnimatedCounter';
@@ -41,6 +42,23 @@ interface SparklineData {
   count: number;
 }
 
+interface AsistenteRaw {
+  id: string;
+  nombre: string;
+  whatsapp: string;
+  monto_pagado: number;
+  monto_total: number;
+  status_pago: string;
+  es_brave: boolean;
+  metodo_pago: string;
+  stripe_session_id?: string;
+  folio?: string;
+  created_at: string;
+  asistio: boolean;
+  fecha_checkin?: string;
+  es_casa: boolean;
+}
+
 interface StatsResponse {
   kpis: KPIData;
   distribution: DistributionData[];
@@ -48,6 +66,7 @@ interface StatsResponse {
   originStats: DistributionData[];
   hypeChart: ChartData[];
   sparkline: SparklineData[];
+  asistentes: AsistenteRaw[];
 }
 
 // --- Animation Variants ---
@@ -173,6 +192,69 @@ export default function AdminDashboard() {
     type: 'all'
   });
 
+  const [selectedEvent, setSelectedEvent] = useState<'Brave' | 'Valiente' | null>(null);
+  const [searchAttended, setSearchAttended] = useState('');
+  const [searchPending, setSearchPending] = useState('');
+
+  // Helper para la Hora Pico
+  const calculatePeakTime = (attendees: AsistenteRaw[]) => {
+    const blocks: Record<string, number> = {};
+    attendees.forEach(a => {
+      if (a.asistio && a.fecha_checkin) {
+        try {
+          const date = new Date(a.fecha_checkin);
+          let hours = date.getHours();
+          let minutes = date.getMinutes();
+          // Redondear a bloques de 30 mins
+          const blockMin = minutes >= 30 ? '30' : '00';
+          const blockStr = `${hours.toString().padStart(2, '0')}:${blockMin}`;
+          blocks[blockStr] = (blocks[blockStr] || 0) + 1;
+        } catch (e) {
+          // ignore invalid dates
+        }
+      }
+    });
+    
+    let peakBlock = '--:--';
+    let maxCount = 0;
+    Object.entries(blocks).forEach(([block, count]) => {
+      if (count > maxCount) {
+        maxCount = count;
+        peakBlock = block;
+      }
+    });
+    return peakBlock !== '--:--' ? peakBlock : 'N/A';
+  };
+
+  const getEventSpecificStats = (eventName: 'Brave' | 'Valiente') => {
+    if (!stats) return null;
+    const isBrave = eventName === 'Brave';
+    const eventAttendees = stats.asistentes.filter(a => a.es_brave === isBrave);
+
+    const attended = eventAttendees.filter(a => a.asistio);
+    const pending = eventAttendees.filter(a => !a.asistio);
+
+    const digital = eventAttendees.filter(a => (a.stripe_session_id && a.stripe_session_id.trim() !== '') || a.metodo_pago === 'transferencia').length;
+    const efectivo = eventAttendees.length - digital;
+
+    const casaCount = eventAttendees.filter(a => a.es_casa).length;
+    const visitaCount = eventAttendees.length - casaCount;
+
+    const peakTime = calculatePeakTime(eventAttendees);
+
+    return {
+      attendedCount: attended.length,
+      pendingCount: pending.length,
+      digitalCount: digital,
+      efectivoCount: efectivo,
+      casaCount: casaCount,
+      visitaCount: visitaCount,
+      peakTime,
+      attendedList: attended.filter(a => a.nombre.toLowerCase().includes(searchAttended.toLowerCase()) || a.whatsapp.includes(searchAttended)),
+      pendingList: pending.filter(a => a.nombre.toLowerCase().includes(searchPending.toLowerCase()) || a.whatsapp.includes(searchPending))
+    };
+  };
+
   const fetchStats = async () => {
     const password = sessionStorage.getItem('admin_password');
     if (!password) return;
@@ -288,6 +370,208 @@ export default function AdminDashboard() {
                   />
                 </motion.div>
               </div>
+
+              {/* Event Toggles */}
+              <div className="flex flex-col md:flex-row gap-4 justify-center items-center py-4">
+                <button
+                  onClick={() => setSelectedEvent(selectedEvent === 'Brave' ? null : 'Brave')}
+                  className={`px-8 py-3 rounded-full font-bold uppercase tracking-widest text-xs transition-all ${
+                    selectedEvent === 'Brave'
+                      ? 'bg-[#d4af37] text-black shadow-[0_0_20px_rgba(212,175,55,0.4)]'
+                      : 'bg-white/5 text-brave-light-soft hover:bg-white/10 border border-white/10'
+                  }`}
+                >
+                  Análisis Brave
+                </button>
+                <button
+                  onClick={() => setSelectedEvent(selectedEvent === 'Valiente' ? null : 'Valiente')}
+                  className={`px-8 py-3 rounded-full font-bold uppercase tracking-widest text-xs transition-all ${
+                    selectedEvent === 'Valiente'
+                      ? 'bg-[#C4CF9A] text-black shadow-[0_0_20px_rgba(196,207,154,0.4)]'
+                      : 'bg-white/5 text-[#C4CF9A] hover:bg-white/10 border border-white/10'
+                  }`}
+                >
+                  Análisis Valiente
+                </button>
+              </div>
+
+              <AnimatePresence mode="wait">
+                {selectedEvent === 'Valiente' && (
+                  <motion.div
+                    key="valiente-view"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="glass-card p-12 rounded-[3rem] border border-white/10 text-center mb-12">
+                      <Clock size={48} className="mx-auto text-brave-light-soft/50 mb-6" />
+                      <h3 className="text-xl font-black text-white uppercase tracking-widest mb-2">Evento por realizar</h3>
+                      <p className="text-sm text-brave-light-soft/70">Los datos de logística y check-in se reflejarán el día del evento.</p>
+                    </div>
+                  </motion.div>
+                )}
+
+                {selectedEvent === 'Brave' && (() => {
+                  const data = getEventSpecificStats('Brave');
+                  if (!data) return null;
+                  const { attendedCount, pendingCount, digitalCount, efectivoCount, casaCount, visitaCount, peakTime, attendedList, pendingList } = data;
+
+                  return (
+                    <motion.div
+                      key="brave-view"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="space-y-8 mb-12 overflow-hidden"
+                    >
+                      {/* Metricas Brave */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="glass-card p-6 rounded-[2rem] border border-white/10 bg-white/5 relative overflow-hidden group hover:bg-white/10 transition-colors">
+                          <div className="flex items-center gap-3 mb-2">
+                            <UserCheck className="text-[#d4af37]" size={20} />
+                            <h4 className="text-[10px] font-black uppercase tracking-widest text-brave-light-soft/70">Asistencia</h4>
+                          </div>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-3xl font-black text-white">{attendedCount}</span>
+                            <span className="text-[10px] text-brave-light-soft/50 font-bold uppercase">vs {pendingCount} Pendientes</span>
+                          </div>
+                        </div>
+
+                        <div className="glass-card p-6 rounded-[2rem] border border-white/10 bg-white/5 relative overflow-hidden group hover:bg-white/10 transition-colors">
+                          <div className="flex items-center gap-3 mb-2">
+                            <CreditCard className="text-[#C4CF9A]" size={20} />
+                            <h4 className="text-[10px] font-black uppercase tracking-widest text-brave-light-soft/70">Pagos Digitales</h4>
+                          </div>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-3xl font-black text-white">{digitalCount}</span>
+                            <span className="text-[10px] text-brave-light-soft/50 font-bold uppercase">vs {efectivoCount} Efectivo</span>
+                          </div>
+                        </div>
+
+                        <div className="glass-card p-6 rounded-[2rem] border border-white/10 bg-white/5 relative overflow-hidden group hover:bg-white/10 transition-colors">
+                          <div className="flex items-center gap-3 mb-2">
+                            <Home className="text-emerald-400" size={20} />
+                            <h4 className="text-[10px] font-black uppercase tracking-widest text-brave-light-soft/70">Alcance (Casa)</h4>
+                          </div>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-3xl font-black text-white">{casaCount}</span>
+                            <span className="text-[10px] text-brave-light-soft/50 font-bold uppercase">vs {visitaCount} Visitas</span>
+                          </div>
+                        </div>
+
+                        <div className="glass-card p-6 rounded-[2rem] border border-white/10 bg-white/5 relative overflow-hidden group hover:bg-white/10 transition-colors">
+                          <div className="flex items-center gap-3 mb-2">
+                            <Activity className="text-rose-400" size={20} />
+                            <h4 className="text-[10px] font-black uppercase tracking-widest text-brave-light-soft/70">Hora Pico</h4>
+                          </div>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-3xl font-black text-white">{peakTime}</span>
+                            <span className="text-[10px] text-brave-light-soft/50 font-bold uppercase">Mayor flujo</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Directorios de Seguimiento */}
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        {/* Columna Confirmados */}
+                        <div className="glass-card p-8 rounded-[3rem] border border-white/10 bg-white/5 flex flex-col">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                            <div>
+                              <h4 className="text-xs font-black uppercase tracking-widest text-white">Asistencia Confirmada</h4>
+                              <p className="text-[10px] text-brave-light-soft/50 font-bold uppercase mt-1">Registradas con Check-in ({attendedList.length})</p>
+                            </div>
+                            <input
+                              type="text"
+                              placeholder="Buscar por nombre..."
+                              value={searchAttended}
+                              onChange={(e) => setSearchAttended(e.target.value)}
+                              className="bg-white/5 border border-white/10 text-xs rounded-xl px-3 py-1.5 text-white placeholder-brave-light-soft/30 focus:outline-none focus:border-brave-light-soft/30 transition-all max-w-[200px]"
+                            />
+                          </div>
+                          
+                          <div className="overflow-y-auto max-h-96 pr-2 space-y-3 custom-scrollbar">
+                            {attendedList.length === 0 ? (
+                              <p className="text-center text-xs text-brave-light-soft/30 py-8 font-black uppercase tracking-widest">Sin coincidencias</p>
+                            ) : (
+                              attendedList.map(a => {
+                                const cleanPhone = a.whatsapp.replace(/\D/g, '');
+                                const finalPhone = cleanPhone.length === 10 ? `52${cleanPhone}` : cleanPhone;
+                                return (
+                                  <div key={a.id} className="flex justify-between items-center p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all">
+                                    <div className="overflow-hidden pr-2">
+                                      <span className="text-xs font-bold text-white block capitalize truncate">{a.nombre.toLowerCase()}</span>
+                                      <span className="text-[10px] text-brave-light-soft/40 font-bold tracking-widest mt-1 block">FOLIO: {a.folio || '—'}</span>
+                                    </div>
+                                    <div className="flex items-center gap-3 flex-shrink-0">
+                                      <span className="text-xs text-brave-light-soft/70 font-mono font-medium">{a.whatsapp}</span>
+                                      <a
+                                        href={`https://wa.me/${finalPhone}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl transition-all hover:scale-105 active:scale-95"
+                                      >
+                                        <MessageCircle size={14} />
+                                      </a>
+                                    </div>
+                                  </div>
+                                );
+                              })
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Columna Pendientes */}
+                        <div className="glass-card p-8 rounded-[3rem] border border-white/10 bg-white/5 flex flex-col">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                            <div>
+                              <h4 className="text-xs font-black uppercase tracking-widest text-white">Seguimiento Pendiente</h4>
+                              <p className="text-[10px] text-brave-light-soft/50 font-bold uppercase mt-1">Registradas que no realizaron check-in ({pendingList.length})</p>
+                            </div>
+                            <input
+                              type="text"
+                              placeholder="Buscar por nombre..."
+                              value={searchPending}
+                              onChange={(e) => setSearchPending(e.target.value)}
+                              className="bg-white/5 border border-white/10 text-xs rounded-xl px-3 py-1.5 text-white placeholder-brave-light-soft/30 focus:outline-none focus:border-brave-light-soft/30 transition-all max-w-[200px]"
+                            />
+                          </div>
+
+                          <div className="overflow-y-auto max-h-96 pr-2 space-y-3 custom-scrollbar">
+                            {pendingList.length === 0 ? (
+                              <p className="text-center text-xs text-brave-light-soft/30 py-8 font-black uppercase tracking-widest">Sin coincidencias</p>
+                            ) : (
+                              pendingList.map(a => {
+                                const cleanPhone = a.whatsapp.replace(/\D/g, '');
+                                const finalPhone = cleanPhone.length === 10 ? `52${cleanPhone}` : cleanPhone;
+                                return (
+                                  <div key={a.id} className="flex justify-between items-center p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all">
+                                    <div className="overflow-hidden pr-2">
+                                      <span className="text-xs font-bold text-white block capitalize truncate">{a.nombre.toLowerCase()}</span>
+                                      <span className="text-[10px] text-brave-light-soft/40 font-bold tracking-widest mt-1 block">FOLIO: {a.folio || '—'}</span>
+                                    </div>
+                                    <div className="flex items-center gap-3 flex-shrink-0">
+                                      <span className="text-xs text-brave-light-soft/70 font-mono font-medium">{a.whatsapp}</span>
+                                      <a
+                                        href={`https://wa.me/${finalPhone}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl transition-all hover:scale-105 active:scale-95"
+                                      >
+                                        <MessageCircle size={14} />
+                                      </a>
+                                    </div>
+                                  </div>
+                                );
+                              })
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })()}
+              </AnimatePresence>
 
               {/* Intermediate Analytics: Donut Charts Row */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -487,6 +771,22 @@ export default function AdminDashboard() {
             </motion.div>
           )}
         </AnimatePresence>
+      <style dangerouslySetInnerHTML={{ __html: `
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.02);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.2);
+        }
+      `}} />
       </div>
     </AdminMasterGuard>
   );
