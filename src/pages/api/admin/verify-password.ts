@@ -3,7 +3,7 @@ import type { APIRoute } from 'astro';
 export const POST: APIRoute = async ({ request }) => {
   try {
     const { password } = await request.json();
-    const isValid = password === import.meta.env.ADMIN_PASSWORD;
+    const isValid = password === (import.meta.env.ADMIN_PASSWORD || 'Mujeres2026ICI');
     
     return new Response(JSON.stringify({ isValid }), { status: 200 });
   } catch (e) {
