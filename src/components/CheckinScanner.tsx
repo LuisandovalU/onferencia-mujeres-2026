@@ -203,7 +203,7 @@ export default function CheckinScanner() {
         </div>
 
         {/* Visor QR */}
-        <div className="w-[320px] sm:w-[450px] aspect-square bg-black rounded-[3rem] overflow-hidden border-8 border-emerald-900/50 shadow-[0_50px_100px_rgba(0,0,0,0.8)] relative">
+        <div className="w-[90vw] max-w-[450px] aspect-square bg-black rounded-[2rem] sm:rounded-[3rem] overflow-hidden border-8 border-emerald-900/50 shadow-[0_50px_100px_rgba(0,0,0,0.8)] relative mx-auto">
           {scanning ? (
             <Scanner
               onScan={(detectedCodes) => {

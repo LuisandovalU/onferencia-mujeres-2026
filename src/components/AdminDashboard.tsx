@@ -139,7 +139,7 @@ const TiltCard = ({ children, className }: { children: React.ReactNode, classNam
 
 const KPICard = ({ title, numericValue, prefix = '', subtitle, icon: Icon, sparklineData }: any) => (
   <motion.div variants={itemVariants}>
-    <TiltCard className="glass-card p-8 rounded-[3rem] relative overflow-hidden group hover:border-brave-moss/30 transition-all border-t-white/20 border-b-white/5 border-x-white/10 shadow-2xl">
+    <TiltCard className="glass-card p-5 md:p-8 rounded-[2rem] md:rounded-[3rem] relative overflow-hidden group hover:border-brave-moss/30 transition-all border-t-white/20 border-b-white/5 border-x-white/10 shadow-2xl">
       <div className="flex justify-between items-start mb-4">
         <div className="p-3 bg-white/5 rounded-2xl group-hover:bg-brave-forest/20 transition-colors">
           <Icon size={20} className="text-brave-light-soft group-hover:animate-pulse" />
@@ -475,7 +475,7 @@ export default function AdminDashboard() {
                       </div>
 
                       {/* Flujo de Asistencia Chart */}
-                      <div className="glass-card p-8 rounded-[3rem] border border-white/10 bg-white/5">
+                      <div className="glass-card p-5 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-white/10 bg-white/5">
                         <div className="flex items-center gap-3 mb-6">
                           <Activity className="text-rose-400" size={20} />
                           <div>
@@ -510,17 +510,17 @@ export default function AdminDashboard() {
                       </div>
 
                       {/* Directorios de Seguimiento */}
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
                         {/* Columna Confirmados */}
-                        <div className="glass-card p-8 rounded-[3rem] border border-white/10 bg-white/5 flex flex-col">
+                        <div className="glass-card p-5 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-white/10 bg-white/5 flex flex-col">
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                            <div>
+                            <div className="text-center sm:text-left">
                               <h4 className="text-xs font-black uppercase tracking-widest text-white">Asistencia Confirmada</h4>
                               <p className="text-[10px] text-brave-light-soft/50 font-bold uppercase mt-1">Registradas con Check-in ({attendedList.length})</p>
                             </div>
                             
                             {/* Filtros Casa/Visita */}
-                            <div className="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/5 mx-auto lg:mx-0">
+                            <div className="flex flex-wrap justify-center items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/5 w-full sm:w-auto">
                               <button 
                                 onClick={() => setFilterAttended('all')}
                                 className={`text-[9px] px-3 py-1.5 rounded-lg font-black uppercase tracking-widest transition-all ${filterAttended === 'all' ? 'bg-white/10 text-white' : 'text-brave-light-soft/50 hover:text-white'}`}
@@ -576,15 +576,15 @@ export default function AdminDashboard() {
                         </div>
 
                         {/* Columna Pendientes */}
-                        <div className="glass-card p-8 rounded-[3rem] border border-white/10 bg-white/5 flex flex-col">
+                        <div className="glass-card p-5 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-white/10 bg-white/5 flex flex-col">
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                            <div>
+                            <div className="text-center sm:text-left">
                               <h4 className="text-xs font-black uppercase tracking-widest text-white">Seguimiento Pendiente</h4>
                               <p className="text-[10px] text-brave-light-soft/50 font-bold uppercase mt-1">Sin check-in ({pendingList.length})</p>
                             </div>
                             
                             {/* Filtros Casa/Visita */}
-                            <div className="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/5 mx-auto lg:mx-0">
+                            <div className="flex flex-wrap justify-center items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/5 w-full sm:w-auto">
                               <button 
                                 onClick={() => setFilterPending('all')}
                                 className={`text-[9px] px-3 py-1.5 rounded-lg font-black uppercase tracking-widest transition-all ${filterPending === 'all' ? 'bg-white/10 text-white' : 'text-brave-light-soft/50 hover:text-white'}`}
@@ -645,8 +645,8 @@ export default function AdminDashboard() {
               </AnimatePresence>
 
               {/* Intermediate Analytics: Donut Charts Row */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <motion.div variants={itemVariants} className="glass-card p-10 rounded-[3rem] border-t-white/10 shadow-2xl relative overflow-hidden">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+                <motion.div variants={itemVariants} className="glass-card p-5 md:p-10 rounded-[2rem] md:rounded-[3rem] border-t-white/10 shadow-2xl relative overflow-hidden">
                   <div className="flex items-center gap-4 mb-8">
                     <div className="p-3 bg-brave-forest/20 rounded-2xl">
                       <CreditCard className="text-brave-light-soft" size={20} />
@@ -687,7 +687,7 @@ export default function AdminDashboard() {
                   </div>
                 </motion.div>
 
-                <motion.div variants={itemVariants} className="glass-card p-10 rounded-[3rem] border-t-white/10 shadow-2xl relative overflow-hidden">
+                <motion.div variants={itemVariants} className="glass-card p-5 md:p-10 rounded-[2rem] md:rounded-[3rem] border-t-white/10 shadow-2xl relative overflow-hidden">
                   <div className="flex items-center gap-4 mb-8">
                     <div className="p-3 bg-emerald-500/10 rounded-2xl">
                       <Home className="text-emerald-400" size={20} />
@@ -730,10 +730,10 @@ export default function AdminDashboard() {
               </div>
 
               {/* Main Charts Row */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 pb-12">
                 <motion.div 
                   variants={itemVariants}
-                  className="lg:col-span-2 glass-card p-10 rounded-[3rem] min-h-[400px] border-t-white/10 shadow-2xl relative overflow-hidden group"
+                  className="lg:col-span-2 glass-card p-5 md:p-10 rounded-[2rem] md:rounded-[3rem] min-h-[400px] border-t-white/10 shadow-2xl relative overflow-hidden group"
                 >
                   <div className="absolute inset-0 bg-gradient-to-tr from-brave-forest/10 to-transparent"></div>
                   <div className="flex items-center justify-between mb-8 relative z-10">
@@ -790,7 +790,7 @@ export default function AdminDashboard() {
 
                 <motion.div 
                   variants={itemVariants} 
-                  className="glass-card p-10 rounded-[3rem] flex flex-col border-t-white/10 shadow-2xl relative overflow-hidden group"
+                  className="glass-card p-5 md:p-10 rounded-[2rem] md:rounded-[3rem] flex flex-col border-t-white/10 shadow-2xl relative overflow-hidden group"
                 >
                   <div className="absolute inset-0 bg-gradient-to-bl from-brave-forest/10 to-transparent"></div>
                   <div className="flex items-center gap-3 mb-8 relative z-10">
