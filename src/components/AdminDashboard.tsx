@@ -8,7 +8,7 @@ import {
   TrendingUp, Users, DollarSign, Target, 
   ArrowUpRight, Activity, PieChart as PieIcon,
   CreditCard, Home, UserPlus, UserCheck, UserMinus,
-  MessageCircle, UserX, Banknote, Clock
+  MessageCircle, UserX, Banknote, Clock, Download
 } from 'lucide-react';
 import DashboardFilters from './DashboardFilters';
 import AnimatedCounter from './AnimatedCounter';
@@ -195,8 +195,26 @@ export default function AdminDashboard() {
   const [selectedEvent, setSelectedEvent] = useState<'Brave' | 'Valiente' | null>(null);
   const [searchAttended, setSearchAttended] = useState('');
   const [searchPending, setSearchPending] = useState('');
-  const [filterAttended, setFilterAttended] = useState<'all' | 'casa' | 'visita'>('all');
-  const [filterPending, setFilterPending] = useState<'all' | 'casa' | 'visita'>('all');
+  const [filterCasaAsistieron, setFilterCasaAsistieron] = useState<'all' | 'casa' | 'visita'>('all');
+  const [filterCasaSeguimiento, setFilterCasaSeguimiento] = useState<'all' | 'casa' | 'visita'>('all');
+
+  const handleDownloadCSV = (list: AsistenteRaw[], statusText: string, filename: string) => {
+    const headers = ["Nombre", "Asistencia", "Tipo", "Telefono"];
+    const rows = list.map(a => {
+      const cleanName = `"${a.nombre.replace(/"/g, '""')}"`;
+      const tipo = a.es_casa ? "Casa" : "Visita";
+      return [cleanName, statusText, tipo, a.whatsapp];
+    });
+    const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // Helper para el Flujo de Entrada (Bloques de 30 mins)
   const calculateFlowChart = (attendees: AsistenteRaw[]) => {
@@ -257,12 +275,12 @@ export default function AdminDashboard() {
       flowData,
       attendedList: attended.filter(a => {
         const matchesSearch = a.nombre.toLowerCase().includes(searchAttended.toLowerCase()) || a.whatsapp.includes(searchAttended);
-        const matchesFilter = filterAttended === 'all' || (filterAttended === 'casa' && a.es_casa) || (filterAttended === 'visita' && !a.es_casa);
+        const matchesFilter = filterCasaAsistieron === 'all' || (filterCasaAsistieron === 'casa' && a.es_casa) || (filterCasaAsistieron === 'visita' && !a.es_casa);
         return matchesSearch && matchesFilter;
       }),
       pendingList: pending.filter(a => {
         const matchesSearch = a.nombre.toLowerCase().includes(searchPending.toLowerCase()) || a.whatsapp.includes(searchPending);
-        const matchesFilter = filterPending === 'all' || (filterPending === 'casa' && a.es_casa) || (filterPending === 'visita' && !a.es_casa);
+        const matchesFilter = filterCasaSeguimiento === 'all' || (filterCasaSeguimiento === 'casa' && a.es_casa) || (filterCasaSeguimiento === 'visita' && !a.es_casa);
         return matchesSearch && matchesFilter;
       })
     };
@@ -519,29 +537,31 @@ export default function AdminDashboard() {
                               <p className="text-[10px] text-brave-light-soft/50 font-bold uppercase mt-1">Registradas con Check-in ({attendedList.length})</p>
                             </div>
                             
-                            {/* Filtros Casa/Visita */}
-                            <div className="flex flex-wrap justify-center items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/5 w-full sm:w-auto">
-                              <button 
-                                onClick={() => setFilterAttended('all')}
-                                className={`text-[9px] px-3 py-1.5 rounded-lg font-black uppercase tracking-widest transition-all ${filterAttended === 'all' ? 'bg-white/10 text-white' : 'text-brave-light-soft/50 hover:text-white'}`}
-                              >Todos</button>
-                              <button 
-                                onClick={() => setFilterAttended('casa')}
-                                className={`text-[9px] px-3 py-1.5 rounded-lg font-black uppercase tracking-widest transition-all ${filterAttended === 'casa' ? 'bg-emerald-500/20 text-emerald-400' : 'text-brave-light-soft/50 hover:text-white'}`}
-                              >Casa</button>
-                              <button 
-                                onClick={() => setFilterAttended('visita')}
-                                className={`text-[9px] px-3 py-1.5 rounded-lg font-black uppercase tracking-widest transition-all ${filterAttended === 'visita' ? 'bg-white/10 text-white' : 'text-brave-light-soft/50 hover:text-white'}`}
-                              >Visita</button>
+                            <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                              <input
+                                type="text"
+                                placeholder="Buscar..."
+                                value={searchAttended}
+                                onChange={(e) => setSearchAttended(e.target.value)}
+                                className="bg-white/5 border border-white/10 text-xs rounded-xl px-3 py-2 text-white placeholder-brave-light-soft/30 focus:outline-none focus:border-white/30 transition-all w-full sm:w-[130px]"
+                              />
+                              <select
+                                value={filterCasaAsistieron}
+                                onChange={(e) => setFilterCasaAsistieron(e.target.value as 'all' | 'casa' | 'visita')}
+                                className="bg-white/5 border border-white/10 text-xs text-white rounded-xl px-3 py-2 focus:outline-none focus:border-white/30 appearance-none cursor-pointer w-full sm:w-auto"
+                              >
+                                <option value="all" className="bg-zinc-900 text-white">Todos</option>
+                                <option value="casa" className="bg-zinc-900 text-white">De Casa</option>
+                                <option value="visita" className="bg-zinc-900 text-white">Visitas</option>
+                              </select>
+                              <button
+                                onClick={() => handleDownloadCSV(attendedList, 'Asistio', 'brave_asistentes_filtrado.csv')}
+                                className="p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-brave-light-soft transition-all flex-shrink-0"
+                                title="Descargar CSV"
+                              >
+                                <Download size={16} />
+                              </button>
                             </div>
-
-                            <input
-                              type="text"
-                              placeholder="Buscar..."
-                              value={searchAttended}
-                              onChange={(e) => setSearchAttended(e.target.value)}
-                              className="bg-white/5 border border-white/10 text-xs rounded-xl px-3 py-1.5 text-white placeholder-brave-light-soft/30 focus:outline-none focus:border-brave-light-soft/30 transition-all w-full sm:w-[150px]"
-                            />
                           </div>
                           
                           <div className="overflow-y-auto max-h-96 pr-2 space-y-3 custom-scrollbar">
@@ -583,29 +603,31 @@ export default function AdminDashboard() {
                               <p className="text-[10px] text-brave-light-soft/50 font-bold uppercase mt-1">Sin check-in ({pendingList.length})</p>
                             </div>
                             
-                            {/* Filtros Casa/Visita */}
-                            <div className="flex flex-wrap justify-center items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/5 w-full sm:w-auto">
-                              <button 
-                                onClick={() => setFilterPending('all')}
-                                className={`text-[9px] px-3 py-1.5 rounded-lg font-black uppercase tracking-widest transition-all ${filterPending === 'all' ? 'bg-white/10 text-white' : 'text-brave-light-soft/50 hover:text-white'}`}
-                              >Todos</button>
-                              <button 
-                                onClick={() => setFilterPending('casa')}
-                                className={`text-[9px] px-3 py-1.5 rounded-lg font-black uppercase tracking-widest transition-all ${filterPending === 'casa' ? 'bg-emerald-500/20 text-emerald-400' : 'text-brave-light-soft/50 hover:text-white'}`}
-                              >Casa</button>
-                              <button 
-                                onClick={() => setFilterPending('visita')}
-                                className={`text-[9px] px-3 py-1.5 rounded-lg font-black uppercase tracking-widest transition-all ${filterPending === 'visita' ? 'bg-white/10 text-white' : 'text-brave-light-soft/50 hover:text-white'}`}
-                              >Visita</button>
+                            <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                              <input
+                                type="text"
+                                placeholder="Buscar..."
+                                value={searchPending}
+                                onChange={(e) => setSearchPending(e.target.value)}
+                                className="bg-white/5 border border-white/10 text-xs rounded-xl px-3 py-2 text-white placeholder-brave-light-soft/30 focus:outline-none focus:border-white/30 transition-all w-full sm:w-[130px]"
+                              />
+                              <select
+                                value={filterCasaSeguimiento}
+                                onChange={(e) => setFilterCasaSeguimiento(e.target.value as 'all' | 'casa' | 'visita')}
+                                className="bg-white/5 border border-white/10 text-xs text-white rounded-xl px-3 py-2 focus:outline-none focus:border-white/30 appearance-none cursor-pointer w-full sm:w-auto"
+                              >
+                                <option value="all" className="bg-zinc-900 text-white">Todos</option>
+                                <option value="casa" className="bg-zinc-900 text-white">De Casa</option>
+                                <option value="visita" className="bg-zinc-900 text-white">Visitas</option>
+                              </select>
+                              <button
+                                onClick={() => handleDownloadCSV(pendingList, 'No Asistio', 'brave_seguimiento_pendiente.csv')}
+                                className="p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-brave-light-soft transition-all flex-shrink-0"
+                                title="Descargar CSV"
+                              >
+                                <Download size={16} />
+                              </button>
                             </div>
-
-                            <input
-                              type="text"
-                              placeholder="Buscar..."
-                              value={searchPending}
-                              onChange={(e) => setSearchPending(e.target.value)}
-                              className="bg-white/5 border border-white/10 text-xs rounded-xl px-3 py-1.5 text-white placeholder-brave-light-soft/30 focus:outline-none focus:border-brave-light-soft/30 transition-all w-full sm:w-[150px]"
-                            />
                           </div>
 
                           <div className="overflow-y-auto max-h-96 pr-2 space-y-3 custom-scrollbar">
