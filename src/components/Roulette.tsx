@@ -99,11 +99,11 @@ export default function Roulette() {
     // Queremos que el centro del winnerIndex quede apuntando arriba (270deg visualmente, o -90deg).
     // Entonces: rotation = (vueltas * 360) - (winnerIndex * sliceAngle) - (sliceAngle / 2);
     
-    const extraSpins = 5 + Math.floor(Math.random() * 3); // 5 a 7 vueltas completas
+    const extraSpins = 8 + Math.floor(Math.random() * 4); // 8 a 11 vueltas completas
     const targetRotation = currentRotation + (extraSpins * 360) - (currentRotation % 360) + (360 - (winnerIndex * sliceAngle)) - (sliceAngle / 2);
 
     // Lógica para reproducir el tictac
-    const durationMs = 8000;
+    const durationMs = 12000;
     let startTime = Date.now();
     let isTicking = true;
 
@@ -129,7 +129,7 @@ export default function Roulette() {
     controls.start({
       rotate: targetRotation,
       transition: {
-        duration: 8,
+        duration: 12,
         ease: [0.2, 0.8, 0.2, 1], // Ease out cubic
       }
     }).then(() => {
