@@ -5,11 +5,12 @@ import { supabase } from '../../lib/supabase';
 
 export const GET: APIRoute = async () => {
   try {
-    // Solo traemos a los que ya hicieron check-in
+    // Solo traemos a los que ya hicieron check-in y que son de VALIENTE
     const { data: asistentes, error } = await supabase
       .from('asistentes')
       .select('folio')
       .eq('asistio', true)
+      .eq('es_brave', false)
       .not('folio', 'is', null);
 
     if (error) {
