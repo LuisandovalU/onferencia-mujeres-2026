@@ -8,7 +8,7 @@ export const GET: APIRoute = async () => {
     // Solo traemos a los que ya hicieron check-in y que son de VALIENTE
     const { data: asistentes, error } = await supabase
       .from('asistentes')
-      .select('folio')
+      .select('folio, nombre_completo')
       .eq('asistio', true)
       .eq('es_brave', false)
       .not('folio', 'is', null);
@@ -22,8 +22,18 @@ export const GET: APIRoute = async () => {
       return new Response(JSON.stringify({ participants: [] }), { status: 200 });
     }
 
-    // Devolver array de folios únicos
-    const folios = Array.from(new Set(asistentes.map(a => a.folio))).sort((a, b) => Number(a) - Number(b));
+    // Devolver array de objetos únicos por folio
+    const foliosMap = new Map();
+    asistentes.forEach(a => {
+      if (!foliosMap.has(a.folio)) {
+        foliosMap.set(a.folio, {
+          folio: a.folio,
+          nombre: a.nombre_completo || 'Desconocido'
+        });
+      }
+    });
+
+    const folios = Array.from(foliosMap.values()).sort((a, b) => Number(a.folio) - Number(b.folio));
 
     return new Response(JSON.stringify({ participants: folios }), { 
       status: 200,

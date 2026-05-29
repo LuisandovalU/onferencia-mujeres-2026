@@ -3,12 +3,18 @@ import { motion, useAnimation } from 'framer-motion';
 import { RefreshCw, Trophy } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
+interface Participant {
+  folio: number;
+  nombre: string;
+}
+
 export default function Roulette() {
-  const [participants, setParticipants] = useState<number[]>([]);
+  const [participants, setParticipants] = useState<Participant[]>([]);
   const [realCount, setRealCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isSpinning, setIsSpinning] = useState(false);
-  const [winner, setWinner] = useState<number | null>(null);
+  const [winner, setWinner] = useState<Participant | null>(null);
+  const [showName, setShowName] = useState(false);
   
   // Guardamos la rotación actual para que los siguientes giros continúen desde ahí
   const [currentRotation, setCurrentRotation] = useState(0);
@@ -53,13 +59,13 @@ export default function Roulette() {
     
     setIsSpinning(true);
     setWinner(null);
+    setShowName(false);
 
     // Calcular un ganador al azar
     const winnerIndex = Math.floor(Math.random() * participants.length);
-    const selectedFolio = participants[winnerIndex];
+    const selectedParticipant = participants[winnerIndex];
 
-    // Calcular el ángulo para que ese índice quede arriba (270 grados es arriba en un SVG estándar si empezamos en el eje X, pero nuestro dibujo dependerá de cómo se alineen)
-    // El tamaño de la rebanada es 360 / participants.length
+    // Calcular el ángulo para que ese índice quede arriba
     const sliceAngle = 360 / participants.length;
     
     // Si la flecha está en el TOP (270 grados desde el este, o 0 grados si rotamos el viewBox):
@@ -79,7 +85,7 @@ export default function Roulette() {
     }).then(() => {
       setIsSpinning(false);
       setCurrentRotation(targetRotation);
-      setWinner(selectedFolio);
+      setWinner(selectedParticipant);
       fireConfetti();
     });
   };
@@ -169,7 +175,7 @@ export default function Roulette() {
                     fontWeight="bold"
                     textAnchor="end"
                   >
-                    Folio #{folio}
+                    Folio #{folio.folio}
                   </text>
                   {/* Adornos de hojas/puntos en el borde */}
                   <circle cx={425} cy={0} r={6} fill="#364e44" opacity={0.6} />
@@ -250,10 +256,33 @@ export default function Roulette() {
         <motion.div 
           initial={{ opacity: 0, scale: 0.8, y: 50 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="fixed bottom-10 z-50 px-16 py-8 bg-[#e8e1d3] border-4 border-[#364e44] shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-3xl flex flex-col items-center"
+          className="fixed bottom-10 z-50 px-16 py-8 bg-[#e8e1d3] border-4 border-[#364e44] shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-3xl flex flex-col items-center min-w-[400px]"
         >
-          <h3 className="text-[#364e44] font-black text-2xl uppercase tracking-[0.2em] mb-2 text-center">¡Ganadora Seleccionada!</h3>
-          <p className="text-[#364e44] font-serif text-6xl font-bold mt-4">Folio #{winner}</p>
+          <h3 className="text-[#364e44] font-black text-2xl uppercase tracking-[0.2em] mb-2 text-center">
+            {showName ? "¡Felicidades!" : "¡Folio Seleccionado!"}
+          </h3>
+          <p className="text-[#364e44] font-serif text-6xl font-bold mt-4 mb-6">Folio #{winner.folio}</p>
+          
+          {showName ? (
+             <motion.div 
+               initial={{ opacity: 0, height: 0 }}
+               animate={{ opacity: 1, height: 'auto' }}
+               className="text-center w-full pt-6 border-t-2 border-[#364e44]/20"
+             >
+               <p className="text-[#364e44]/60 text-xs font-bold uppercase tracking-widest mb-1">A nombre de</p>
+               <p className="text-[#364e44] font-black text-3xl uppercase">{winner.nombre}</p>
+             </motion.div>
+          ) : (
+             <button
+               onClick={() => {
+                 setShowName(true);
+                 fireConfetti();
+               }}
+               className="mt-2 px-8 py-4 bg-[#364e44] hover:bg-[#283b31] text-[#e8e1d3] rounded-2xl font-black uppercase tracking-widest text-sm transition-all hover:scale-105 active:scale-95 shadow-xl"
+             >
+               Revelar Ganadora 🎁
+             </button>
+          )}
         </motion.div>
       )}
     </div>
