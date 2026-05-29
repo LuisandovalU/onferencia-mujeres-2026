@@ -24,6 +24,32 @@ export default function Roulette() {
   const sliceColors = ['#f5f1e7', '#e8e1d3']; // Crema claro y crema un poco más oscuro
   const textColor = '#2d3f37'; // Verde oscuro Valiente
 
+  // Función para generar un "tic" de ruleta usando Web Audio API
+  const playTick = () => {
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) return;
+      const audioCtx = new AudioContextClass();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1000, audioCtx.currentTime); // tono agudo
+      osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.05); // baja rápidamente
+      
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime); // volumen moderado
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05); // fade out rápido
+      
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.05);
+    } catch (e) {
+      // Ignorar errores de audio en navegadores restrictivos
+    }
+  };
+
   const fetchParticipants = async () => {
     setLoading(true);
     try {
@@ -76,6 +102,30 @@ export default function Roulette() {
     const extraSpins = 5 + Math.floor(Math.random() * 3); // 5 a 7 vueltas completas
     const targetRotation = currentRotation + (extraSpins * 360) - (currentRotation % 360) + (360 - (winnerIndex * sliceAngle)) - (sliceAngle / 2);
 
+    // Lógica para reproducir el tictac
+    const durationMs = 8000;
+    let startTime = Date.now();
+    let isTicking = true;
+
+    const tickLoop = () => {
+      if (!isTicking) return;
+      const elapsed = Date.now() - startTime;
+      if (elapsed >= durationMs) return;
+
+      playTick();
+
+      // progress de 0 a 1
+      const progress = elapsed / durationMs;
+      // empieza en 30ms, termina en ~400ms (curva exponencial para que frene al final)
+      const nextDelay = 30 + Math.pow(progress, 3) * 400;
+
+      setTimeout(tickLoop, nextDelay);
+    };
+    
+    // Iniciar tictac
+    playTick();
+    setTimeout(tickLoop, 30);
+
     controls.start({
       rotate: targetRotation,
       transition: {
@@ -83,6 +133,7 @@ export default function Roulette() {
         ease: [0.2, 0.8, 0.2, 1], // Ease out cubic
       }
     }).then(() => {
+      isTicking = false;
       setIsSpinning(false);
       setCurrentRotation(targetRotation);
       setWinner(selectedParticipant);
