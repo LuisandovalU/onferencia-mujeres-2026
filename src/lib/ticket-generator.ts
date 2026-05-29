@@ -53,7 +53,7 @@ export async function generateAndUploadTicket({
       ? 'rgba(0, 0, 0, 0.7)'         // Brave: Franja negra/oscura
       : 'rgba(14, 45, 25, 0.85)';    // Valiente: Franja verde oscuro (como las hojas)
     
-    const qrDarkColor = '#FFFFFF';   // QR blanco para ambos
+    const qrDarkColor = es_brave ? '#FFFFFF' : '#364e44'; // Brave: blanco | Valiente: verde oscuro
     
     const qrSize = Math.floor(W * 0.45);
     const siteURL = 'https://conferencia.icimexico.org';
