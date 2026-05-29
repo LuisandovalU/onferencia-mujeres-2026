@@ -5,6 +5,7 @@ import confetti from 'canvas-confetti';
 
 export default function Roulette() {
   const [participants, setParticipants] = useState<number[]>([]);
+  const [realCount, setRealCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isSpinning, setIsSpinning] = useState(false);
   const [winner, setWinner] = useState<number | null>(null);
@@ -23,6 +24,8 @@ export default function Roulette() {
       const res = await fetch('/api/get-roulette-participants');
       const data = await res.json();
       if (data.participants) {
+        setRealCount(data.participants.length);
+        
         // Si hay pocos, duplicamos para que la ruleta se vea llena
         let list = data.participants;
         if (list.length > 0 && list.length < 8) {
@@ -156,21 +159,20 @@ export default function Roulette() {
               <g key={`${folio}-${i}`}>
                 <path d={pathData} fill={sliceColors[i % sliceColors.length]} stroke="#364e44" strokeWidth="2" />
                 <g transform={`translate(${cx}, ${cy}) rotate(${textAngle})`}>
-                  {/* El texto se desplaza hacia la derecha (radio) y se rota para que se lea hacia afuera */}
+                  {/* El texto se escribe a lo largo del radio, terminando cerca del borde exterior */}
                   <text
-                    x={280}
-                    y={10}
+                    x={400}
+                    y={6}
                     fill={textColor}
-                    fontSize={total > 20 ? "24" : "36"}
+                    fontSize={total > 30 ? "14" : "18"}
                     fontFamily="serif"
                     fontWeight="bold"
-                    textAnchor="middle"
-                    transform="rotate(90, 280, 0)" // Para que el texto sea perpendicular al radio
+                    textAnchor="end"
                   >
                     Folio #{folio}
                   </text>
-                  {/* Adornos de hojas en cada línea */}
-                  <circle cx={420} cy={0} r={5} fill="#364e44" opacity={0.5} />
+                  {/* Adornos de hojas/puntos en el borde */}
+                  <circle cx={425} cy={0} r={6} fill="#364e44" opacity={0.6} />
                 </g>
               </g>
             );
@@ -203,7 +205,7 @@ export default function Roulette() {
           </div>
           <div>
             <h2 className="text-white font-bold text-xl tracking-wide uppercase">Participantes</h2>
-            <p className="text-white/60 text-sm font-medium">{participants.length} folios verificados hoy</p>
+            <p className="text-white/60 text-sm font-medium">{realCount} folios verificados hoy</p>
           </div>
         </div>
         
