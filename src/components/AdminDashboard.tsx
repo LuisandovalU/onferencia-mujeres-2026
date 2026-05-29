@@ -220,6 +220,26 @@ export default function AdminDashboard() {
     }
   };
 
+  // --- Stripe SPEI Sync ---
+  const [syncLoading, setSyncLoading] = useState(false);
+  const [syncResult, setSyncResult] = useState<{ processed: number; results: string[] } | null>(null);
+
+  const runSyncStripe = async () => {
+    const password = sessionStorage.getItem('admin_password');
+    if (!password) return;
+    setSyncLoading(true);
+    setSyncResult(null);
+    try {
+      const resp = await fetch(`/api/admin/sync-stripe-methods?key=${encodeURIComponent(password)}`);
+      const data = await resp.json();
+      setSyncResult(data);
+    } catch (err) {
+      setSyncResult({ processed: 0, results: ['Error de red al llamar al endpoint'] });
+    } finally {
+      setSyncLoading(false);
+    }
+  };
+
   const handleDownloadCSV = (list: AsistenteRaw[], statusText: string, filename: string) => {
     const headers = ["Nombre", "Asistencia", "Tipo", "Telefono"];
     const rows = list.map(a => {
@@ -946,6 +966,49 @@ export default function AdminDashboard() {
                     {/* Log detallado */}
                     <div className="bg-black/40 rounded-2xl border border-white/5 p-4 max-h-60 overflow-y-auto custom-scrollbar">
                       {regenResult.logs.map((line, i) => (
+                        <p key={i} className="text-[10px] font-mono text-brave-light-soft/60 leading-relaxed">{line}</p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+
+              {/* ── Herramientas: Sincronizar SPEI ── */}
+              <motion.div variants={itemVariants} className="glass-card p-5 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-white/10 bg-white/5">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-amber-500/10 rounded-2xl">
+                      <Activity size={20} className="text-amber-400" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black uppercase tracking-widest text-white">Herramientas · SPEI / Stripe</h4>
+                      <p className="text-[10px] text-brave-light-soft/50 font-bold uppercase mt-0.5">Rescata pagos SPEI confirmados en Stripe pero pendientes en BD</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={runSyncStripe}
+                    disabled={syncLoading}
+                    className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-amber-600/80 hover:bg-amber-500 text-white font-black text-xs uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg whitespace-nowrap"
+                  >
+                    {syncLoading ? (
+                      <><span className="inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />Verificando...</>
+                    ) : (
+                      <><Activity size={14} />Sincronizar SPEI</>
+                    )}
+                  </button>
+                </div>
+
+                {syncResult && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-brave-light-soft/50">
+                      <span>Procesados: <span className="text-white">{syncResult.processed}</span></span>
+                      <span className="text-white/20">·</span>
+                      <span className="text-emerald-400">
+                        {syncResult.results?.filter(r => r.startsWith('🚨')).length || 0} rescatados
+                      </span>
+                    </div>
+                    <div className="bg-black/40 rounded-2xl border border-white/5 p-4 max-h-60 overflow-y-auto custom-scrollbar">
+                      {(syncResult.results || []).map((line, i) => (
                         <p key={i} className="text-[10px] font-mono text-brave-light-soft/60 leading-relaxed">{line}</p>
                       ))}
                     </div>
