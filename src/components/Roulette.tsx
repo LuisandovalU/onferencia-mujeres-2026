@@ -93,7 +93,8 @@ export default function Roulette() {
   const fireConfetti = () => {
     const duration = 3 * 1000;
     const animationEnd = Date.now() + duration;
-    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+    // IMPORTANTE: zIndex 100 para que se vea por encima del modal (que es z-50)
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
 
     const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
 
@@ -114,6 +115,18 @@ export default function Roulette() {
         origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
       });
     }, 250);
+  };
+
+  const fireBigRevealConfetti = () => {
+    // Explosión central masiva
+    const defaults = { zIndex: 100, origin: { y: 0.6 } };
+    
+    confetti({ ...defaults, particleCount: 150, spread: 80, startVelocity: 50 });
+    confetti({ ...defaults, particleCount: 100, spread: 120, startVelocity: 40 });
+    confetti({ ...defaults, particleCount: 50, spread: 160, startVelocity: 30 });
+    
+    // Y además lanzamos el confeti normal que dura 3 segundos a los lados
+    fireConfetti();
   };
 
   // Dibujar el SVG de la ruleta
@@ -162,7 +175,7 @@ export default function Roulette() {
             const textAngle = startAngle + angle / 2;
 
             return (
-              <g key={`${folio}-${i}`}>
+              <g key={`${folio.folio}-${i}`}>
                 <path d={pathData} fill={sliceColors[i % sliceColors.length]} stroke="#364e44" strokeWidth="2" />
                 <g transform={`translate(${cx}, ${cy}) rotate(${textAngle})`}>
                   {/* El texto se escribe a lo largo del radio, terminando cerca del borde exterior */}
@@ -276,11 +289,11 @@ export default function Roulette() {
              <button
                onClick={() => {
                  setShowName(true);
-                 fireConfetti();
+                 fireBigRevealConfetti();
                }}
                className="mt-2 px-8 py-4 bg-[#364e44] hover:bg-[#283b31] text-[#e8e1d3] rounded-2xl font-black uppercase tracking-widest text-sm transition-all hover:scale-105 active:scale-95 shadow-xl"
              >
-               Revelar Ganadora 🎁
+               Revelar Ganadora
              </button>
           )}
         </motion.div>
