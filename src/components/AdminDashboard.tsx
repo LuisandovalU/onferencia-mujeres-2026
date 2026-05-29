@@ -198,6 +198,28 @@ export default function AdminDashboard() {
   const [filterCasaAsistieron, setFilterCasaAsistieron] = useState<'all' | 'casa' | 'visita'>('all');
   const [filterCasaSeguimiento, setFilterCasaSeguimiento] = useState<'all' | 'casa' | 'visita'>('all');
 
+  // --- Ticket Regeneration ---
+  const [regenLoading, setRegenLoading] = useState(false);
+  const [regenResult, setRegenResult] = useState<{ generados: number; omitidos: number; errores: number; logs: string[] } | null>(null);
+  const [regenForce, setRegenForce] = useState(false);
+
+  const runRegeneration = async () => {
+    const password = sessionStorage.getItem('admin_password');
+    if (!password) return;
+    setRegenLoading(true);
+    setRegenResult(null);
+    try {
+      const force = regenForce ? '&force=true' : '';
+      const resp = await fetch(`/api/regenerate-tickets?key=${encodeURIComponent(password)}${force}`);
+      const data = await resp.json();
+      setRegenResult(data);
+    } catch (err) {
+      setRegenResult({ generados: 0, omitidos: 0, errores: 1, logs: ['Error de red al llamar al endpoint'] });
+    } finally {
+      setRegenLoading(false);
+    }
+  };
+
   const handleDownloadCSV = (list: AsistenteRaw[], statusText: string, filename: string) => {
     const headers = ["Nombre", "Asistencia", "Tipo", "Telefono"];
     const rows = list.map(a => {
@@ -865,6 +887,71 @@ export default function AdminDashboard() {
                   </div>
                 </motion.div>
               </div>
+            {/* ── Herramientas: Regenerar Boletos ── */}
+              <motion.div variants={itemVariants} className="glass-card p-5 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-white/10 bg-white/5">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-[#364e44]/40 rounded-2xl">
+                      <Download size={20} className="text-[#a8c480]" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black uppercase tracking-widest text-white">Herramientas · Boletos</h4>
+                      <p className="text-[10px] text-brave-light-soft/50 font-bold uppercase mt-0.5">Genera los tickets faltantes en storage</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-center gap-3">
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <div
+                        onClick={() => setRegenForce(v => !v)}
+                        className={`relative w-10 h-5 rounded-full transition-all ${ regenForce ? 'bg-[#a8c480]' : 'bg-white/10' }`}
+                      >
+                        <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${ regenForce ? 'left-5' : 'left-0.5' }`} />
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-brave-light-soft/60">
+                        {regenForce ? 'Forzar todos' : 'Solo faltantes'}
+                      </span>
+                    </label>
+                    <button
+                      onClick={runRegeneration}
+                      disabled={regenLoading}
+                      className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-[#364e44] hover:bg-[#4a6b5a] text-white font-black text-xs uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                    >
+                      {regenLoading ? (
+                        <><span className="inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />Procesando...</>
+                      ) : (
+                        <><Download size={14} />Generar Boletos</>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {regenResult && (
+                  <div className="space-y-4">
+                    {/* Contadores */}
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-center">
+                        <p className="text-2xl font-black text-emerald-400">{regenResult.generados}</p>
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-emerald-400/70 mt-1">Generados</p>
+                      </div>
+                      <div className="p-4 rounded-2xl bg-white/5 border border-white/10 text-center">
+                        <p className="text-2xl font-black text-white/60">{regenResult.omitidos}</p>
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-white/40 mt-1">Omitidos</p>
+                      </div>
+                      <div className={`p-4 rounded-2xl border text-center ${ regenResult.errores > 0 ? 'bg-red-500/10 border-red-500/20' : 'bg-white/5 border-white/10' }`}>
+                        <p className={`text-2xl font-black ${ regenResult.errores > 0 ? 'text-red-400' : 'text-white/60' }`}>{regenResult.errores}</p>
+                        <p className={`text-[9px] font-bold uppercase tracking-widest mt-1 ${ regenResult.errores > 0 ? 'text-red-400/70' : 'text-white/40' }`}>Errores</p>
+                      </div>
+                    </div>
+
+                    {/* Log detallado */}
+                    <div className="bg-black/40 rounded-2xl border border-white/5 p-4 max-h-60 overflow-y-auto custom-scrollbar">
+                      {regenResult.logs.map((line, i) => (
+                        <p key={i} className="text-[10px] font-mono text-brave-light-soft/60 leading-relaxed">{line}</p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
