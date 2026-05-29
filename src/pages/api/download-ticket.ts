@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro';
 import { supabase } from '../../lib/supabase';
 
+export const prerender = false;
+
 export const GET: APIRoute = async ({ request }) => {
   try {
     const url = new URL(request.url);
@@ -22,7 +24,7 @@ export const GET: APIRoute = async ({ request }) => {
       
       const { data: asistente } = await supabase
         .from('asistentes')
-        .select('stripe_session_id')
+        .select('id, nombre_completo, folio, es_brave, stripe_session_id')
         .eq('id', id)
         .single();
 
@@ -36,6 +38,34 @@ export const GET: APIRoute = async ({ request }) => {
         if (!legacyError && legacyData) {
           data = legacyData;
           error = null;
+        }
+      }
+
+      // 3. Si aún no hay imagen, regenerar el ticket automáticamente
+      if ((error || !data) && asistente) {
+        console.log(`🔄 Regenerando ticket al vuelo para: ${asistente.nombre_completo} (ID: ${id})...`);
+        try {
+          const { generateAndUploadTicket } = await import('../../lib/ticket-generator');
+          await generateAndUploadTicket({
+            asistenteId: asistente.id,
+            nombre_completo: asistente.nombre_completo,
+            folio: asistente.folio,
+            es_brave: asistente.es_brave,
+            fileName: asistente.id,
+          });
+          console.log(`✅ Ticket regenerado. Descargando...`);
+
+          // Intentar descargar el recién generado
+          const { data: freshData, error: freshError } = await supabase.storage
+            .from('tickets')
+            .download(directFileName);
+
+          if (!freshError && freshData) {
+            data = freshData;
+            error = null;
+          }
+        } catch (genErr: any) {
+          console.error(`❌ Error regenerando ticket: ${genErr.message}`);
         }
       }
     }
