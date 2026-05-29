@@ -3,7 +3,13 @@ import React, { useState } from 'react';
 export default function TicketRecovery() {
     const [emailOrWhatsapp, setEmailOrWhatsapp] = useState('');
     const [loading, setLoading] = useState(false);
-    const [result, setResult] = useState<{ success?: boolean; error?: string; tickets?: Array<{id: string, nombre: string, ticketUrl: string}> } | null>(null);
+    const [result, setResult] = useState<{ 
+      success?: boolean; 
+      error?: string; 
+      speiPending?: boolean;
+      speiMessage?: string;
+      tickets?: Array<{id: string, nombre: string, ticketUrl: string}> 
+    } | null>(null);
 
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -17,8 +23,12 @@ export default function TicketRecovery() {
                 body: JSON.stringify({ emailOrWhatsapp: emailOrWhatsapp.trim() })
             });
             const data = await resp.json();
+
             if (resp.ok) {
                 setResult(data);
+            } else if (resp.status === 202 && data.error === 'spei_pending') {
+                // Pago SPEI registrado pero en proceso de verificación
+                setResult({ speiPending: true, speiMessage: data.message });
             } else {
                 setResult({ error: data.error });
             }
@@ -28,6 +38,7 @@ export default function TicketRecovery() {
             setLoading(false);
         }
     };
+
 
     return (
         <section id="recuperar" className="relative w-full bg-brave-dark-deep py-20 md:py-32 overflow-hidden scroll-mt-24">
@@ -70,6 +81,13 @@ export default function TicketRecovery() {
                     </div>
                 )}
 
+                {result?.speiPending && (
+                    <div className="mt-8 max-w-xl mx-auto px-8 py-6 bg-amber-500/10 border border-amber-500/30 rounded-2xl text-left animate-in fade-in slide-in-from-bottom duration-500">
+                        <p className="text-amber-400 font-black text-sm mb-2">⏳ Pago en verificación</p>
+                        <p className="text-amber-300/80 text-sm font-medium leading-relaxed">{result.speiMessage}</p>
+                    </div>
+                )}
+
                 {result?.success && result.tickets && (
                     <div className="mt-12 p-8 bg-white/5 border border-white/10 rounded-[2.5rem] animate-in slide-in-from-bottom duration-700">
                         <p className="text-[#def2c1] text-xl font-black mb-8 uppercase tracking-tight">¡Encontramos {result.tickets.length} boleto{result.tickets.length > 1 ? 's' : ''}!</p>
@@ -89,6 +107,7 @@ export default function TicketRecovery() {
                         </div>
                     </div>
                 )}
+
             </div>
         </section>
 
