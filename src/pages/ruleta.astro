@@ -1,0 +1,28 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Roulette from '../components/Roulette';
+---
+
+<Layout title="Ruleta de Sorteo | Conferencia de Mujeres">
+  <main class="min-h-screen bg-[#283b31] relative overflow-hidden flex flex-col pt-12 pb-20">
+    {/* Decoración de fondo */}
+    <div class="absolute top-0 left-0 w-full h-[30vh] bg-gradient-to-b from-black/40 to-transparent pointer-events-none"></div>
+    <div class="absolute -top-40 -right-40 w-96 h-96 bg-[#e8e1d3]/5 blur-[100px] rounded-full pointer-events-none"></div>
+    <div class="absolute top-1/2 -left-20 w-64 h-64 bg-[#a8c480]/5 blur-[80px] rounded-full pointer-events-none"></div>
+
+    <div class="relative z-10 w-full max-w-6xl mx-auto px-4 flex flex-col items-center">
+      {/* Título Estilo Diseño */}
+      <div class="bg-[#e8e1d3] px-12 py-4 rounded-3xl shadow-2xl mb-2 flex flex-col items-center border border-[#364e44]/20 relative">
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-6 bg-[#283b31] rounded-b-xl opacity-50"></div>
+        <h1 class="text-3xl md:text-5xl font-serif font-black text-[#364e44] tracking-wider uppercase text-center mt-2">
+          Ruleta de Sorteo Valiente
+        </h1>
+        <p class="text-[#364e44]/70 font-bold uppercase tracking-[0.2em] text-[10px] md:text-xs mt-2 text-center">
+          Selección Aleatoria de Participantes
+        </p>
+      </div>
+
+      <Roulette client:load />
+    </div>
+  </main>
+</Layout>
