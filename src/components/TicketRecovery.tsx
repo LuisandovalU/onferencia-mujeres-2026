@@ -96,7 +96,7 @@ export default function TicketRecovery() {
                                 <div key={t.id} className="flex flex-col md:flex-row items-center justify-between bg-white/5 p-4 rounded-xl gap-4 border border-white/5">
                                     <span className="text-white font-medium text-lg text-left">{t.nombre}</span>
                                     <a
-                                        href={`${t.ticketUrl}?t=${new Date().getTime()}`}
+                                        href={`${t.ticketUrl}&t=${new Date().getTime()}`}
                                         target="_blank"
                                         rel="noreferrer"
                                         className="inline-block bg-[#a8c480] hover:bg-[#c8de9e] text-black font-black py-3 px-8 rounded-xl transition-all shadow-xl shadow-emerald-500/20 uppercase tracking-[0.1em] text-sm whitespace-nowrap"
