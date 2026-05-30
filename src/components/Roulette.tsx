@@ -29,7 +29,6 @@ export default function Roulette() {
   const [isSpinning, setIsSpinning] = useState(false);
   const [winner, setWinner] = useState<Participant | null>(null);
   const [showName, setShowName] = useState(false);
-  const arrowRef = useRef<HTMLDivElement>(null);
   
   // Guardamos la rotación actual para que los siguientes giros continúen desde ahí
   const [currentRotation, setCurrentRotation] = useState(0);
@@ -141,18 +140,6 @@ export default function Roulette() {
       const force = 1 - progress;
 
       playTick(force);
-
-      // Efecto físico en la flecha (flapper)
-      if (arrowRef.current) {
-        // Entre más fuerza, más se dobla la flecha (de -5 a -20 grados)
-        const angle = -5 - (15 * force);
-        arrowRef.current.style.transform = `rotate(${angle}deg)`;
-        
-        // La flecha regresa a su posición original antes del siguiente golpe
-        setTimeout(() => {
-          if (arrowRef.current) arrowRef.current.style.transform = `rotate(0deg)`;
-        }, Math.min(nextDelay * 0.6, 50)); 
-      }
 
       // El retraso aumenta mucho más drásticamente para dar ese efecto de "frenado"
       // Utilizamos potencia de 4 para que sea muy rápido casi todo el viaje y frene abruptamente al final
@@ -336,13 +323,9 @@ export default function Roulette() {
       ) : (
         <div className="relative w-full max-w-[800px] aspect-square flex items-center justify-center">
           
-          {/* Indicador / Flecha Superior (Flapper) */}
+          {/* Indicador / Flecha Superior */}
           <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center drop-shadow-xl">
-             <div 
-               ref={arrowRef}
-               className="w-16 h-20 bg-[#e8e1d3] polygon-arrow flex items-center justify-center border-b-[6px] border-[#364e44]"
-               style={{ transformOrigin: 'top center', transition: 'transform 0.05s ease-out' }}
-             >
+             <div className="w-16 h-20 bg-[#e8e1d3] polygon-arrow flex items-center justify-center border-b-[6px] border-[#364e44]">
                 <div className="w-8 h-8 rounded-full border-4 border-[#364e44]/20 mt-2"></div>
              </div>
              <style dangerouslySetInnerHTML={{__html: `
