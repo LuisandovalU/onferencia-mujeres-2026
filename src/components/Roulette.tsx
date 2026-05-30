@@ -24,20 +24,28 @@ export default function Roulette() {
   const sliceColors = ['#f5f1e7', '#e8e1d3']; // Crema claro y crema un poco más oscuro
   const textColor = '#2d3f37'; // Verde oscuro Valiente
 
-  // Función para generar un "tic" de ruleta usando Web Audio API
-  const playTick = () => {
+  // Función para generar un "clack" de ruleta usando Web Audio API
+  // Recibe un parámetro 'force' de 1.0 (inicio) a 0.0 (final) para degradar el sonido
+  const playTick = (force = 1.0) => {
     try {
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioContextClass) return;
       const audioCtx = new AudioContextClass();
+      
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(1000, audioCtx.currentTime); // tono agudo
-      osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.05); // baja rápidamente
+      // Tipo triangle para sonar un poco más seco o a madera que el sine
+      osc.type = 'triangle'; 
       
-      gain.gain.setValueAtTime(0.2, audioCtx.currentTime); // volumen moderado
+      // La frecuencia empieza más aguda/metálica si va rápido (fuerza 1) y más grave/sorda al final
+      const startFreq = 150 + (400 * force);
+      osc.frequency.setValueAtTime(startFreq, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.05); // baja rápidamente
+      
+      // El volumen empieza fuerte (0.4) y termina más débil (0.1)
+      const startVol = 0.1 + (0.3 * force);
+      gain.gain.setValueAtTime(startVol, audioCtx.currentTime); 
       gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05); // fade out rápido
       
       osc.connect(gain);
@@ -46,7 +54,7 @@ export default function Roulette() {
       osc.start();
       osc.stop(audioCtx.currentTime + 0.05);
     } catch (e) {
-      // Ignorar errores de audio en navegadores restrictivos
+      // Ignorar errores de audio
     }
   };
 
@@ -112,12 +120,16 @@ export default function Roulette() {
       const elapsed = Date.now() - startTime;
       if (elapsed >= durationMs) return;
 
-      playTick();
-
-      // progress de 0 a 1
+      // progress va de 0 (inicio) a 1 (final)
       const progress = elapsed / durationMs;
-      // empieza en 30ms, termina en ~400ms (curva exponencial para que frene al final)
-      const nextDelay = 30 + Math.pow(progress, 3) * 400;
+      // force va de 1 (inicio) a 0 (final)
+      const force = 1 - progress;
+
+      playTick(force);
+
+      // El retraso aumenta mucho más drásticamente para dar ese efecto de "frenado"
+      // Empieza casi pegado (20ms) y termina en casi un segundo entre ticks (800ms)
+      const nextDelay = 20 + Math.pow(progress, 3) * 800;
 
       setTimeout(tickLoop, nextDelay);
     };
