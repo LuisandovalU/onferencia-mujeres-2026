@@ -37,7 +37,7 @@ export const POST: APIRoute = async ({ request }) => {
     // ── 1. Buscar con pago COMPLETADO ──
     const { data: results, error } = await supabase
       .from('asistentes')
-      .select('id, nombre_completo, status_pago, folio, stripe_session_id, metodo_pago')
+      .select('id, nombre_completo, status_pago, folio, stripe_session_id, metodo_pago, es_brave')
       .or(filterStr)
       .eq('status_pago', 'completado')
       .order('created_at', { ascending: false });
@@ -59,6 +59,7 @@ export const POST: APIRoute = async ({ request }) => {
       const tickets = unique.map(asistente => ({
         id: asistente.id,
         nombre: asistente.nombre_completo,
+        es_brave: asistente.es_brave,
         ticketUrl: `/api/download-ticket?id=${asistente.id}`
       }));
 

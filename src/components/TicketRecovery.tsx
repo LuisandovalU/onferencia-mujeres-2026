@@ -8,8 +8,11 @@ export default function TicketRecovery() {
       error?: string; 
       speiPending?: boolean;
       speiMessage?: string;
-      tickets?: Array<{id: string, nombre: string, ticketUrl: string}> 
+      tickets?: Array<TicketInfo> 
     } | null>(null);
+
+    // Tipo para los tickets recibidos
+    type TicketInfo = { id: string; nombre: string; es_brave?: boolean; ticketUrl: string };
 
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -92,9 +95,28 @@ export default function TicketRecovery() {
                     <div className="mt-12 p-8 bg-white/5 border border-white/10 rounded-[2.5rem] animate-in slide-in-from-bottom duration-700">
                         <p className="text-[#def2c1] text-xl font-black mb-8 uppercase tracking-tight">¡Encontramos {result.tickets.length} boleto{result.tickets.length > 1 ? 's' : ''}!</p>
                         <div className="flex flex-col gap-4">
-                            {result.tickets.map((t) => (
+                            {result.tickets.length > 1 && (
+                                <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 text-left">
+                                    <p className="text-amber-400 text-xs font-bold uppercase tracking-wider mb-1">¡Tienes múltiples boletos!</p>
+                                    <p className="text-amber-200/70 text-xs leading-relaxed">
+                                        Se encontraron {result.tickets.length} entradas asociadas a este número. Por favor descarga <strong>cada boleto</strong> por separado, ya que cada persona necesitará su propio código QR único para entrar.
+                                    </p>
+                                </div>
+                            )}
+                            {result.tickets.map((t, index) => (
                                 <div key={t.id} className="flex flex-col md:flex-row items-center justify-between bg-white/5 p-4 rounded-xl gap-4 border border-white/5">
-                                    <span className="text-white font-medium text-lg text-left">{t.nombre}</span>
+                                    <div className="flex items-center gap-3 text-left">
+                                        <div className="flex flex-col items-start gap-1">
+                                            <span className={`inline-block px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest whitespace-nowrap ${
+                                                t.es_brave
+                                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                                    : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                                            }`}>
+                                                {t.es_brave ? 'Brave' : 'Valiente'} • Boleto {index + 1} de {result.tickets.length}
+                                            </span>
+                                            <span className="text-white font-medium text-lg">{t.nombre}</span>
+                                        </div>
+                                    </div>
                                     <a
                                         href={`${t.ticketUrl}&t=${new Date().getTime()}`}
                                         target="_blank"

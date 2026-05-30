@@ -23,21 +23,29 @@ export const POST: APIRoute = async ({ request }) => {
 
     // 2. Insertar en Supabase
     const { getMXTimestamp } = await import('../../../lib/date-utils');
+    // Si ya pagó completo, se hace check-in automático (no necesita escaneo QR)
+    const insertPayload: Record<string, any> = {
+      nombre_completo: nombre,
+      whatsapp: whatsapp,
+      email: email || null,
+      es_brave: es_brave === true,
+      es_casa: es_casa === true,
+      referido_por: referido_por || 'N/A',
+      monto_total: totalACobrar,
+      monto_pagado: pagado,
+      metodo_pago: metodo_pago || 'efectivo',
+      status_pago: estaPagadoCompletamente ? 'completado' : 'pendiente',
+      created_at: getMXTimestamp(),
+    };
+
+    if (estaPagadoCompletamente) {
+      insertPayload.asistio = true;
+      insertPayload.fecha_checkin = getMXTimestamp();
+    }
+
     const { data: asistente, error: insertError } = await supabase
       .from('asistentes')
-      .insert([{
-        nombre_completo: nombre,
-        whatsapp: whatsapp,
-        email: email || null,
-        es_brave: es_brave === true,
-        es_casa: es_casa === true,
-        referido_por: referido_por || 'N/A',
-        monto_total: totalACobrar,
-        monto_pagado: pagado,
-        metodo_pago: metodo_pago || 'efectivo',
-        status_pago: estaPagadoCompletamente ? 'completado' : 'pendiente',
-        created_at: getMXTimestamp()
-      }])
+      .insert([insertPayload])
       .select()
       .single();
 

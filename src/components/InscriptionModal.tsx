@@ -245,7 +245,33 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
         )}>
           
           {/* PASO 1: Formulario Original */}
-          {step === 1 && (
+          {step === 1 && (() => {
+            // Cierre automático: 31 de mayo 2026, 16:00 hrs (hora de México / CST)
+            const DEADLINE = new Date('2026-05-31T22:00:00Z'); // 4 PM CST = 10 PM UTC
+            const now = new Date();
+            const isClosed = now >= DEADLINE;
+
+            if (isClosed) {
+              return (
+                <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 w-full text-center py-8">
+                  <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center text-amber-500 shadow-sm border border-amber-100 mx-auto mb-6">
+                    <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                  </div>
+                  <h2 id={titleId} className="font-display text-xl font-bold text-neutral-900 sm:text-2xl mb-3">
+                    Inscripciones en línea cerradas
+                  </h2>
+                  <p className="font-body text-sm text-neutral-600 leading-relaxed max-w-sm mx-auto">
+                    Las inscripciones por internet han finalizado. Si deseas asistir, acude directamente a la
+                    <strong className="text-neutral-800"> mesa de registro en el evento</strong> donde podrás inscribirte en persona.
+                  </p>
+                  <button onClick={handleClose} className="mt-8 w-full max-w-xs mx-auto py-3.5 bg-neutral-900 text-white font-semibold rounded-full font-body text-sm uppercase tracking-widest hover:bg-neutral-800 transition shadow-lg">
+                    Entendido
+                  </button>
+                </div>
+              );
+            }
+
+            return (
             <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 w-full">
               <h2 id={titleId} className="font-display pr-10 text-xl font-bold text-neutral-900 sm:text-2xl">
                 Inscripción
@@ -335,7 +361,8 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
                 </p>
               </form>
             </div>
-          )}
+            );
+          })()}
 
           {/* PASO 2: Cargando */}
           {step === 2 && (

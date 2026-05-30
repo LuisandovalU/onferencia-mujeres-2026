@@ -5,7 +5,7 @@ import { supabase } from '../../../lib/supabase';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const { rawText, password } = await request.json();
+    const { rawText, password, es_brave_mode } = await request.json();
 
     // 1. Validar Password
     const adminPass = import.meta.env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD || '';
@@ -72,10 +72,18 @@ export const POST: APIRoute = async ({ request }) => {
     let query = supabase.from('asistentes').select('*');
     
     if (queryField === 'nombre_completo') {
-       query = query.ilike('nombre_completo', `%${queryValue}%`).order('created_at', { ascending: false }).limit(1);
+       query = query.ilike('nombre_completo', `%${queryValue}%`);
     } else {
-       query = query.eq(queryField, queryValue).order('created_at', { ascending: false }).limit(1);
+       query = query.eq(queryField, queryValue);
     }
+
+    // Si es búsqueda manual (no es UUID ni Stripe ID), filtramos estrictamente por el modo del escáner
+    // para evitar cruce de boletos (Ej. "Libni" con boleto en Brave y Valiente)
+    if (es_brave_mode !== undefined && (queryField === 'nombre_completo' || queryField === 'whatsapp' || queryField === 'folio')) {
+      query = query.eq('es_brave', es_brave_mode);
+    }
+
+    query = query.order('created_at', { ascending: false }).limit(1);
 
     const { data: results, error: selectError } = await query;
     const asistente = results?.[0];
