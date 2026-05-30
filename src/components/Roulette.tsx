@@ -8,6 +8,20 @@ interface Participant {
   nombre: string;
 }
 
+// Inicializar el AudioContext una sola vez fuera del componente 
+// para evitar el límite de instancias del navegador (y que deje de sonar al segundo giro)
+let globalAudioCtx: any = null;
+const getAudioContext = () => {
+  if (typeof window === 'undefined') return null;
+  if (!globalAudioCtx) {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (AudioContextClass) {
+      globalAudioCtx = new AudioContextClass();
+    }
+  }
+  return globalAudioCtx;
+};
+
 export default function Roulette() {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [realCount, setRealCount] = useState(0);
@@ -28,31 +42,31 @@ export default function Roulette() {
   // Recibe un parámetro 'force' de 1.0 (inicio) a 0.0 (final) para degradar el sonido
   const playTick = (force = 1.0) => {
     try {
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-      if (!AudioContextClass) return;
-      const audioCtx = new AudioContextClass();
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      if (ctx.state === 'suspended') ctx.resume();
       
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
       
       // Tipo triangle para sonar un poco más seco o a madera que el sine
       osc.type = 'triangle'; 
       
       // La frecuencia empieza más aguda/metálica si va rápido (fuerza 1) y más grave/sorda al final
-      const startFreq = 150 + (400 * force);
-      osc.frequency.setValueAtTime(startFreq, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.05); // baja rápidamente
+      const startFreq = 100 + (600 * force);
+      osc.frequency.setValueAtTime(startFreq, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.05); // baja rápidamente
       
-      // El volumen empieza fuerte (0.4) y termina más débil (0.1)
-      const startVol = 0.1 + (0.3 * force);
-      gain.gain.setValueAtTime(startVol, audioCtx.currentTime); 
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05); // fade out rápido
+      // El volumen empieza fuerte y termina muy débil
+      const startVol = 0.05 + (0.5 * force);
+      gain.gain.setValueAtTime(startVol, ctx.currentTime); 
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05); // fade out rápido
       
       osc.connect(gain);
-      gain.connect(audioCtx.destination);
+      gain.connect(ctx.destination);
       
       osc.start();
-      osc.stop(audioCtx.currentTime + 0.05);
+      osc.stop(ctx.currentTime + 0.05);
     } catch (e) {
       // Ignorar errores de audio
     }
@@ -128,8 +142,8 @@ export default function Roulette() {
       playTick(force);
 
       // El retraso aumenta mucho más drásticamente para dar ese efecto de "frenado"
-      // Empieza casi pegado (20ms) y termina en casi un segundo entre ticks (800ms)
-      const nextDelay = 20 + Math.pow(progress, 3) * 800;
+      // Utilizamos potencia de 4 para que sea muy rápido casi todo el viaje y frene abruptamente al final
+      const nextDelay = 15 + Math.pow(progress, 4) * 1200;
 
       setTimeout(tickLoop, nextDelay);
     };
