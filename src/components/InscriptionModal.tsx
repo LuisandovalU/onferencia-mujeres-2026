@@ -246,8 +246,8 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
           
           {/* PASO 1: Formulario Original */}
           {step === 1 && (() => {
-            // Cierre automático: 31 de mayo 2026, 16:00 hrs (hora de México / CST)
-            const DEADLINE = new Date('2026-05-31T22:00:00Z'); // 4 PM CST = 10 PM UTC
+            // Cierre automático: Hoy 30 de mayo 2026, 23:00 hrs (11:00 PM hora de México / CST)
+            const DEADLINE = new Date('2026-05-31T05:00:00Z'); // 11 PM CST = 5 AM UTC del día siguiente
             const now = new Date();
             const isClosed = now >= DEADLINE;
 
