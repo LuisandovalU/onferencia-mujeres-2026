@@ -29,6 +29,8 @@ export default function Roulette() {
   const [isSpinning, setIsSpinning] = useState(false);
   const [winner, setWinner] = useState<Participant | null>(null);
   const [showName, setShowName] = useState(false);
+  const [spinDuration, setSpinDuration] = useState(12);
+  const [eliminatedFolios, setEliminatedFolios] = useState<Set<number>>(new Set());
   
   // Guardamos la rotación actual para que los siguientes giros continúen desde ahí
   const [currentRotation, setCurrentRotation] = useState(0);
@@ -72,19 +74,21 @@ export default function Roulette() {
     }
   };
 
-  const fetchParticipants = async () => {
+  const fetchParticipants = async (eliminated = eliminatedFolios) => {
     setLoading(true);
     try {
       const res = await fetch('/api/get-roulette-participants');
       const data = await res.json();
       if (data.participants) {
-        setRealCount(data.participants.length);
+        // Filtrar a las que ya ganaron y fueron eliminadas en esta sesión
+        const validParticipants = data.participants.filter((p: Participant) => !eliminated.has(p.folio));
+        setRealCount(validParticipants.length);
         
         // Si hay pocos, duplicamos para que la ruleta se vea llena
-        let list = data.participants;
+        let list = [...validParticipants];
         if (list.length > 0 && list.length < 8) {
             while (list.length < 12) {
-                list = [...list, ...data.participants];
+                list = [...list, ...validParticipants];
             }
         }
         // Desordenar
@@ -124,8 +128,8 @@ export default function Roulette() {
     const extraSpins = 8 + Math.floor(Math.random() * 4); // 8 a 11 vueltas completas
     const targetRotation = currentRotation + (extraSpins * 360) - (currentRotation % 360) + (360 - (winnerIndex * sliceAngle)) - (sliceAngle / 2);
 
-    // Lógica para reproducir el tictac
-    const durationMs = 12000;
+    // Lógica para reproducir el tictac usando el tiempo configurado
+    const durationMs = spinDuration * 1000;
     let startTime = Date.now();
     let isTicking = true;
 
@@ -155,7 +159,7 @@ export default function Roulette() {
     controls.start({
       rotate: targetRotation,
       transition: {
-        duration: 12,
+        duration: spinDuration,
         ease: [0.2, 0.8, 0.2, 1], // Ease out cubic
       }
     }).then(() => {
@@ -305,14 +309,46 @@ export default function Roulette() {
           </div>
         </div>
         
-        <button
-          onClick={fetchParticipants}
-          disabled={loading || isSpinning}
-          className="flex items-center gap-2 px-6 py-3 bg-[#364e44] hover:bg-[#283b31] border border-[#e8e1d3]/20 rounded-xl text-[#e8e1d3] font-bold text-sm uppercase tracking-widest transition-all disabled:opacity-50"
-        >
-          <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-          Actualizar Asistencias
-        </button>
+        <div className="flex items-center gap-8">
+          {/* Ajustador de Tiempo */}
+          <div className="flex flex-col items-center gap-1">
+            <label className="text-white/60 text-[10px] font-bold uppercase tracking-widest">
+              Giro: {spinDuration} seg
+            </label>
+            <input 
+              type="range" 
+              min="3" 
+              max="30" 
+              value={spinDuration} 
+              onChange={(e) => setSpinDuration(Number(e.target.value))}
+              disabled={isSpinning}
+              className="w-24 accent-[#e8e1d3] disabled:opacity-50 cursor-pointer"
+            />
+          </div>
+
+          {/* Botones de Control */}
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={() => fetchParticipants(eliminatedFolios)}
+              disabled={loading || isSpinning}
+              className="flex items-center justify-center gap-2 px-6 py-2 bg-[#364e44] hover:bg-[#283b31] border border-[#e8e1d3]/20 rounded-xl text-[#e8e1d3] font-bold text-xs uppercase tracking-widest transition-all disabled:opacity-50"
+            >
+              <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+              Actualizar
+            </button>
+            <button
+              onClick={() => {
+                const emptySet = new Set<number>();
+                setEliminatedFolios(emptySet);
+                fetchParticipants(emptySet);
+              }}
+              disabled={loading || isSpinning || eliminatedFolios.size === 0}
+              className="flex items-center justify-center gap-2 px-6 py-2 bg-red-900/40 hover:bg-red-900/80 border border-red-500/20 rounded-xl text-red-200 font-bold text-xs uppercase tracking-widest transition-all disabled:opacity-50"
+            >
+              Resetear Sorteo
+            </button>
+          </div>
+        </div>
       </div>
 
       {loading && participants.length === 0 ? (
@@ -361,6 +397,26 @@ export default function Roulette() {
              >
                <p className="text-[#364e44]/60 text-xs font-bold uppercase tracking-widest mb-1">A nombre de</p>
                <p className="text-[#364e44] font-black text-3xl uppercase">{winner.nombre}</p>
+
+               <button
+                 onClick={() => {
+                   // Añadir a la ganadora a eliminadas
+                   const newEliminated = new Set(eliminatedFolios);
+                   newEliminated.add(winner.folio);
+                   setEliminatedFolios(newEliminated);
+                   
+                   // Limpiar inmediatamente visualmente para que no se vea
+                   setParticipants(prev => prev.filter(p => p.folio !== winner.folio));
+                   setRealCount(prev => prev - 1);
+                   
+                   // Cerrar modal
+                   setWinner(null);
+                   setShowName(false);
+                 }}
+                 className="mt-8 w-full py-4 bg-[#364e44] hover:bg-[#283b31] text-[#e8e1d3] rounded-2xl font-black uppercase tracking-widest text-sm transition-all shadow-xl"
+               >
+                 Siguiente Sorteo
+               </button>
              </motion.div>
           ) : (
              <button
