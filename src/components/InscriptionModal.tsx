@@ -263,9 +263,16 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
                   <p className="font-body text-sm text-neutral-600 leading-relaxed max-w-sm mx-auto">
                     Las ventas por internet están cerradas, pero podrás comprar tu boleto directamente en la <strong>mesa de registro</strong> del evento a partir de las <strong>2:00 PM</strong>.
                   </p>
-                  <button onClick={handleClose} className="mt-8 w-full max-w-xs mx-auto py-3.5 bg-neutral-900 text-white font-semibold rounded-full font-body text-sm uppercase tracking-widest hover:bg-neutral-800 transition shadow-lg">
-                    Entendido
-                  </button>
+                  <a 
+                    href="https://maps.google.com/maps?q=Gran+Sal%C3%B3n+del+Valle" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    onClick={handleClose} 
+                    className="mt-8 w-full max-w-xs mx-auto py-3.5 bg-emerald-700 text-white font-semibold rounded-full font-body text-sm uppercase tracking-widest hover:bg-emerald-800 transition shadow-lg flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.242-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    Ver ubicación
+                  </a>
                 </div>
               );
             }
