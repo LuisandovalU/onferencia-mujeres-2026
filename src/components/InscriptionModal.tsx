@@ -258,12 +258,10 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
                     <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                   </div>
                   <h2 id={titleId} className="font-display text-xl font-bold text-neutral-900 sm:text-2xl mb-3">
-                    Inscripciones en línea cerradas
+                    ¡Aún hay lugar para ti!
                   </h2>
                   <p className="font-body text-sm text-neutral-600 leading-relaxed max-w-sm mx-auto">
-                    Las ventas por internet están cerradas, pero <strong className="text-emerald-700">¡AÚN HAY LUGARES!</strong>
-                    <br /><br />
-                    Podrás comprar tu boleto directamente en la <strong>mesa de registro</strong> del evento a partir de las <strong>2:00 PM</strong>.
+                    Las ventas por internet están cerradas, pero podrás comprar tu boleto directamente en la <strong>mesa de registro</strong> del evento a partir de las <strong>2:00 PM</strong>.
                   </p>
                   <button onClick={handleClose} className="mt-8 w-full max-w-xs mx-auto py-3.5 bg-neutral-900 text-white font-semibold rounded-full font-body text-sm uppercase tracking-widest hover:bg-neutral-800 transition shadow-lg">
                     Entendido
