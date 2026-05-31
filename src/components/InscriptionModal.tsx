@@ -261,8 +261,7 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
                     Inscripciones en línea cerradas
                   </h2>
                   <p className="font-body text-sm text-neutral-600 leading-relaxed max-w-sm mx-auto">
-                    Las inscripciones por internet han finalizado. Si deseas asistir, acude directamente a la
-                    <strong className="text-neutral-800"> mesa de registro en el evento</strong> donde podrás inscribirte en persona.
+                    Las inscripciones por internet han finalizado. Recuerda que la conferencia <strong className="text-purple-700">Valiente</strong> es mañana a las <strong>3:00 PM</strong>. Si aún no tienes boleto, te sugerimos llegar a las <strong>2:00 PM</strong> para poder inscribirte directamente en la mesa de registro físico antes de que comience el evento.
                   </p>
                   <button onClick={handleClose} className="mt-8 w-full max-w-xs mx-auto py-3.5 bg-neutral-900 text-white font-semibold rounded-full font-body text-sm uppercase tracking-widest hover:bg-neutral-800 transition shadow-lg">
                     Entendido
