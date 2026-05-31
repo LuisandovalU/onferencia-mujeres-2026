@@ -36,7 +36,13 @@ export default function NewRegistrationForm({ password, onSuccess }: NewRegistra
 
       const data = await response.json();
       if (response.ok) {
-        setResult({ success: true, ticketUrl: data.ticketUrl, mensaje: data.mensaje });
+        setResult({ 
+          success: true, 
+          ticketUrl: data.ticketUrl, 
+          mensaje: data.mensaje,
+          nombre: data.asistente?.nombre_completo,
+          folio: data.asistente?.folio
+        });
         setFormData({ ...INITIAL_FORM });
         onSuccess();
       } else {
@@ -57,10 +63,28 @@ export default function NewRegistrationForm({ password, onSuccess }: NewRegistra
       {result?.success && (
         <div className="mb-8 p-8 bg-emerald-50 border border-emerald-200 rounded-2xl text-center
                         animate-[fadeIn_0.4s_ease-out]">
-          <p className="text-gray-800 font-bold text-lg mb-1 font-montserrat">
+          <div className="mb-4 flex justify-center">
+             <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center">
+                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"></path></svg>
+             </div>
+          </div>
+          <p className="text-gray-800 font-bold text-lg mb-2 font-montserrat">
             {result.mensaje || '¡Registro exitoso!'}
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center mt-5">
+          
+          {result.nombre && result.folio && (
+            <div className="mt-4 mb-6 p-5 bg-white rounded-xl border border-emerald-100 shadow-sm inline-block text-left min-w-[280px]">
+              <p className="text-[10px] text-gray-400 uppercase tracking-[0.2em] font-bold mb-1 font-montserrat">Asistente Registrada</p>
+              <p className="text-gray-900 text-xl font-black mb-2">{result.nombre}</p>
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 bg-emerald-100 text-emerald-800 font-black rounded-lg text-lg">
+                  Folio: {result.folio}
+                </span>
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mt-2">
             {result.ticketUrl && (
               <a href={result.ticketUrl} target="_blank"
                 className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-8 rounded-xl

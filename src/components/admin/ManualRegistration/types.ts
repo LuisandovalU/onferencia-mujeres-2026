@@ -26,6 +26,8 @@ export interface ResultMessage {
   error?: string;
   ticketUrl?: string;
   mensaje?: string;
+  nombre?: string;
+  folio?: number;
 }
 
 export interface Asistente {
