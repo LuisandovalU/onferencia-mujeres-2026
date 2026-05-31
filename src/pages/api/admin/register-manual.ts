@@ -28,7 +28,7 @@ export const POST: APIRoute = async ({ request }) => {
       nombre_completo: nombre,
       whatsapp: whatsapp,
       email: email || null,
-      es_brave: es_brave === true,
+      es_brave: false, // FRC: Todo nuevo registro manual hoy es Valiente obligatoriamente
       es_casa: es_casa === true,
       referido_por: referido_por || 'N/A',
       monto_total: totalACobrar,

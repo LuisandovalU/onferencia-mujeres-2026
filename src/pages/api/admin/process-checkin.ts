@@ -78,10 +78,10 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // Si es búsqueda manual (no es UUID ni Stripe ID), filtramos estrictamente por el modo del escáner
-    // para evitar cruce de boletos (Ej. "Libni" con boleto en Brave y Valiente)
-    if (es_brave_mode !== undefined && (queryField === 'nombre_completo' || queryField === 'whatsapp' || queryField === 'folio')) {
-      query = query.eq('es_brave', es_brave_mode);
-    }
+    // HOY: Comentamos esto para que pueda encontrar a las inscritas en Brave por equivocación
+    // if (es_brave_mode !== undefined && (queryField === 'nombre_completo' || queryField === 'whatsapp' || queryField === 'folio')) {
+    //  query = query.eq('es_brave', es_brave_mode);
+    // }
 
     query = query.order('created_at', { ascending: false }).limit(1);
 
@@ -110,13 +110,14 @@ export const POST: APIRoute = async ({ request }) => {
       }), { status: 200 });
     }
 
-    // 5. Marcar Asistencia
+    // 5. Marcar Asistencia y CONVERTIR A VALIENTE
     const { getMXTimestamp } = await import('../../../lib/date-utils');
     const { error: updateError } = await supabase
       .from('asistentes')
       .update({ 
         asistio: true, 
-        fecha_checkin: getMXTimestamp() 
+        fecha_checkin: getMXTimestamp(),
+        es_brave: false // FRC: Convertimos automáticamente a Valiente
       })
       .eq('id', asistente.id);
 
