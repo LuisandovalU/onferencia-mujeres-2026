@@ -249,7 +249,7 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
             // Cierre automático: Hoy 30 de mayo 2026, 23:59 hrs (11:59 PM hora de México / CST)
             const DEADLINE = new Date('2026-05-31T05:59:00Z'); // 11:59 PM CST = 5:59 AM UTC del día siguiente
             const now = new Date();
-            const isClosed = true; // FORZADO PARA PRUEBA LOCAL (original: now >= DEADLINE)
+            const isClosed = now >= DEADLINE;
 
             if (isClosed) {
               return (
