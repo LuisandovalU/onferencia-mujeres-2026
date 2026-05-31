@@ -249,7 +249,7 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
             // Cierre automático: Hoy 30 de mayo 2026, 23:59 hrs (11:59 PM hora de México / CST)
             const DEADLINE = new Date('2026-05-31T05:59:00Z'); // 11:59 PM CST = 5:59 AM UTC del día siguiente
             const now = new Date();
-            const isClosed = now >= DEADLINE;
+            const isClosed = true; // FORZADO PARA PRUEBA LOCAL (original: now >= DEADLINE)
 
             if (isClosed) {
               return (
@@ -261,7 +261,7 @@ export function InscriptionModal({ open: propOpen, onClose, presetConferencia: p
                     Inscripciones en línea cerradas
                   </h2>
                   <p className="font-body text-sm text-neutral-600 leading-relaxed max-w-sm mx-auto">
-                    Las inscripciones por internet han finalizado. Te recordamos que la conferencia <strong className="text-purple-700">Valiente</strong> se llevará a cabo el <strong>31 de mayo a las 3:00 PM</strong> en el <strong>Gran Salón del Valle</strong>. Si aún no tienes boleto, te sugerimos llegar a las <strong>2:00 PM</strong> para poder realizar tu registro físicamente en la entrada antes de comenzar el evento.
+                    Las inscripciones por internet han finalizado. Recuerda que la conferencia <strong className="text-emerald-700">Valiente</strong> es mañana a las <strong>3:00 PM</strong>. Si aún no tienes boleto, te sugerimos llegar a las <strong>2:00 PM</strong> para poder inscribirte directamente en la mesa de registro físico antes de que comience el evento.
                   </p>
                   <button onClick={handleClose} className="mt-8 w-full max-w-xs mx-auto py-3.5 bg-neutral-900 text-white font-semibold rounded-full font-body text-sm uppercase tracking-widest hover:bg-neutral-800 transition shadow-lg">
                     Entendido
