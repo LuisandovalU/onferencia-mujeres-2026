@@ -260,9 +260,9 @@ export default function AdminDashboard() {
 
   // Helper para el Flujo de Entrada (Bloques de 30 mins)
   const calculateFlowChart = (attendees: AsistenteRaw[]) => {
-    let beforeFive = 0; // "4:30 PM" (Todo antes de las 17:00)
-    let fiveToFiveThirty = 0; // "5:00 PM" (17:00 a 17:29)
-    let afterFiveThirty = 0; // "Después de 5:30" (17:30 en adelante)
+    let beforeThree = 0; // "2:30 PM" (Todo antes de las 15:00)
+    let threeToThreeThirty = 0; // "3:00 PM" (15:00 a 15:29)
+    let afterThreeThirty = 0; // "Después de 3:30" (15:30 en adelante)
 
     attendees.forEach(a => {
       if (a.asistio && a.fecha_checkin) {
@@ -271,12 +271,12 @@ export default function AdminDashboard() {
           let hours = date.getHours();
           let minutes = date.getMinutes();
           
-          if (hours < 17) {
-            beforeFive++;
-          } else if (hours === 17 && minutes < 30) {
-            fiveToFiveThirty++;
+          if (hours < 15) {
+            beforeThree++;
+          } else if (hours === 15 && minutes < 30) {
+            threeToThreeThirty++;
           } else {
-            afterFiveThirty++;
+            afterThreeThirty++;
           }
         } catch (e) {
           // ignore invalid dates
@@ -285,9 +285,9 @@ export default function AdminDashboard() {
     });
     
     return [
-      { time: '4:30 PM', count: beforeFive },
-      { time: '5:00 PM', count: fiveToFiveThirty },
-      { time: 'Después de 5:30', count: afterFiveThirty }
+      { time: '2:30 PM', count: beforeThree },
+      { time: '3:00 PM', count: threeToThreeThirty },
+      { time: 'Después de 3:30', count: afterThreeThirty }
     ];
   };
 
