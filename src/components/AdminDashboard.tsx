@@ -469,40 +469,27 @@ export default function AdminDashboard() {
               </div>
 
               <AnimatePresence mode="wait">
-                {selectedEvent === 'Valiente' && (
-                  <motion.div
-                    key="valiente-view"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="glass-card p-12 rounded-[3rem] border border-white/10 text-center mb-12">
-                      <Clock size={48} className="mx-auto text-brave-light-soft/50 mb-6" />
-                      <h3 className="text-xl font-black text-white uppercase tracking-widest mb-2">Evento por realizar</h3>
-                      <p className="text-sm text-brave-light-soft/70">Los datos de logística y check-in se reflejarán el día del evento.</p>
-                    </div>
-                  </motion.div>
-                )}
-
-                {selectedEvent === 'Brave' && (() => {
-                  const data = getEventSpecificStats('Brave');
+                {(selectedEvent === 'Brave' || selectedEvent === 'Valiente') && (() => {
+                  const data = getEventSpecificStats(selectedEvent);
                   if (!data) return null;
                   const { attendedCount, pendingCount, digitalCount, efectivoCount, casaCount, visitaCount, flowData, attendedList, pendingList } = data;
 
+                  const themeColor = selectedEvent === 'Brave' ? '#d4af37' : '#e8e1d3';
+                  const highlightColor = selectedEvent === 'Brave' ? 'text-[#d4af37]' : 'text-[#e8e1d3]';
+
                   return (
                     <motion.div
-                      key="brave-view"
+                      key={`${selectedEvent.toLowerCase()}-view`}
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
                       className="space-y-8 mb-12 overflow-hidden"
                     >
-                      {/* Metricas Brave */}
+                      {/* Metricas de Evento */}
                       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div className="glass-card p-6 rounded-[2rem] border border-white/10 bg-white/5 relative overflow-hidden group hover:bg-white/10 transition-colors">
                           <div className="flex items-center gap-3 mb-2">
-                            <UserCheck className="text-[#d4af37]" size={20} />
+                            <UserCheck className={highlightColor} size={20} />
                             <h4 className="text-[10px] font-black uppercase tracking-widest text-brave-light-soft/70">Asistencia</h4>
                           </div>
                           <div className="flex items-baseline gap-2">
@@ -558,7 +545,7 @@ export default function AdminDashboard() {
                                 />
                                 <YAxis hide />
                                 <Tooltip content={<CustomTooltip />} cursor={{ fill: '#ffffff05' }} />
-                                <Bar dataKey="count" fill="#d4af37" radius={[10, 10, 0, 0]} barSize={40} animationDuration={1500} />
+                                <Bar dataKey="count" fill={themeColor} radius={[10, 10, 0, 0]} barSize={40} animationDuration={1500} />
                               </BarChart>
                             </ResponsiveContainer>
                           ) : (
@@ -597,7 +584,7 @@ export default function AdminDashboard() {
                                 <option value="visita" className="bg-zinc-900 text-white">Visitas</option>
                               </select>
                               <button
-                                onClick={() => handleDownloadCSV(attendedList, 'Asistio', 'brave_asistentes_filtrado.csv')}
+                                onClick={() => handleDownloadCSV(attendedList, 'Asistio', `${selectedEvent.toLowerCase()}_asistentes_filtrado.csv`)}
                                 className="p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-brave-light-soft transition-all flex-shrink-0"
                                 title="Descargar CSV"
                               >
@@ -663,7 +650,7 @@ export default function AdminDashboard() {
                                 <option value="visita" className="bg-zinc-900 text-white">Visitas</option>
                               </select>
                               <button
-                                onClick={() => handleDownloadCSV(pendingList, 'No Asistio', 'brave_seguimiento_pendiente.csv')}
+                                onClick={() => handleDownloadCSV(pendingList, 'No Asistio', `${selectedEvent.toLowerCase()}_seguimiento_pendiente.csv`)}
                                 className="p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-brave-light-soft transition-all flex-shrink-0"
                                 title="Descargar CSV"
                               >
